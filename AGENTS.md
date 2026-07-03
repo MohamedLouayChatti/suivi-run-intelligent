@@ -1,0 +1,298 @@
+# AI Support Intelligence Platform
+
+## Purpose
+
+This project is an enterprise-grade modular monolith built during an internship.
+
+The objective is **not** to build another chatbot.
+
+The objective is to reduce unnecessary Level 3 escalations by helping Level 2 support engineers reuse organizational knowledge.
+
+The platform combines:
+
+- Incident management
+- Knowledge retrieval
+- AI-assisted troubleshooting
+- Knowledge generation
+- Retrieval-Augmented Generation (RAG)
+
+---
+
+# Architectural Goals
+
+Design decisions should favor:
+
+- loose coupling
+- modularity
+- maintainability
+- replaceable infrastructure
+- explicit boundaries
+- domain-driven design
+- asynchronous processing
+- scalability
+
+Implementation convenience should never compromise architecture.
+
+---
+
+# Architecture
+
+The application is an Async FastAPI Modular Monolith.
+
+Core technologies:
+
+- Python
+- FastAPI
+- SQLAlchemy Async
+- Alembic
+- PostgreSQL
+- pgvector
+- Redis
+- LangGraph
+- JWT Authentication with external auth provider (Clerk)
+- Server-Sent Events
+- uv
+
+Communication between modules occurs through:
+
+- Application interfaces (synchronous)
+- Domain Events (asynchronous)
+
+Never access another module's database models directly.
+
+---
+
+# Layers
+
+Every module follows:
+
+API
+
+↓
+
+Application
+
+↓
+
+Domain
+
+↓
+
+Infrastructure
+
+Dependencies point inward only.
+
+Infrastructure depends on Domain.
+
+Domain never depends on Infrastructure.
+
+---
+
+# Module Responsibilities
+
+## Auth
+
+Authentication
+
+Authorization
+
+User identity
+
+RBAC
+
+---
+
+## Ticket Management
+
+Owns ticket lifecycle.
+
+Responsible for:
+
+- Ticket creation
+- Assignment
+- SLA
+- Status transitions
+
+Publishes:
+
+- TicketCreated
+- TicketClosed
+- TicketEscalated
+
+Must never know AI exists.
+
+---
+
+## Knowledge Base
+
+Responsible for:
+
+Document ingestion
+
+Chunking
+
+Embedding generation
+
+Hybrid retrieval
+
+Vector indexing
+
+---
+
+## Incident Intelligence
+
+Listens to TicketCreated.
+
+Finds similar historical incidents.
+
+Combines:
+
+- semantic similarity
+- metadata filtering
+- ranking
+
+Produces recommendations.
+
+---
+
+## Conversational Assistant
+
+Owns LangGraph.
+
+Provides AI assistance.
+
+Never directly queries databases.
+
+Uses module interfaces only.
+
+Streams responses through SSE.
+
+Agent execution is asynchronous and decoupled from HTTP requests.
+
+The agent run is a background job.
+
+---
+
+## Knowledge Generation
+
+Listens to TicketClosed.
+
+Creates draft knowledge articles.
+
+Requires human approval.
+
+Never auto-publishes.
+
+---
+
+## Analytics
+
+Provides reporting.
+
+Should remain independent from operational workflows.
+
+---
+
+# AI Principles
+
+LLMs are infrastructure.
+
+Never call OpenAI (or another provider) directly from business logic.
+
+Use abstractions:
+
+- LLMProvider
+- EmbeddingProvider
+- Reranker
+
+Infrastructure provides implementations.
+
+---
+
+# Event-Driven Architecture
+
+Modules communicate using domain events.
+
+Examples:
+
+TicketCreated
+
+↓
+
+Incident Intelligence
+
+↓
+
+Knowledge Generation
+
+↓
+
+Analytics
+
+Avoid direct module coupling whenever asynchronous reactions are appropriate.
+
+---
+
+# Async Principles
+
+All I/O must be asynchronous.
+
+Use:
+
+- async SQLAlchemy
+- async Redis
+- async LangGraph
+- async HTTP clients
+
+CPU-intensive work should execute in background workers.
+
+---
+
+# Repository Rules
+
+Repositories belong to the Domain.
+
+Implementations belong to Infrastructure.
+
+Application depends only on repository interfaces.
+
+---
+
+# Public Module APIs
+
+Each module exposes only its Application layer.
+
+Other modules may never import:
+
+- ORM models
+- Infrastructure
+- Database tables
+- Internal services
+
+---
+
+# Architectural Priorities
+
+When making decisions, prioritize in this order:
+
+1. Correct architecture
+2. Clear module boundaries
+3. Domain modeling
+4. Maintainability
+5. Performance
+6. Implementation simplicity
+
+---
+
+# Updating this document
+
+Whenever architecture changes:
+
+- Update this document.
+- Keep module responsibilities current.
+- Record new domain events.
+- Document new interfaces.
+- Explain major architectural decisions.
+- Keep folder structure synchronized with reality.
+
+This file is the single source of truth for the project's architecture.
