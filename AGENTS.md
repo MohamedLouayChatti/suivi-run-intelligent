@@ -37,7 +37,7 @@ Implementation convenience should never compromise architecture.
 
 # Architecture
 
-The application is an Async FastAPI Modular Monolith based on Clean Achitecture withtin each module.
+The application is an Async FastAPI Modular Monolith based on Clean Architecture within each module.
 
 Core technologies:
 
@@ -104,20 +104,36 @@ RBAC
 
 ## Ticket Management
 
-Owns ticket lifecycle.
+Owns the ticket lifecycle and domain invariants.
 
-Responsible for:
+Domain model currently includes:
 
-- Ticket creation
-- Assignment
-- SLA
-- Status transitions
+- Ticket aggregate
+- Comment entity
+- Attachment entity
+- Application, Priority, and Status enums
+- TicketRepository contract
 
-Publishes:
+Business rules currently covered in the domain layer:
+
+- Ticket creation and validation
+- Assignment and reassignment
+- Status transitions between OPEN, IN_PROGRESS, PENDING, RESOLVED, and CLOSED
+- Priority changes
+- Application transfers
+- Comment creation, editing, and deletion
+- Attachment creation and deletion
+- Archive handling
+- Guard clauses for empty titles, descriptions, comments, and invalid transitions
+
+Publishes domain events for:
 
 - TicketCreated
-- TicketClosed
-- TicketEscalated
+- TicketAssigned
+- TicketStatusChanged
+- PriorityChanged
+- CommentAdded
+- AttachmentAdded
 
 Must never know AI exists.
 
@@ -216,6 +232,16 @@ Modules communicate using domain events.
 Examples:
 
 TicketCreated
+
+TicketAssigned
+
+TicketStatusChanged
+
+PriorityChanged
+
+CommentAdded
+
+AttachmentAdded
 
 ↓
 
