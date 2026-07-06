@@ -37,7 +37,7 @@ Implementation convenience should never compromise architecture.
 
 # Architecture
 
-The application is an Async FastAPI Modular Monolith.
+The application is an Async FastAPI Modular Monolith based on Clean Achitecture withtin each module.
 
 Core technologies:
 
@@ -281,6 +281,7 @@ When making decisions, prioritize in this order:
 4. Maintainability
 5. Performance
 6. Implementation simplicity
+7. Clean architecture principles
 
 ---
 

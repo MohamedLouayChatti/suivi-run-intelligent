@@ -30,7 +30,7 @@ env/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Environment Variables & Secrets (CRITICAL for FastAPI / LangGraph API keys)
+# Environment Variables & Secrets
 .env
 .env.*
 !.env.example

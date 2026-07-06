@@ -4,15 +4,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from app.modules.ticket_management.domain.enums.priority import Priority
 from app.modules.ticket_management.domain.enums.status import Status
 
 
 @dataclass(frozen=True)
-class TicketCreated:
+class TicketStatusChanged:
 	ticket_id: UUID
-	title: str
-	description: str
-	status: Status
-	priority: Priority
-	created_at: datetime
+	old_status: Status
+	new_status: Status
+	changed_at: datetime
