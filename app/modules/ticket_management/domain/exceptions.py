@@ -28,6 +28,14 @@ class TicketNotAssigned(TicketDomainError):
 class TicketClosed(TicketDomainError):
 	pass
 
+class TicketArchived(TicketDomainError):
+	pass
+
+class CommentDeleted(TicketDomainError):
+	pass
+
+class AttachmentDeleted(TicketDomainError):
+	pass
 
 class DuplicateAttachment(TicketDomainError):
 	pass
@@ -46,4 +54,7 @@ class EmptyDescription(TicketDomainError):
 
 
 class InvalidAssignee(TicketDomainError):
+	pass
+
+class SameApplicationTransfer(TicketDomainError):
 	pass

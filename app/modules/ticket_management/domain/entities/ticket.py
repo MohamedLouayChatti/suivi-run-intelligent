@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.modules.ticket_management.domain.entities.attachment import Attachment
 from app.modules.ticket_management.domain.entities.comment import Comment
+from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.priority import Priority
 from app.modules.ticket_management.domain.enums.status import Status
 from app.modules.ticket_management.domain.exceptions import (
@@ -20,6 +21,8 @@ from app.modules.ticket_management.domain.exceptions import (
 	TicketAlreadyAssigned,
 	TicketClosed,
 	TicketNotAssigned,
+	SameApplicationTransfer,
+	TicketArchived
 )
 
 
@@ -28,6 +31,7 @@ class Ticket:
 	id: UUID
 	title: str
 	description: str
+	application: Application
 	status: Status
 	priority: Priority
 	assignee_id: UUID | None
@@ -39,6 +43,7 @@ class Ticket:
 	resolution_notes: str | None = None
 	comments: list[Comment] = field(default_factory=list)
 	attachments: list[Attachment] = field(default_factory=list)
+	archived_at: datetime | None = None
 
 	@classmethod
 	def create(
@@ -49,6 +54,7 @@ class Ticket:
 		description: str,
 		priority: Priority,
 		created_at: datetime,
+		application: Application,
 		assignee_id: UUID | None = None,
 	) -> Ticket:
 		if not title.strip():
@@ -61,17 +67,32 @@ class Ticket:
 			id=id,
 			title=title,
 			description=description,
+			application=application,
 			status=Status.OPEN,
 			priority=priority,
 			assignee_id=assignee_id,
 			created_at=created_at,
 			updated_at=created_at,
+			archived_at=None
 		)
 		return ticket
 
 	def _ensure_not_closed(self) -> None:
 		if self.status == Status.CLOSED:
 			raise TicketClosed()
+		
+	def _ensure_not_archived(self) -> None:
+		if self.archived_at is not None:
+			raise TicketArchived()
+		
+	def _ensure_mutable(self) -> None:
+		self._ensure_not_closed()
+		self._ensure_not_archived()
+		
+	def archive(self, archived_at: datetime) -> None:
+		self._ensure_not_archived()
+		self.archived_at = archived_at
+		self.updated_at = archived_at
 
 	def _transition_to(self, new_status: Status, changed_at: datetime) -> None:
 		if self.status == Status.CLOSED:
@@ -91,7 +112,7 @@ class Ticket:
 		self.updated_at = changed_at
 
 	def assign(self, assignee_id: UUID, assigned_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		if assignee_id is None:
 			raise InvalidAssignee()
 		if self.assignee_id is not None:
@@ -100,7 +121,7 @@ class Ticket:
 		self.updated_at = assigned_at
 
 	def reassign(self, assignee_id: UUID, reassigned_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		if assignee_id is None:
 			raise InvalidAssignee()
 		if self.assignee_id is None:
@@ -112,14 +133,14 @@ class Ticket:
 		self._transition_to(Status.IN_PROGRESS, started_at)
 
 	def mark_pending(self, reason: str, pending_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		if not reason.strip():
 			raise PendingReasonRequired()
 		self._transition_to(Status.PENDING, pending_at)
 		self.pending_reason = reason
 
 	def resume(self, resumed_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		if self.status == Status.PENDING:
 			self.pending_reason = None
 			self._transition_to(Status.IN_PROGRESS, resumed_at)
@@ -132,7 +153,7 @@ class Ticket:
 		raise InvalidStatusTransition()
 
 	def resolve(self, notes: str, resolved_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		if not notes.strip():
 			raise ResolutionNotesRequired()
 		self._transition_to(Status.RESOLVED, resolved_at)
@@ -141,7 +162,7 @@ class Ticket:
 		self.pending_reason = None
 
 	def close(self, closed_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		if self.status != Status.RESOLVED:
 			raise InvalidStatusTransition()
 		self.status = Status.CLOSED
@@ -149,21 +170,34 @@ class Ticket:
 		self.updated_at = closed_at
 
 	def change_priority(self, priority: Priority, changed_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		self.priority = priority
 		self.updated_at = changed_at
 
 	def add_comment(self, comment: Comment, added_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		if not comment.content.strip():
 			raise EmptyComment()
 		self.comments.append(comment)
 		self.updated_at = added_at
 
 	def add_attachment(self, attachment: Attachment, added_at: datetime) -> None:
-		self._ensure_not_closed()
+		self._ensure_mutable()
 		if any(existing.id == attachment.id for existing in self.attachments):
 			raise DuplicateAttachment()
 		self.attachments.append(attachment)
 		self.updated_at = added_at
 
+	def transfer_application(self, new_application: Application, new_assignee: UUID, transferred_at: datetime) -> None:
+		self._ensure_mutable()
+
+		if self.application == new_application:
+			raise SameApplicationTransfer()
+		if new_assignee is None:
+			raise InvalidAssignee()
+		if self.assignee_id is None:
+			raise TicketNotAssigned()
+
+		self.application = new_application
+		self.assignee_id = new_assignee
+		self.updated_at = transferred_at
