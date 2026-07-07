@@ -12,6 +12,6 @@ class TicketTransferred:
 	ticket_id: UUID
 	old_application: Application
 	new_application: Application
-	old_assignee_id: UUID
+	old_assignee_id: UUID | None
 	new_assignee_id: UUID
 	transferred_at: datetime

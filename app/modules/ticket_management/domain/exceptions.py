@@ -31,6 +31,16 @@ class TicketClosed(TicketDomainError):
 class TicketArchived(TicketDomainError):
 	pass
 
+class TicketNotArchived(TicketDomainError):
+	pass
+
+class CommentNotFound(TicketDomainError):
+	pass
+
+
+class AttachmentNotFound(TicketDomainError):
+	pass
+
 class CommentDeleted(TicketDomainError):
 	pass
 

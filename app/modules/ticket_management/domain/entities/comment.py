@@ -57,4 +57,4 @@ class Comment:
 		if any(existing.id == attachment.id for existing in self.attachments):
 			raise DuplicateAttachment()
 		self.attachments.append(attachment)
-		self.updated_at = added_at
+		self.edited_at = added_at

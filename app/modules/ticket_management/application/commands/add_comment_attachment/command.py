@@ -6,8 +6,9 @@ from uuid import UUID
 
 
 @dataclass(frozen=True)
-class AddAttachmentCommand:
+class AddCommentAttachmentCommand:
 	ticket_id: UUID
+	comment_id: UUID
 	attachment_id: UUID
 	filename: str
 	content_type: str

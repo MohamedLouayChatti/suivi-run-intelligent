@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.modules.ticket_management.application.commands.delete_attachment.command import DeleteAttachmentCommand
+from app.modules.ticket_management.application.commands.delete_ticket_attachment.command import DeleteTicketAttachmentCommand
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO
 from app.modules.ticket_management.application.exceptions import AttachmentNotFound, TicketNotFound
 from app.modules.ticket_management.application.interfaces.event_publisher import EventPublisher
@@ -8,12 +8,12 @@ from app.modules.ticket_management.application.interfaces.unit_of_work import Un
 from app.modules.ticket_management.domain.events.attachment_deleted import AttachmentDeleted
 
 
-class DeleteAttachmentHandler:
+class DeleteTicketAttachmentHandler:
 	def __init__(self, uow: UnitOfWork, event_publisher: EventPublisher) -> None:
 		self.uow = uow
 		self.event_publisher = event_publisher
 
-	async def handle(self, command: DeleteAttachmentCommand) -> TicketDetailDTO:
+	async def handle(self, command: DeleteTicketAttachmentCommand) -> TicketDetailDTO:
 		ticket = await self.uow.tickets.get(command.ticket_id)
 		if ticket is None:
 			raise TicketNotFound()

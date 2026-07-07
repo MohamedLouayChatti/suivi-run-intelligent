@@ -17,8 +17,7 @@ class RestoreTicketHandler:
 		ticket = await self.uow.tickets.get(command.ticket_id)
 		if ticket is None:
 			raise TicketNotFound()
-		ticket.archived_at = None
-		ticket.updated_at = command.restored_at
+		ticket.restore(command.restored_at)
 		await self.uow.tickets.save(ticket)
 		try:
 			await self.uow.commit()

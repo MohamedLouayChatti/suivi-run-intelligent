@@ -6,7 +6,7 @@ from uuid import UUID
 
 
 @dataclass(frozen=True)
-class DeleteAttachmentCommand:
+class DeleteTicketAttachmentCommand:
 	ticket_id: UUID
 	attachment_id: UUID
 	deleted_at: datetime
