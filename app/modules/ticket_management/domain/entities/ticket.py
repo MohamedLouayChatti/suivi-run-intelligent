@@ -139,6 +139,7 @@ class Ticket:
 		self.updated_at = reassigned_at
 
 	def start_progress(self, started_at: datetime) -> None:
+		self._ensure_mutable()
 		self._transition_to(Status.IN_PROGRESS, started_at)
 
 	def mark_pending(self, reason: str, pending_at: datetime) -> None:
