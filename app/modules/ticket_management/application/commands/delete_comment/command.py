@@ -1,0 +1,12 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime
+from uuid import UUID
+
+
+@dataclass(frozen=True)
+class DeleteCommentCommand:
+	ticket_id: UUID
+	comment_id: UUID
+	deleted_at: datetime

@@ -106,6 +106,25 @@ RBAC
 
 Owns the ticket lifecycle and domain invariants.
 
+The Ticket Management application layer follows CQRS.
+
+Commands are immutable DTOs, one handler per command.
+
+Queries are read models, one handler per query.
+
+Application handlers orchestrate repositories through a Unit of Work and publish events only after a successful commit.
+
+The current domain event model exposes:
+
+- TicketCreated
+- TicketAssigned
+- TicketStatusChanged
+- PriorityChanged
+- CommentAdded
+- AttachmentAdded
+
+Archive, restore, reassign, and transfer use cases are implemented at the application layer, but the current domain event set does not yet provide dedicated event types for all of them.
+
 Domain model currently includes:
 
 - Ticket aggregate

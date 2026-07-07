@@ -8,17 +8,17 @@ from app.modules.ticket_management.domain.entities.ticket import Ticket
 
 class TicketRepository(ABC):
 	@abstractmethod
-	def add(self, ticket: Ticket) -> None:
+	async def add(self, ticket: Ticket) -> None:
 		raise NotImplementedError
 
 	@abstractmethod
-	def get(self, ticket_id: UUID) -> Ticket | None:
+	async def get(self, ticket_id: UUID) -> Ticket | None:
 		raise NotImplementedError
 
 	@abstractmethod
-	def save(self, ticket: Ticket) -> None:
+	async def save(self, ticket: Ticket) -> None:
 		raise NotImplementedError
 
 	@abstractmethod
-	def delete(self, ticket_id: UUID) -> None:
+	async def delete(self, ticket_id: UUID) -> None:
 		raise NotImplementedError
