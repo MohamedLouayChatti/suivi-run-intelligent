@@ -28,6 +28,7 @@ def _command(**overrides) -> CreateTicketCommand:
 
 
 class TestCreateTicketHandler:
+	@pytest.mark.asyncio
 	async def test_persists_a_new_ticket_via_the_repository(self, uow, event_publisher, ticket_repository):
 		handler = CreateTicketHandler(uow, event_publisher)
 
@@ -38,6 +39,7 @@ class TestCreateTicketHandler:
 		assert isinstance(persisted, Ticket)
 		assert persisted.status == Status.OPEN
 
+	@pytest.mark.asyncio
 	async def test_commits_the_unit_of_work(self, uow, event_publisher):
 		handler = CreateTicketHandler(uow, event_publisher)
 
@@ -45,6 +47,7 @@ class TestCreateTicketHandler:
 
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_ticket_created_with_the_new_ticket_data(self, uow, event_publisher):
 		command = _command(title="Payment gateway down")
 		handler = CreateTicketHandler(uow, event_publisher)
@@ -62,6 +65,7 @@ class TestCreateTicketHandler:
 			)
 		]
 
+	@pytest.mark.asyncio
 	async def test_returns_a_dto_reflecting_the_created_ticket(self, uow, event_publisher):
 		command = _command()
 		handler = CreateTicketHandler(uow, event_publisher)
@@ -72,6 +76,7 @@ class TestCreateTicketHandler:
 		assert result.title == command.title
 		assert result.status == Status.OPEN
 
+	@pytest.mark.asyncio
 	async def test_domain_validation_errors_propagate_and_nothing_is_committed(self, uow, event_publisher):
 		# The handler performs no validation of its own; Ticket.create's
 		# guard clauses are the only thing standing between a bad command and
@@ -84,6 +89,7 @@ class TestCreateTicketHandler:
 		assert uow.committed is False
 		assert event_publisher.published == []
 
+	@pytest.mark.asyncio
 	async def test_rolls_back_and_reraises_when_commit_fails(self, uow, event_publisher):
 		uow.fail_commit_with = RuntimeError("database is unreachable")
 		handler = CreateTicketHandler(uow, event_publisher)

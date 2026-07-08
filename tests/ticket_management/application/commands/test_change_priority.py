@@ -12,6 +12,7 @@ from tests.ticket_management.domain import factories
 
 
 class TestChangePriorityHandler:
+	@pytest.mark.asyncio
 	async def test_changes_the_priority_and_saves_it(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket(priority=Priority.LOW))
 		handler = ChangePriorityHandler(uow, event_publisher)
@@ -23,6 +24,7 @@ class TestChangePriorityHandler:
 		assert ticket.priority == Priority.CRITICAL
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_priority_changed_with_old_and_new_priority(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket(priority=Priority.LOW))
 		moment = factories.a_moment_after(ticket.updated_at)
@@ -34,12 +36,14 @@ class TestChangePriorityHandler:
 			ticket_id=ticket.id, old_priority=Priority.LOW, new_priority=Priority.HIGH, changed_at=moment
 		)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = ChangePriorityHandler(uow, event_publisher)
 
 		with pytest.raises(TicketNotFound):
 			await handler.handle(ChangePriorityCommand(ticket_id=factories.new_uuid(), priority=Priority.HIGH, changed_at=factories.BASE_TIME))
 
+	@pytest.mark.asyncio
 	async def test_domain_rule_violations_propagate_without_committing(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_closed_ticket())
 		handler = ChangePriorityHandler(uow, event_publisher)

@@ -10,6 +10,7 @@ from tests.ticket_management.domain import factories
 
 
 class TestDeleteCommentAttachmentHandler:
+	@pytest.mark.asyncio
 	async def test_marks_the_comment_attachment_deleted(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		comment = factories.make_comment()
@@ -26,6 +27,7 @@ class TestDeleteCommentAttachmentHandler:
 		assert attachment.deleted_at == moment
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_attachment_deleted(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		comment = factories.make_comment()
@@ -41,6 +43,7 @@ class TestDeleteCommentAttachmentHandler:
 
 		assert event_publisher.last == AttachmentDeleted(ticket_id=ticket.id, attachment_id=attachment.id, deleted_at=moment)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = DeleteCommentAttachmentHandler(uow, event_publisher)
 
@@ -51,6 +54,7 @@ class TestDeleteCommentAttachmentHandler:
 				)
 			)
 
+	@pytest.mark.asyncio
 	async def test_translates_domain_comment_not_found_to_application_exception(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		handler = DeleteCommentAttachmentHandler(uow, event_publisher)
@@ -65,6 +69,7 @@ class TestDeleteCommentAttachmentHandler:
 		assert uow.committed is False
 		assert event_publisher.published == []
 
+	@pytest.mark.asyncio
 	async def test_translates_domain_attachment_not_found_to_application_exception(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		comment = factories.make_comment()

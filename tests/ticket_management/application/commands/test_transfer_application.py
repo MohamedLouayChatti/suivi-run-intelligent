@@ -12,6 +12,7 @@ from tests.ticket_management.domain import factories
 
 
 class TestTransferApplicationHandler:
+	@pytest.mark.asyncio
 	async def test_transfers_the_ticket_and_saves_it(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_assigned_ticket(application=Application.APP_1))
 		new_assignee = factories.new_uuid()
@@ -26,6 +27,7 @@ class TestTransferApplicationHandler:
 		assert ticket.assignee_id == new_assignee
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_ticket_transferred_with_old_and_new_values(self, uow, event_publisher, ticket_repository):
 		old_assignee = factories.new_uuid()
 		ticket = ticket_repository.seed(factories.make_assigned_ticket(application=Application.APP_1, assignee_id=old_assignee))
@@ -46,6 +48,7 @@ class TestTransferApplicationHandler:
 			transferred_at=moment,
 		)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = TransferApplicationHandler(uow, event_publisher)
 
@@ -56,6 +59,7 @@ class TestTransferApplicationHandler:
 				)
 			)
 
+	@pytest.mark.asyncio
 	async def test_transferring_to_the_same_application_propagates_without_committing(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_assigned_ticket(application=Application.APP_1))
 		handler = TransferApplicationHandler(uow, event_publisher)
@@ -70,6 +74,7 @@ class TestTransferApplicationHandler:
 		assert uow.committed is False
 		assert event_publisher.published == []
 
+	@pytest.mark.asyncio
 	async def test_transferring_an_unassigned_ticket_propagates_without_committing(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket(application=Application.APP_1))
 		handler = TransferApplicationHandler(uow, event_publisher)

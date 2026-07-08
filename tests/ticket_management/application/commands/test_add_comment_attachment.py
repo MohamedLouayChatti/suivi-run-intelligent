@@ -25,6 +25,7 @@ def _command(ticket_id, comment_id, **overrides) -> AddCommentAttachmentCommand:
 
 
 class TestAddCommentAttachmentHandler:
+	@pytest.mark.asyncio
 	async def test_attaches_the_file_to_the_comment(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		comment = factories.make_comment()
@@ -36,6 +37,7 @@ class TestAddCommentAttachmentHandler:
 		assert len(comment.attachments) == 1
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_attachment_added(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		comment = factories.make_comment()
@@ -49,12 +51,14 @@ class TestAddCommentAttachmentHandler:
 			ticket_id=ticket.id, attachment_id=command.attachment_id, uploaded_by=command.uploaded_by, uploaded_at=command.uploaded_at
 		)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = AddCommentAttachmentHandler(uow, event_publisher)
 
 		with pytest.raises(TicketNotFound):
 			await handler.handle(_command(factories.new_uuid(), factories.new_uuid()))
 
+	@pytest.mark.asyncio
 	async def test_translates_domain_comment_not_found_to_application_exception(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		handler = AddCommentAttachmentHandler(uow, event_publisher)

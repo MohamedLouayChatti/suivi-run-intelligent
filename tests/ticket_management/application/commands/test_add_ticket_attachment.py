@@ -25,6 +25,7 @@ def _command(ticket_id, **overrides) -> AddTicketAttachmentCommand:
 
 
 class TestAddTicketAttachmentHandler:
+	@pytest.mark.asyncio
 	async def test_attaches_the_file_to_the_ticket(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		handler = AddTicketAttachmentHandler(uow, event_publisher)
@@ -35,6 +36,7 @@ class TestAddTicketAttachmentHandler:
 		assert ticket.attachments[0].filename == "log.txt"
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_attachment_added(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		command = _command(ticket.id)
@@ -46,12 +48,14 @@ class TestAddTicketAttachmentHandler:
 			ticket_id=ticket.id, attachment_id=command.attachment_id, uploaded_by=command.uploaded_by, uploaded_at=command.uploaded_at
 		)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = AddTicketAttachmentHandler(uow, event_publisher)
 
 		with pytest.raises(TicketNotFound):
 			await handler.handle(_command(factories.new_uuid()))
 
+	@pytest.mark.asyncio
 	async def test_duplicate_attachment_propagates_without_committing(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		existing = factories.make_attachment()

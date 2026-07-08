@@ -10,6 +10,7 @@ from tests.ticket_management.domain import factories
 
 
 class TestDeleteCommentHandler:
+	@pytest.mark.asyncio
 	async def test_marks_the_comment_deleted(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		comment = factories.make_comment()
@@ -22,6 +23,7 @@ class TestDeleteCommentHandler:
 		assert comment.deleted_at == moment
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_comment_deleted(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		comment = factories.make_comment()
@@ -33,12 +35,14 @@ class TestDeleteCommentHandler:
 
 		assert event_publisher.last == CommentDeleted(ticket_id=ticket.id, comment_id=comment.id, deleted_at=moment)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = DeleteCommentHandler(uow, event_publisher)
 
 		with pytest.raises(TicketNotFound):
 			await handler.handle(DeleteCommentCommand(ticket_id=factories.new_uuid(), comment_id=factories.new_uuid(), deleted_at=factories.BASE_TIME))
 
+	@pytest.mark.asyncio
 	async def test_translates_domain_comment_not_found_to_application_exception(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		handler = DeleteCommentHandler(uow, event_publisher)

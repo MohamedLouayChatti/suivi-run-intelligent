@@ -23,6 +23,7 @@ def _command(ticket_id, **overrides) -> AddCommentCommand:
 
 
 class TestAddCommentHandler:
+	@pytest.mark.asyncio
 	async def test_adds_the_comment_to_the_ticket_and_saves_it(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		handler = AddCommentHandler(uow, event_publisher)
@@ -34,6 +35,7 @@ class TestAddCommentHandler:
 		assert result.comments[0].content == "Reproduced locally, investigating."
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_comment_added(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		command = _command(ticket.id)
@@ -45,12 +47,14 @@ class TestAddCommentHandler:
 			ticket_id=ticket.id, comment_id=command.comment_id, author_id=command.author_id, created_at=command.created_at
 		)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = AddCommentHandler(uow, event_publisher)
 
 		with pytest.raises(TicketNotFound):
 			await handler.handle(_command(factories.new_uuid()))
 
+	@pytest.mark.asyncio
 	async def test_blank_content_raises_and_does_not_commit(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		handler = AddCommentHandler(uow, event_publisher)

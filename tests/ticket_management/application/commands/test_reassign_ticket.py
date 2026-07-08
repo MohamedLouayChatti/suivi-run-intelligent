@@ -11,6 +11,7 @@ from tests.ticket_management.domain import factories
 
 
 class TestReassignTicketHandler:
+	@pytest.mark.asyncio
 	async def test_reassigns_the_ticket_and_saves_it(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_assigned_ticket())
 		new_assignee = factories.new_uuid()
@@ -24,6 +25,7 @@ class TestReassignTicketHandler:
 		assert ticket in ticket_repository.saved
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_ticket_reassigned(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_assigned_ticket())
 		new_assignee = factories.new_uuid()
@@ -34,6 +36,7 @@ class TestReassignTicketHandler:
 
 		assert event_publisher.last == TicketReassigned(ticket_id=ticket.id, assignee_id=new_assignee, reassigned_at=moment)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = ReassignTicketHandler(uow, event_publisher)
 
@@ -42,6 +45,7 @@ class TestReassignTicketHandler:
 				ReassignTicketCommand(ticket_id=factories.new_uuid(), assignee_id=factories.new_uuid(), reassigned_at=factories.BASE_TIME)
 			)
 
+	@pytest.mark.asyncio
 	async def test_domain_rule_violations_propagate_without_committing(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())  # unassigned
 		handler = ReassignTicketHandler(uow, event_publisher)

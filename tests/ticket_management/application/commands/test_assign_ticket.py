@@ -11,6 +11,7 @@ from tests.ticket_management.domain import factories
 
 
 class TestAssignTicketHandler:
+	@pytest.mark.asyncio
 	async def test_assigns_the_ticket_and_saves_it(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		assignee_id = factories.new_uuid()
@@ -24,6 +25,7 @@ class TestAssignTicketHandler:
 		assert ticket in ticket_repository.saved
 		assert uow.committed is True
 
+	@pytest.mark.asyncio
 	async def test_publishes_ticket_assigned(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		assignee_id = factories.new_uuid()
@@ -34,6 +36,7 @@ class TestAssignTicketHandler:
 
 		assert event_publisher.last == TicketAssigned(ticket_id=ticket.id, assignee_id=assignee_id, assigned_at=moment)
 
+	@pytest.mark.asyncio
 	async def test_raises_ticket_not_found_when_ticket_is_missing(self, uow, event_publisher):
 		handler = AssignTicketHandler(uow, event_publisher)
 
@@ -45,6 +48,7 @@ class TestAssignTicketHandler:
 		assert uow.committed is False
 		assert event_publisher.published == []
 
+	@pytest.mark.asyncio
 	async def test_domain_rule_violations_propagate_without_committing(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_assigned_ticket())
 		handler = AssignTicketHandler(uow, event_publisher)
@@ -57,6 +61,7 @@ class TestAssignTicketHandler:
 		assert uow.committed is False
 		assert event_publisher.published == []
 
+	@pytest.mark.asyncio
 	async def test_rolls_back_and_reraises_when_commit_fails(self, uow, event_publisher, ticket_repository):
 		ticket = ticket_repository.seed(factories.make_ticket())
 		uow.fail_commit_with = RuntimeError("connection lost")

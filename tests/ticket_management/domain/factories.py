@@ -20,7 +20,6 @@ from app.modules.ticket_management.domain.entities.comment import Comment
 from app.modules.ticket_management.domain.entities.ticket import Ticket
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.priority import Priority
-from app.modules.ticket_management.domain.enums.status import Status
 
 BASE_TIME = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
 
