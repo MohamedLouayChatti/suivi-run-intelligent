@@ -112,7 +112,9 @@ Commands are immutable DTOs, one handler per command.
 
 Queries are read models, one handler per query.
 
-Application handlers orchestrate repositories through a Unit of Work and publish events only after a successful commit.
+Application handlers orchestrate the write side through an async Unit of Work, use a dedicated EventPublisher port, and publish events only after a successful commit.
+
+Read handlers use a dedicated TicketReadRepository and return DTO read models.
 
 The current domain event model exposes:
 
@@ -121,9 +123,16 @@ The current domain event model exposes:
 - TicketStatusChanged
 - PriorityChanged
 - CommentAdded
+- CommentEdited
+- CommentDeleted
 - AttachmentAdded
+- AttachmentDeleted
+- TicketArchived
+- TicketRestored
+- TicketReassigned
+- TicketTransferred
 
-Archive, restore, reassign, and transfer use cases are implemented at the application layer, but the current domain event set does not yet provide dedicated event types for all of them.
+Archive, restore, reassign, transfer, comment edit/delete, and attachment delete flows now publish dedicated domain events after commit.
 
 Domain model currently includes:
 
@@ -140,8 +149,8 @@ Business rules currently covered in the domain layer:
 - Status transitions between OPEN, IN_PROGRESS, PENDING, RESOLVED, and CLOSED
 - Priority changes
 - Application transfers
-- Comment creation, editing, and deletion
-- Attachment creation and deletion
+- Comment creation, editing, deletion, and comment attachments
+- Ticket attachment creation and deletion
 - Archive handling
 - Guard clauses for empty titles, descriptions, comments, and invalid transitions
 
@@ -152,7 +161,14 @@ Publishes domain events for:
 - TicketStatusChanged
 - PriorityChanged
 - CommentAdded
+- CommentEdited
+- CommentDeleted
 - AttachmentAdded
+- AttachmentDeleted
+- TicketArchived
+- TicketRestored
+- TicketReassigned
+- TicketTransferred
 
 Must never know AI exists.
 
