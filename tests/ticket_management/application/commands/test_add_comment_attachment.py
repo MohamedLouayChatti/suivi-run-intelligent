@@ -10,7 +10,7 @@ from tests.ticket_management.domain import factories
 
 
 def _command(ticket_id, comment_id, **overrides) -> AddCommentAttachmentCommand:
-	defaults = dict(
+	return AddCommentAttachmentCommand(
 		ticket_id=ticket_id,
 		comment_id=comment_id,
 		attachment_id=factories.new_uuid(),
@@ -20,8 +20,6 @@ def _command(ticket_id, comment_id, **overrides) -> AddCommentAttachmentCommand:
 		uploaded_by=factories.new_uuid(),
 		uploaded_at=factories.BASE_TIME,
 	)
-	defaults.update(overrides)
-	return AddCommentAttachmentCommand(**defaults)
 
 
 class TestAddCommentAttachmentHandler:

@@ -11,16 +11,13 @@ from tests.ticket_management.domain import factories
 
 
 def _command(ticket_id, **overrides) -> AddCommentCommand:
-	defaults = dict(
+	return AddCommentCommand(
 		ticket_id=ticket_id,
 		comment_id=factories.new_uuid(),
 		author_id=factories.new_uuid(),
 		content="Reproduced locally, investigating.",
 		created_at=factories.BASE_TIME,
 	)
-	defaults.update(overrides)
-	return AddCommentCommand(**defaults)
-
 
 class TestAddCommentHandler:
 	@pytest.mark.asyncio

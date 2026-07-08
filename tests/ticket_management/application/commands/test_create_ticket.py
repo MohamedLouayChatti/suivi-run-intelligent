@@ -14,7 +14,7 @@ from tests.ticket_management.domain import factories
 
 
 def _command(**overrides) -> CreateTicketCommand:
-	defaults = dict(
+	return CreateTicketCommand(
 		ticket_id=factories.new_uuid(),
 		title="Login page throws 500",
 		description="Users cannot log in since 09:00 UTC.",
@@ -23,8 +23,6 @@ def _command(**overrides) -> CreateTicketCommand:
 		application=Application.APP_1,
 		assignee_id=None,
 	)
-	defaults.update(overrides)
-	return CreateTicketCommand(**defaults)
 
 
 class TestCreateTicketHandler:

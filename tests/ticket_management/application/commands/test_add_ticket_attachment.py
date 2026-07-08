@@ -11,7 +11,7 @@ from tests.ticket_management.domain import factories
 
 
 def _command(ticket_id, **overrides) -> AddTicketAttachmentCommand:
-	defaults = dict(
+	return AddTicketAttachmentCommand(
 		ticket_id=ticket_id,
 		attachment_id=factories.new_uuid(),
 		filename="log.txt",
@@ -20,8 +20,6 @@ def _command(ticket_id, **overrides) -> AddTicketAttachmentCommand:
 		uploaded_by=factories.new_uuid(),
 		uploaded_at=factories.BASE_TIME,
 	)
-	defaults.update(overrides)
-	return AddTicketAttachmentCommand(**defaults)
 
 
 class TestAddTicketAttachmentHandler:

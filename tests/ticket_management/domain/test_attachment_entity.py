@@ -11,12 +11,16 @@ class TestAttachmentCreation:
 		assert attachment.deleted_at is None
 
 	@pytest.mark.parametrize(
-		"field_name",
-		["filename", "content_type", "storage_path"],
+		"factory",
+		[
+			lambda: factories.make_attachment(filename=" "),
+			lambda: factories.make_attachment(content_type=" "),
+			lambda: factories.make_attachment(storage_path=" "),
+		],
 	)
-	def test_rejects_blank_required_metadata(self, field_name):
+	def test_rejects_blank_required_metadata(self, factory):
 		with pytest.raises(TicketDomainError):
-			factories.make_attachment(**{field_name: "   "})
+			factory()
 
 
 class TestAttachmentDelete:
