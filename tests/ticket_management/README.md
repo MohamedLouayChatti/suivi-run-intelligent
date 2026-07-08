@@ -20,11 +20,12 @@ tests/
       test_ticket_comments.py
       test_ticket_attachments.py
       test_ticket_transfer_application.py
-      test_ticket_mutability_guard.py     # verifies archived/closed mutability guards
+      test_ticket_mutability_guard.py     # documents a discovered inconsistency (see below)
       test_comment_entity.py
       test_attachment_entity.py
     application/
-      fakes.py                            # FakeTicketRepository / FakeUnitOfWork / FakeEventPublisher
+      fakes.py                            # FakeTicketRepository / FakeUnitOfWork / FakeEventPublisher / FakeTicketReadRepository
+      dto_factories.py                    # factory functions for TicketSummaryDTO / TicketDetailDTO
       conftest.py                         # fixtures wiring the fakes
       commands/
         test_create_ticket.py
@@ -41,9 +42,13 @@ tests/
         test_delete_comment_attachment.py
         test_archive_and_restore_ticket.py
         test_transfer_application.py
+      queries/
+        test_get_ticket.py
+        test_list_tickets.py
+        test_search_tickets.py
 ```
 
-158 tests total, all passing.
+170 tests total, all passing.
 
 ## Running the tests
 
@@ -98,16 +103,53 @@ expected at this stage, but it required a few decisions:
    different coverage. If handlers diverge from that pattern in the
    future, this is the assumption to revisit.
 
-5. **Queries were left out of scope.** The brief asked specifically for
-   command handler tests. `application/queries/*` exist in the codebase
-   but weren't included, per the stated task boundary.
+5. **Query handlers are read-side pass-throughs, tested as such.**
+   `GetTicketHandler`, `ListTicketsHandler`, and `SearchTicketsHandler` all
+   depend on a single `TicketReadRepository` interface, which has no
+   concrete implementation yet (no SQL, no filtering/search logic — that's
+   an Infrastructure-layer concern that doesn't exist in this codebase
+   yet). `ListTicketsHandler` and `SearchTicketsHandler` literally do
+   nothing but forward the query object to the repository and return its
+   result; `GetTicketHandler` adds one thing — translating a missing
+   ticket (`None`) into `TicketNotFound`. `FakeTicketReadRepository`
+   (added to `fakes.py`, subclassing the real `TicketReadRepository` ABC)
+   records exactly what each method received and returns pre-seeded
+   results, so the query tests verify orchestration only: the query
+   object reaches the repository unchanged, the repository's result comes
+   back out unchanged, and `GetTicketHandler`'s not-found translation
+   fires correctly. They deliberately don't assert on filtering/search
+   *semantics* (e.g. "does `status=OPEN` actually filter the list?"),
+   since that behavior isn't implemented anywhere yet — asserting on it
+   now would be testing an assumption rather than the code. That
+   filtering behavior belongs in the Infrastructure-layer tests once a
+   real `TicketReadRepository` implementation exists.
 
-## Mutability guard coverage
+## Design issue discovered: `start_progress` skips the mutability guard
 
-Every ticket-mutating method, including `start_progress()`, now calls
-`self._ensure_mutable()` before changing state. The domain tests include a
-guard case that asserts an archived ticket raises `TicketArchived` when
-`start_progress()` is invoked.
+Every other ticket-mutating method (`assign`, `reassign`, `mark_pending`,
+`resume`, `resolve`, `close`, `change_priority`, `add_comment`,
+`add_attachment`, `edit_comment`, `delete_comment`,
+`add_attachment_to_comment`, `delete_attachment_from_comment`,
+`transfer_application`) calls `self._ensure_mutable()`, which blocks the
+operation on both `CLOSED` and `ARCHIVED` tickets.
+
+`start_progress()` is the exception: it calls `self._transition_to(...)`
+directly, skipping `_ensure_mutable()` entirely. `_transition_to` only
+blocks `CLOSED` (via its own redundant check), so **an archived ticket can
+currently have its status changed to `IN_PROGRESS` via `start_progress`**,
+even though every other mutation on that same ticket is correctly
+rejected with `TicketArchived`.
+
+This is very likely an oversight rather than an intended exception, since
+there's no other archived-ticket-can-still-restart-work-implicitly rule
+described anywhere else in the domain. I did not "fix" this in the
+tests — per the task's testing philosophy, tests should validate current
+behavior, not invent new rules. `test_ticket_mutability_guard.py` pins the
+*current* behavior explicitly and documents, in a comment, exactly what
+should change if this gets fixed (the assertion would flip from
+"succeeds" to `pytest.raises(TicketArchived)`), so this test will fail
+loudly — in a good way — the moment someone fixes the underlying method,
+prompting an update rather than silently masking the change.
 
 ## Other testing notes
 

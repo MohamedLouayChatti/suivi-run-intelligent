@@ -11,7 +11,12 @@ from __future__ import annotations
 
 import pytest
 
-from tests.ticket_management.application.fakes import FakeEventPublisher, FakeTicketRepository, FakeUnitOfWork
+from tests.ticket_management.application.fakes import (
+	FakeEventPublisher,
+	FakeTicketReadRepository,
+	FakeTicketRepository,
+	FakeUnitOfWork,
+)
 
 
 @pytest.fixture
@@ -27,3 +32,8 @@ def uow(ticket_repository: FakeTicketRepository) -> FakeUnitOfWork:
 @pytest.fixture
 def event_publisher() -> FakeEventPublisher:
 	return FakeEventPublisher()
+
+
+@pytest.fixture
+def read_repository() -> FakeTicketReadRepository:
+	return FakeTicketReadRepository()
