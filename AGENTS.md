@@ -62,6 +62,89 @@ Never access another module's database models directly.
 
 ---
 
+# Shared Infrastructure Foundation
+
+The shared configuration and database packages provide the application-wide persistence baseline used by every module.
+
+## Shared Configuration
+
+The shared configuration package lives in `app/shared/config/`.
+
+`app/shared/config/settings.py` owns the `Settings` model.
+
+`Settings`:
+
+- loads configuration from the project's `.env` file
+- exposes typed environment-driven settings
+- is the only source of the PostgreSQL connection string
+- must be used by shared infrastructure instead of hardcoded connection values
+
+## Shared Database
+
+The shared database package lives in `app/shared/database/`.
+
+`app/shared/database/base.py` defines the application's single shared `DeclarativeBase`.
+
+`Base`:
+
+- is the parent class for every ORM model in every module
+- owns shared SQLAlchemy metadata for the whole application
+- contains no engine logic, session logic, helper methods, or business rules
+
+`app/shared/database/engine.py` creates the application's single `AsyncEngine`.
+
+`AsyncEngine`:
+
+- is owned globally by the application
+- reads the PostgreSQL URL from `Settings`
+- uses SQLAlchemy 2.x async configuration
+- applies engine-level options only
+- does not create sessions, manage transactions, or implement repository behavior
+
+`app/shared/database/session.py` defines the shared async session factory.
+
+`async_sessionmaker`:
+
+- is bound to the shared `AsyncEngine`
+- creates `AsyncSession` instances for application use
+- configures safe defaults such as `expire_on_commit=False` and `autoflush=False`
+- does not commit, rollback, publish events, or implement Unit of Work behavior
+
+## Alembic
+
+Alembic is configured for async migrations in `alembic/env.py`.
+
+The migration environment:
+
+- imports the shared `DeclarativeBase`
+- sets `target_metadata` to `Base.metadata`
+- reads the database URL from `Settings`
+- imports ORM model modules so autogenerate can discover future models
+- runs online migrations through SQLAlchemy async execution
+- relies on SQLAlchemy metadata autogeneration instead of manual SQL
+
+## Migration Workflow
+
+Schema evolution follows this flow:
+
+1. Add or update ORM models under module infrastructure persistence packages.
+2. Ensure new ORM classes inherit from the shared `Base`.
+3. Run `alembic revision --autogenerate -m "..."`.
+4. Review the generated revision.
+5. Apply it with `alembic upgrade head`.
+
+## Project Structure
+
+This task added the following shared persistence foundation files:
+
+- `app/shared/config/settings.py`
+- `app/shared/database/base.py`
+- `app/shared/database/engine.py`
+- `app/shared/database/session.py`
+- `alembic/env.py`
+
+---
+
 # Layers
 
 Every module follows:
