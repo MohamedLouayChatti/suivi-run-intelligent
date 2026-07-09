@@ -21,4 +21,4 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-	return Settings() # Pylance false positive error to ignore.
+	return Settings() # type: ignore[call-arg]
