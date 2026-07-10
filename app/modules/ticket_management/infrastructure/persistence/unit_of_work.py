@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from typing import Self
+from types import TracebackType
+from typing import Self
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.ticket_management.application.interfaces.unit_of_work import UnitOfWork
@@ -21,11 +25,17 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
 	async def close(self) -> None:
 		await self.session.close()
 
-	async def __aenter__(self) -> SqlAlchemyUnitOfWork:
+	async def __aenter__(self) -> Self:
 		return self
 
-	async def __aexit__(self, exc_type, exc, tb) -> None:
+	async def __aexit__(
+		self,
+		exc_type: type[BaseException] | None,
+		exc: BaseException | None,
+		tb: TracebackType | None,
+	) -> None:
 		if exc_type is not None:
 			await self.rollback()
+
 		await self.close()
 
