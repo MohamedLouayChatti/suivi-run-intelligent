@@ -255,6 +255,47 @@ Publishes domain events for:
 
 Must never know AI exists.
 
+### Persistence Infrastructure
+
+The Ticket Management module owns its SQLAlchemy persistence layer under `app/modules/ticket_management/infrastructure/persistence/`.
+
+The ORM layer is split into one model per domain entity:
+
+- `models/ticket_model.py` defines `TicketModel`
+- `models/comment_model.py` defines `CommentModel`
+- `models/attachment_model.py` defines `AttachmentModel`
+
+These ORM models are persistence representations only:
+
+- they use the shared `Base`
+- they map UUIDs with PostgreSQL UUID columns
+- they persist enums with SQLAlchemy `Enum`
+- they store timestamps with timezone-aware `DateTime`
+- they carry the foreign keys and relationships that express aggregate ownership
+
+Ownership is modeled explicitly in the database:
+
+- a ticket owns its comments
+- a ticket owns its direct attachments
+- a comment owns its attachments
+- an attachment belongs to exactly one parent, enforced by a database check constraint
+
+Mapping logic lives in `infrastructure/persistence/mapper.py`.
+
+The mapper is responsible for translating between Domain objects and ORM objects, including nested comments and attachments, and for producing read-side DTOs from loaded ORM models.
+
+The write-side repository is `SqlAlchemyTicketRepository`.
+
+It implements the domain `TicketRepository` contract, works with Domain aggregates, and delegates all model translation to the mapper. It never creates sessions, commits, rolls back, or publishes events.
+
+The read-side repository is `SqlAlchemyTicketReadRepository`.
+
+It implements the application `TicketReadRepository` contract and returns DTO read models directly from ORM-backed queries. It is optimized for reads and does not reconstruct Domain aggregates unless required by the interface.
+
+The Unit of Work is `SqlAlchemyUnitOfWork`.
+
+It creates an async session from the shared session factory, exposes the write repository, and owns commit, rollback, and session lifecycle management. Event publication remains outside persistence.
+
 ---
 
 ## Knowledge Base
