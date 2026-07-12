@@ -116,17 +116,19 @@ The shared event package lives in `app/shared/events/`.
 
 `DomainEvent` is a marker base class only.
 
+`EventHandler` is the async handler contract used by the subscription registry.
+
+`EventPublisher` is the application-facing port used by modules to publish domain events after a successful Unit of Work commit.
+
 `SubscriptionRegistry` stores event type subscriptions in registration order and has no dispatch logic.
 
 `InMemoryEventBus` dispatches events in-process, resolves handlers by runtime event type, awaits handlers sequentially, and logs handler failures without stopping the remaining dispatch.
 
-The shared `EventPublisher` abstraction is the application-facing port used by modules to publish domain events after a successful Unit of Work commit.
-
 `InMemoryEventPublisher` adapts that port to the shared in-memory bus.
 
-Module bootstrap functions register their subscriptions explicitly through a `register_subscriptions(registry)` hook.
+`app/lifespan.py` is the application's startup composition root. It creates the shared subscription registry and event bus, then registers Ticket Management subscriptions through that module's `register_subscriptions(registry)` hook.
 
-`app/lifespan.py` is the application's startup composition root. It creates the shared subscription registry and event bus, then delegates subscription registration to each module bootstrap.
+The remaining module bootstrap files currently exist as placeholders and do not register subscriptions yet.
 
 ## Alembic
 
@@ -160,6 +162,8 @@ This task added the following shared persistence foundation files:
 - `app/shared/database/engine.py`
 - `app/shared/database/session.py`
 - `app/shared/events/event.py`
+- `app/shared/events/handler.py`
+- `app/shared/events/event_publisher.py`
 - `app/shared/events/subscriptions.py`
 - `app/shared/events/event_bus.py`
 - `alembic/env.py`
@@ -371,13 +375,11 @@ The agent run is a background job.
 
 ## Knowledge Generation
 
-Listens to TicketClosed.
+The module is scaffolded for future knowledge article generation.
 
-Creates draft knowledge articles.
+No event subscriptions are registered yet.
 
-Requires human approval.
-
-Never auto-publishes.
+Any published knowledge drafts will still require human approval before release.
 
 ---
 
@@ -423,17 +425,7 @@ CommentAdded
 
 AttachmentAdded
 
-↓
-
-Incident Intelligence
-
-↓
-
-Knowledge Generation
-
-↓
-
-Analytics
+Ticket Management currently publishes these events, but the only startup wiring in place is the Ticket Management bootstrap hook. The other module bootstraps are present but do not register consumers yet.
 
 Avoid direct module coupling whenever asynchronous reactions are appropriate.
 
