@@ -110,6 +110,24 @@ The shared database package lives in `app/shared/database/`.
 - configures safe defaults such as `expire_on_commit=False` and `autoflush=False`
 - does not commit, rollback, publish events, or implement Unit of Work behavior
 
+## Shared Events
+
+The shared event package lives in `app/shared/events/`.
+
+`DomainEvent` is a marker base class only.
+
+`SubscriptionRegistry` stores event type subscriptions in registration order and has no dispatch logic.
+
+`InMemoryEventBus` dispatches events in-process, resolves handlers by runtime event type, awaits handlers sequentially, and logs handler failures without stopping the remaining dispatch.
+
+The shared `EventPublisher` abstraction is the application-facing port used by modules to publish domain events after a successful Unit of Work commit.
+
+`InMemoryEventPublisher` adapts that port to the shared in-memory bus.
+
+Module bootstrap functions register their subscriptions explicitly through a `register_subscriptions(registry)` hook.
+
+`app/lifespan.py` is the application's startup composition root. It creates the shared subscription registry and event bus, then delegates subscription registration to each module bootstrap.
+
 ## Alembic
 
 Alembic is configured for async migrations in `alembic/env.py`.
@@ -141,6 +159,9 @@ This task added the following shared persistence foundation files:
 - `app/shared/database/base.py`
 - `app/shared/database/engine.py`
 - `app/shared/database/session.py`
+- `app/shared/events/event.py`
+- `app/shared/events/subscriptions.py`
+- `app/shared/events/event_bus.py`
 - `alembic/env.py`
 
 ---
