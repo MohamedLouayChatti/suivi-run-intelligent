@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import Any
+
+from fastapi import FastAPI
 
 from app.modules.ticket_management import bootstrap as ticket_management_bootstrap
 from app.shared.events.event_bus import InMemoryEventBus
@@ -10,7 +11,7 @@ from app.shared.events.subscriptions import SubscriptionRegistry
 
 
 @asynccontextmanager
-async def lifespan(app: Any) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 	registry = SubscriptionRegistry()
 	event_bus = InMemoryEventBus(registry)
 

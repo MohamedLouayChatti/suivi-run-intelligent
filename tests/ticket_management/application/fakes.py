@@ -18,7 +18,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
-from app.modules.ticket_management.application.interfaces.event_publisher import EventPublisher
+from app.shared.events.event_publisher import EventPublisher
 from app.modules.ticket_management.application.interfaces.ticket_read_repository import TicketReadRepository
 from app.modules.ticket_management.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
