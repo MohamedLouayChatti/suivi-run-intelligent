@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from app.modules.ticket_management.application.commands.create_ticket.command import CreateTicketCommand
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO
-from app.modules.ticket_management.application.interfaces.event_publisher import EventPublisher
+from app.shared.events.event_publisher import EventPublisher
 from app.modules.ticket_management.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.ticket_management.domain.entities.ticket import Ticket
 from app.modules.ticket_management.domain.events.ticket_created import TicketCreated

@@ -4,8 +4,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+from app.shared.events.event import DomainEvent
 
 @dataclass(frozen=True)
-class TicketArchived:
+class TicketArchived(DomainEvent):
 	ticket_id: UUID
 	archived_at: datetime

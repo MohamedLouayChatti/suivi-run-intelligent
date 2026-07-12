@@ -3,7 +3,7 @@ from __future__ import annotations
 from app.modules.ticket_management.application.commands.change_status.command import ChangeStatusCommand
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO
 from app.modules.ticket_management.application.exceptions import TicketNotFound
-from app.modules.ticket_management.application.interfaces.event_publisher import EventPublisher
+from app.shared.events.event_publisher import EventPublisher
 from app.modules.ticket_management.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.ticket_management.domain.events.ticket_status_changed import TicketStatusChanged
 from app.modules.ticket_management.domain.enums.status import Status

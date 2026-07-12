@@ -3,7 +3,7 @@ from __future__ import annotations
 from app.modules.ticket_management.application.commands.add_ticket_attachment.command import AddTicketAttachmentCommand
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO
 from app.modules.ticket_management.application.exceptions import TicketNotFound
-from app.modules.ticket_management.application.interfaces.event_publisher import EventPublisher
+from app.shared.events.event_publisher import EventPublisher
 from app.modules.ticket_management.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.ticket_management.domain.entities.attachment import Attachment
 from app.modules.ticket_management.domain.events.attachment_added import AttachmentAdded

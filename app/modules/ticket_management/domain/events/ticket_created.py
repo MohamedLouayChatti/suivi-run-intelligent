@@ -6,10 +6,10 @@ from uuid import UUID
 
 from app.modules.ticket_management.domain.enums.priority import Priority
 from app.modules.ticket_management.domain.enums.status import Status
-
+from app.shared.events.event import DomainEvent
 
 @dataclass(frozen=True)
-class TicketCreated:
+class TicketCreated(DomainEvent):
 	ticket_id: UUID
 	title: str
 	description: str

@@ -4,9 +4,11 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
+from app.shared.events.event import DomainEvent
+
 
 @dataclass(frozen=True)
-class AttachmentDeleted:
+class AttachmentDeleted(DomainEvent):
 	ticket_id: UUID
 	attachment_id: UUID
 	deleted_at: datetime

@@ -5,10 +5,10 @@ from datetime import datetime
 from uuid import UUID
 
 from app.modules.ticket_management.domain.enums.application import Application
-
+from app.shared.events.event import DomainEvent
 
 @dataclass(frozen=True)
-class TicketTransferred:
+class TicketTransferred(DomainEvent):
 	ticket_id: UUID
 	old_application: Application
 	new_application: Application
