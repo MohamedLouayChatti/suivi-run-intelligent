@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.modules.ticket_management.infrastructure.persistence.models.attachment_model import AttachmentModel
-from app.modules.ticket_management.infrastructure.persistence.models.ticket_model import TicketModel
-
 from app.shared.database.base import Base
+
+if TYPE_CHECKING:
+    from app.modules.ticket_management.infrastructure.persistence.models.attachment_model import AttachmentModel
+    from app.modules.ticket_management.infrastructure.persistence.models.ticket_model import TicketModel
 
 
 class CommentModel(Base):
