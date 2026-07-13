@@ -32,6 +32,7 @@ class TestEngineConnectivity:
         async with engine.connect() as conn:
             # Assert — no exception means connection succeeded
             assert conn is not None
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_engine_connection_executes_select_one(self):
         # Arrange / Act
@@ -40,6 +41,7 @@ class TestEngineConnectivity:
             scalar = result.scalar()
         # Assert
         assert scalar == 1
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_engine_multiple_connections_succeed(self):
         # Arrange / Act / Assert — open two connections sequentially
@@ -50,3 +52,4 @@ class TestEngineConnectivity:
         async with engine.connect() as conn2:
             r2 = await conn2.execute(text("SELECT 2"))
             assert r2.scalar() == 2
+        await engine.dispose()  # Clean up the connection pool after the test
