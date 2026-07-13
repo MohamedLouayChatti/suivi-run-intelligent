@@ -196,6 +196,36 @@ Domain never depends on Infrastructure.
 
 ---
 
+# API Layer
+
+The API layer is an HTTP adapter. It receives and validates FastAPI requests,
+maps HTTP schemas to application commands and queries, invokes exactly one
+application handler per endpoint, and maps application DTOs to HTTP response
+schemas. It contains no domain rules, transaction management, repository
+access, ORM access, or event publishing.
+
+Ticket Management HTTP schemas are organized by concern under
+`app/modules/ticket_management/api/schemas/`:
+
+- `ticket.py` contains ticket request and response contracts.
+- `comment.py` contains comment request and response contracts.
+- `attachment.py` contains attachment request and response contracts.
+
+`app/modules/ticket_management/api/dependencies.py` is the Ticket Management
+HTTP composition root. Its FastAPI providers create a `SqlAlchemyUnitOfWork`,
+an `InMemoryEventPublisher` backed by the lifespan-owned event bus, and a
+`SqlAlchemyTicketReadRepository`; providers construct the individual command
+and query handlers from those concrete adapters. Request-scoped sessions are
+closed by the dependency providers.
+
+`app/modules/ticket_management/module.py` exposes Ticket Management routers as
+the module's public HTTP entry point. `app/api/router.py` is the application
+root router: it aggregates module routers, while `app/main.py` creates the
+FastAPI application and includes that root router. Future modules register
+their public routers there without exposing infrastructure details.
+
+---
+
 # Module Responsibilities
 
 ## Auth
