@@ -20,6 +20,8 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.shared.database.engine import engine
+
 from app.modules.ticket_management.application.queries.list_tickets.query import (
     ListTicketsQuery,
 )
@@ -82,6 +84,7 @@ class TestGetTicket:
         assert dto.status == ticket.status
         assert dto.priority == ticket.priority
         assert dto.application == ticket.application
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_get_ticket_not_found_returns_none(
         self,
@@ -92,6 +95,7 @@ class TestGetTicket:
 
         # Assert
         assert dto is None
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_get_ticket_includes_comments(
         self,
@@ -113,6 +117,7 @@ class TestGetTicket:
         assert len(dto.comments) == 1
         assert dto.comments[0].id == comment.id
         assert dto.comments[0].content == comment.content
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_get_ticket_includes_attachments(
         self,
@@ -133,6 +138,7 @@ class TestGetTicket:
         assert dto is not None
         assert len(dto.attachments) == 1
         assert dto.attachments[0].id == attachment.id
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_get_ticket_includes_comment_attachments(
         self,
@@ -155,7 +161,7 @@ class TestGetTicket:
         assert dto is not None
         assert len(dto.comments[0].attachments) == 1
         assert dto.comments[0].attachments[0].id == comment_attachment.id
-
+        await engine.dispose()  # Clean up the connection pool after the test
 
 # ---------------------------------------------------------------------------
 # list_tickets
@@ -166,7 +172,9 @@ class TestListTickets:
     async def _seed(self, ticket_repository, db_session, **overrides):
         ticket = make_ticket(**overrides)
         await persist(ticket, ticket_repository, db_session)
+        await engine.dispose()  # Clean up the connection pool after the test
         return ticket
+    
 
     async def test_returns_seeded_ticket(
         self,
@@ -184,6 +192,7 @@ class TestListTickets:
         # Assert — the seeded ticket must be present
         ids = [dto.id for dto in results]
         assert ticket.id in ids
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_filter_by_status(
         self,
@@ -202,6 +211,7 @@ class TestListTickets:
         # Assert — all returned tickets must be OPEN
         assert all(dto.status == Status.OPEN for dto in results)
         assert any(dto.id == ticket.id for dto in results)
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_filter_by_priority(
         self,
@@ -220,6 +230,7 @@ class TestListTickets:
         # Assert
         assert all(dto.priority == Priority.CRITICAL for dto in results)
         assert any(dto.id == ticket.id for dto in results)
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_filter_by_application(
         self,
@@ -238,6 +249,7 @@ class TestListTickets:
         # Assert
         assert all(dto.application == Application.APP_3 for dto in results)
         assert any(dto.id == ticket.id for dto in results)
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_filter_by_assignee_id(
         self,
@@ -257,6 +269,7 @@ class TestListTickets:
         # Assert
         assert all(dto.assignee_id == assignee_id for dto in results)
         assert any(dto.id == ticket.id for dto in results)
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_excludes_archived_by_default(
         self,
@@ -276,6 +289,7 @@ class TestListTickets:
         # Assert — the archived ticket must not appear
         ids = [dto.id for dto in results]
         assert ticket.id not in ids
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_include_archived_returns_archived_ticket(
         self,
@@ -295,6 +309,7 @@ class TestListTickets:
         # Assert
         ids = [dto.id for dto in results]
         assert ticket.id in ids
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_pagination_limit_respected(
         self,
@@ -313,6 +328,7 @@ class TestListTickets:
 
         # Assert — at most 2 results
         assert len(results) <= 2
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_pagination_offset_shifts_window(
         self,
@@ -335,7 +351,7 @@ class TestListTickets:
 
         # Assert — offset window is shorter
         assert len(offset_results) == len(all_results) - 1
-
+        await engine.dispose()  # Clean up the connection pool after the test
 
 # ---------------------------------------------------------------------------
 # search_tickets
@@ -360,6 +376,7 @@ class TestSearchTickets:
         # Assert
         ids = [dto.id for dto in results]
         assert ticket.id in ids
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_search_by_description_term_matches(
         self,
@@ -378,6 +395,7 @@ class TestSearchTickets:
         # Assert
         ids = [dto.id for dto in results]
         assert ticket.id in ids
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_search_is_case_insensitive(
         self,
@@ -396,6 +414,7 @@ class TestSearchTickets:
         # Assert
         ids = [dto.id for dto in results]
         assert ticket.id in ids
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_search_no_match_returns_empty(
         self,
@@ -408,6 +427,7 @@ class TestSearchTickets:
 
         # Assert
         assert results == []
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_search_excludes_archived_by_default(
         self,
@@ -427,3 +447,4 @@ class TestSearchTickets:
         # Assert
         ids = [dto.id for dto in results]
         assert ticket.id not in ids
+        await engine.dispose()  # Clean up the connection pool after the test

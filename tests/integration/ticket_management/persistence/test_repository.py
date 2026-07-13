@@ -18,7 +18,7 @@ everything after the test.
 """
 from __future__ import annotations
 
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,6 +29,7 @@ from app.modules.ticket_management.domain.enums.status import Status
 from app.modules.ticket_management.infrastructure.persistence.repositories.sqlalchemy_ticket_repository import (
     SqlAlchemyTicketRepository,
 )
+from app.shared.database.engine import engine
 from tests.unit.ticket_management.domain.factories import (
     BASE_TIME,
     a_moment_after,
@@ -80,6 +81,7 @@ class TestAddAndGet:
         assert result.priority == Priority.CRITICAL
         assert result.assignee_id == assignee_id
         assert result.archived_at is None
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_get_nonexistent_ticket_returns_none(
         self,
@@ -90,6 +92,7 @@ class TestAddAndGet:
 
         # Assert
         assert result is None
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_uuid_survives_round_trip(
         self,
@@ -108,7 +111,8 @@ class TestAddAndGet:
         # Assert
         assert result is not None
         assert result.id == ticket_id
-        assert type(result.id) is type(ticket_id)  # must be UUID, not str
+        assert isinstance(result.id, UUID)  # must be UUID, not str
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_enum_values_survive_round_trip(
         self,
@@ -132,6 +136,7 @@ class TestAddAndGet:
         assert result.priority == Priority.CRITICAL
         assert result.application == Application.APP_4
         assert result.status == Status.IN_PROGRESS
+        await engine.dispose()  # Clean up the connection pool after the test
 
 
 # ---------------------------------------------------------------------------
@@ -162,6 +167,7 @@ class TestNestedCollections:
         assert rc.id == comment.id
         assert rc.content == comment.content
         assert rc.author_id == comment.author_id
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_add_and_get_ticket_with_direct_attachment(
         self,
@@ -186,6 +192,7 @@ class TestNestedCollections:
         assert ra.filename == attachment.filename
         assert ra.content_type == attachment.content_type
         assert ra.storage_path == attachment.storage_path
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_add_and_get_ticket_with_comment_attachment(
         self,
@@ -209,6 +216,7 @@ class TestNestedCollections:
         assert len(result.comments) == 1
         assert len(result.comments[0].attachments) == 1
         assert result.comments[0].attachments[0].id == comment_attachment.id
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_empty_collections_are_returned_as_empty_lists(
         self,
@@ -227,6 +235,7 @@ class TestNestedCollections:
         assert result is not None
         assert result.comments == []
         assert result.attachments == []
+        await engine.dispose()  # Clean up the connection pool after the test
 
 
 # ---------------------------------------------------------------------------
@@ -251,6 +260,7 @@ class TestSave:
         # Assert
         assert result is not None
         assert result.id == ticket.id
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_save_existing_ticket_updates_fields(
         self,
@@ -272,6 +282,7 @@ class TestSave:
         # Assert — updated field persisted
         assert result is not None
         assert result.priority == Priority.CRITICAL
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_save_adds_new_comment_to_existing_ticket(
         self,
@@ -295,6 +306,7 @@ class TestSave:
         assert result is not None
         assert len(result.comments) == 1
         assert result.comments[0].id == comment.id
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_save_archived_ticket_persists_archived_at(
         self,
@@ -317,6 +329,7 @@ class TestSave:
         # Assert
         assert result is not None
         assert result.archived_at == archived_at
+        await engine.dispose()  # Clean up the connection pool after the test
 
 
 # ---------------------------------------------------------------------------
@@ -342,6 +355,7 @@ class TestDelete:
 
         # Assert
         assert result is None
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_delete_nonexistent_ticket_does_not_raise(
         self,
@@ -349,3 +363,4 @@ class TestDelete:
     ):
         # Act / Assert — must not raise
         await ticket_repository.delete(uuid4())
+        await engine.dispose()  # Clean up the connection pool after the test
