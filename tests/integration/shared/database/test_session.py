@@ -10,6 +10,7 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.shared.database.engine import engine
 from app.shared.database.session import create_session
 
 
@@ -49,12 +50,14 @@ class TestSessionLifecycle:
             assert result.scalar() == 1
         finally:
             await session.close()
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_session_closes_cleanly(self):
         # Arrange
         session = create_session()
         # Act / Assert — close must not raise
         await session.close()
+        await engine.dispose()  # Clean up the connection pool after the test
 
     async def test_session_rollback_does_not_raise(self):
         # Arrange
@@ -65,3 +68,4 @@ class TestSessionLifecycle:
             await session.rollback()
         finally:
             await session.close()
+        await engine.dispose()  # Clean up the connection pool after the test
