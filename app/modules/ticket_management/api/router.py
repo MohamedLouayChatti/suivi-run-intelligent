@@ -59,13 +59,13 @@ async def create_ticket(payload: TicketCreateRequest, handler: Annotated[CreateT
 
 
 @router.get("/search", response_model=list[TicketSummaryResponse])
-async def search_tickets(term: Annotated[str, Query(min_length=1)], page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 50, handler: Annotated[SearchTicketsHandler, Depends(get_search_tickets_handler)] = None) -> list[TicketSummaryResponse]:
+async def search_tickets(term: Annotated[str, Query(min_length=1)], handler: Annotated[SearchTicketsHandler, Depends(get_search_tickets_handler)], page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 50) -> list[TicketSummaryResponse]:
 	tickets = await handler.handle(SearchTicketsQuery(term=term, limit=page_size, offset=(page - 1) * page_size))
 	return [TicketSummaryResponse.from_dto(ticket) for ticket in tickets]
 
 
 @router.get("", response_model=list[TicketSummaryResponse])
-async def list_tickets(page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 100, handler: Annotated[ListTicketsHandler, Depends(get_list_tickets_handler)] = None) -> list[TicketSummaryResponse]:
+async def list_tickets(handler: Annotated[ListTicketsHandler, Depends(get_list_tickets_handler)], page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 100) -> list[TicketSummaryResponse]:
 	tickets = await handler.handle(ListTicketsQuery(limit=page_size, offset=(page - 1) * page_size))
 	return [TicketSummaryResponse.from_dto(ticket) for ticket in tickets]
 
