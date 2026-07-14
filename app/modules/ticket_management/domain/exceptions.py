@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from app.shared.exceptions.exceptions import DomainError
 
-class TicketDomainError(Exception):
+
+class TicketDomainError(DomainError):
 	"""Base exception for ticket management domain errors."""
 
 

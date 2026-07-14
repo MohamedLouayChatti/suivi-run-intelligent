@@ -224,6 +224,15 @@ root router: it aggregates module routers, while `app/main.py` creates the
 FastAPI application and includes that root router. Future modules register
 their public routers there without exposing infrastructure details.
 
+`app/api/exceptions/` is the centralized API exception translation boundary.
+`mapper.py` maps known `DomainError` subclasses to HTTP status codes through
+an extensible dictionary; unmapped domain errors return HTTP 400. `handlers.py`
+registers a domain-error handler that returns the safe exception message and a
+catch-all handler that logs unexpected exceptions with their traceback before
+returning a generic HTTP 500 response. The handlers are registered once when
+the FastAPI application is created. Domain and application layers remain
+unaware of FastAPI and HTTP concerns.
+
 ---
 
 # Module Responsibilities
