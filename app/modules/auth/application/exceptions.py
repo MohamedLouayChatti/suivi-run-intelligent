@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from app.shared.exceptions.application_exceptions import ApplicationError
 
-class AuthorizationApplicationError(Exception):
+class AuthorizationApplicationError(ApplicationError):
 	"""Base exception for authorization application errors."""
 
 

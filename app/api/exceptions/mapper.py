@@ -15,10 +15,12 @@ from app.modules.ticket_management.domain.exceptions import (
     TicketNotArchived,
     TicketNotAssigned,
 )
-from app.shared.exceptions.exceptions import DomainError
+from app.shared.exceptions.domain_exceptions import DomainError
+from app.shared.exceptions.application_exceptions import ApplicationError
 
 
-EXCEPTION_STATUS_CODES: dict[type[DomainError], int] = {
+
+EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     InvalidStatusTransition: status.HTTP_409_CONFLICT,
     TicketAlreadyAssigned: status.HTTP_409_CONFLICT,
     TicketNotAssigned: status.HTTP_409_CONFLICT,
@@ -31,7 +33,7 @@ EXCEPTION_STATUS_CODES: dict[type[DomainError], int] = {
 }
 
 
-def get_status_code(exc: DomainError) -> int:
+def get_status_code(exc: DomainError | ApplicationError) -> int:
     """Return the HTTP status code configured for a domain error.
 
     Future modules extend ``EXCEPTION_STATUS_CODES`` with their own error types.

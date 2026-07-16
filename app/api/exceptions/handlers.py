@@ -8,7 +8,8 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from app.api.exceptions.mapper import get_status_code
-from app.shared.exceptions.exceptions import DomainError
+from app.shared.exceptions.application_exceptions import ApplicationError
+from app.shared.exceptions.domain_exceptions import DomainError
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,11 @@ async def domain_error_handler(_: Request, exc: DomainError) -> JSONResponse:
         content={"detail": type(exc).__name__},
     )
 
+async def application_error_handler(_: Request, exc: ApplicationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=get_status_code(exc),
+        content={"detail": type(exc).__name__},
+    )
 
 async def unexpected_exception_handler(_: Request, exc: Exception) -> JSONResponse:
     """Log unexpected failures without exposing implementation details."""
@@ -37,4 +43,5 @@ def register_exception_handlers(app: FastAPI) -> None:
     """Register the API's centralized exception translation handlers."""
 
     app.add_exception_handler(DomainError, domain_error_handler) # type: ignore[arg-type]
+    app.add_exception_handler(ApplicationError, application_error_handler) # type: ignore[arg-type]
     app.add_exception_handler(Exception, unexpected_exception_handler)

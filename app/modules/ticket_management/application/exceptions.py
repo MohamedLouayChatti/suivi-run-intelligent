@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from app.shared.exceptions.application_exceptions import ApplicationError
 
-class TicketApplicationError(Exception):
+class TicketApplicationError(ApplicationError):
 	"""Base exception for ticket management application errors."""
 
 

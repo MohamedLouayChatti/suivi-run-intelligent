@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from app.shared.exceptions.exceptions import DomainError
+from app.shared.exceptions.domain_exceptions import DomainError
 
 
 class TicketDomainError(DomainError):
