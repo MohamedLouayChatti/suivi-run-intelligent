@@ -26,14 +26,8 @@ class PermissionAlreadyGranted(AuthorizationDomainError):
 class PermissionNotGranted(AuthorizationDomainError):
 	pass
 
-
 class RoleAlreadyExists(AuthorizationDomainError):
 	pass
-
-
-class RoleAlreadyAssigned(AuthorizationDomainError):
-	pass
-
 
 class InvalidPermissionState(AuthorizationDomainError):
 	pass
