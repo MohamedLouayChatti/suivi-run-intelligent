@@ -7,8 +7,11 @@ from sqlalchemy import DateTime, Enum as SAEnum, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.modules.ticket_management.infrastructure.persistence.models.attachment_model import AttachmentModel
-from app.modules.ticket_management.infrastructure.persistence.models.comment_model import CommentModel
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.modules.ticket_management.infrastructure.persistence.models.comment_model import CommentModel
+    from app.modules.ticket_management.infrastructure.persistence.models.attachment_model import AttachmentModel
 
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.priority import Priority
@@ -34,13 +37,13 @@ class TicketModel(Base):
 	resolution_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
 	archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-	comments: Mapped[list[CommentModel]] = relationship(
+	comments: Mapped[list["CommentModel"]] = relationship(
 		back_populates="ticket",
 		cascade="all, delete-orphan",
 		lazy="selectin",
 		single_parent=True,
 	)
-	attachments: Mapped[list[AttachmentModel]] = relationship(
+	attachments: Mapped[list["AttachmentModel"]] = relationship(
 		back_populates="ticket",
 		cascade="all, delete-orphan",
 		lazy="selectin",

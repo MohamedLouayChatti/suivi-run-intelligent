@@ -247,6 +247,19 @@ User identity
 
 RBAC
 
+### Persistence Infrastructure
+
+Authorization persistence is implemented under
+`app/modules/auth/infrastructure/persistence/` using async SQLAlchemy. The
+`UserModel`, `RoleModel`, and `PermissionModel` ORM representations inherit
+from the shared `Base`; normalized many-to-many relationships are represented
+by the `user_roles`, `role_permissions`, `user_direct_permissions`, and
+`user_revoked_permissions` association tables. Mapping is centralized in
+`mapper.py`, write repositories implement the Domain repository contracts,
+read repositories return Application DTOs, and `SqlAlchemyUnitOfWork` owns
+the shared session and transaction lifecycle. Auth event publication uses the
+shared in-memory event bus through its `InMemoryEventPublisher` adapter.
+
 The Auth domain is an authorization boundary; external authentication is represented only by the immutable `AuthProviderUserId` value object. It owns two aggregates: `User`, which stores role IDs plus direct and revoked permission exceptions, and `Role`, which stores permission IDs. `Permission` is seeded reference-data.
 
 `AuthorizationService` resolves effective permissions as assigned-role permissions union direct permissions, minus revoked permissions. It is synchronous and accepts domain entities only, keeping cross-aggregate permission validation out of the `User` aggregate.

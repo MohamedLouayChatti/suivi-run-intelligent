@@ -30,8 +30,8 @@ class CommentModel(Base):
 	edited_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 	deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-	ticket: Mapped[TicketModel] = relationship(back_populates="comments")
-	attachments: Mapped[list[AttachmentModel]] = relationship(
+	ticket: Mapped["TicketModel"] = relationship(back_populates="comments")
+	attachments: Mapped[list["AttachmentModel"]] = relationship(
 		back_populates="comment",
 		cascade="all, delete-orphan",
 		lazy="selectin",
