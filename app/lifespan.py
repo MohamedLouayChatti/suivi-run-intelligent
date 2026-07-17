@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.modules.ticket_management import bootstrap as ticket_management_bootstrap
+from app.modules.auth import bootstrap as auth_bootstrap
 from app.shared.events.event_bus import InMemoryEventBus
 from app.shared.events.subscriptions import SubscriptionRegistry
 
@@ -19,5 +20,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 	app.state.event_bus = event_bus
 
 	ticket_management_bootstrap.register_subscriptions(registry)
-
+	auth_bootstrap.register_subscriptions(registry)
+	
 	yield
