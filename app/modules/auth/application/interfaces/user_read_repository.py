@@ -15,6 +15,12 @@ class UserReadRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
+	async def get_user_by_auth_provider_user_id(
+		self, auth_provider_user_id: str
+	) -> UserDTO | None:
+		raise NotImplementedError
+
+	@abstractmethod
 	async def list_users(self, query: ListUsersQuery) -> list[UserDTO]:
 		raise NotImplementedError
 

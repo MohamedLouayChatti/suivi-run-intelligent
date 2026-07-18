@@ -24,6 +24,14 @@ class SqlAlchemyUserReadRepository(UserReadRepository):
 		model = await self._load_user(user_id)
 		return None if model is None else mapper.user_model_to_dto(model)
 
+	async def get_user_by_auth_provider_user_id(
+		self, auth_provider_user_id: str
+	) -> UserDTO | None:
+		model = await self.session.scalar(
+			self._base_query().where(UserModel.auth_provider_user_id == auth_provider_user_id)
+		)
+		return None if model is None else mapper.user_model_to_dto(model)
+
 	async def list_users(self, query: ListUsersQuery) -> list[UserDTO]:
 		result = await self.session.scalars(self._base_query().order_by(UserModel.email).limit(query.limit).offset(query.offset))
 		return [mapper.user_model_to_dto(model) for model in result.all()]
