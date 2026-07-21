@@ -48,7 +48,11 @@ class ClerkJWTVerifier(AuthProvider):
 		try:
 			options = AuthenticateRequestOptions(
 				secret_key=self._settings.clerk_secret_key,
-				jwt_key=self._settings.clerk_jwt_key,
+				jwt_key = (
+					self._settings.clerk_jwt_key.replace("\\n", "\n")
+					if self._settings.clerk_jwt_key is not None
+					else None
+				),
 				audience=self._settings.clerk_audience,
 				authorized_parties=self._settings.clerk_authorized_parties,
 				accepts_token=["session_token"],
