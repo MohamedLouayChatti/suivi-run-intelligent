@@ -130,6 +130,16 @@ The shared event package lives in `app/shared/events/`.
 
 The remaining module bootstrap files currently exist as placeholders and do not register subscriptions yet.
 
+## Shared Seeding
+
+The infrastructure-oriented package `app/shared/seeding/` owns deterministic
+authorization reference-data synchronization. `permissions.py` is the source
+of truth for permission names and descriptions, while `roles.py` defines the
+seeded roles and their permission names. `seed.py` synchronizes those
+definitions against the existing Auth ORM models in one transaction and is
+intentionally executed manually with `python -m app.shared.seeding.seed`.
+Seeding is not part of application startup or lifespan wiring.
+
 ## Alembic
 
 Alembic is configured for async migrations in `alembic/env.py`.
