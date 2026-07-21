@@ -12,8 +12,6 @@ from app.shared.security.current_user import CurrentUser, get_current_user
 
 def require_permissions(*permissions: str):
 	"""Return a dependency requiring every exact permission name provided."""
-	if any(permission == "*" for permission in permissions):
-		raise ValueError("Wildcard permissions are not supported.")
 
 	async def dependency(
 		current_user: Annotated[CurrentUser, Depends(get_current_user)],
