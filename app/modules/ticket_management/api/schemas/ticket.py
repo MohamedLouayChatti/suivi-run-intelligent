@@ -41,8 +41,6 @@ class ApplicationUpdateRequest(BaseModel):
 
 
 class TicketSummaryResponse(BaseModel):
-	model_config = ConfigDict(from_attributes=True)
-
 	id: UUID
 	title: str
 	application: Application

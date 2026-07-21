@@ -19,8 +19,6 @@ class CommentUpdateRequest(BaseModel):
 
 
 class CommentResponse(BaseModel):
-	model_config = ConfigDict(from_attributes=True)
-
 	id: UUID
 	author_id: UUID
 	content: str

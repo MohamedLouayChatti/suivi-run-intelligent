@@ -16,8 +16,6 @@ class AttachmentCreateRequest(BaseModel):
 
 
 class AttachmentResponse(BaseModel):
-	model_config = ConfigDict(from_attributes=True)
-
 	id: UUID
 	filename: str
 	content_type: str
