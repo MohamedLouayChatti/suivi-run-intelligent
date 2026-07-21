@@ -123,11 +123,6 @@ async def list_roles(handler: Annotated[ListRolesHandler, Depends(get_list_roles
 	return [RoleResponse.from_dto(role) for role in await handler.handle(ListRolesQuery(limit=page_size, offset=(page - 1) * page_size))]
 
 
-@router.post("/roles", response_model=RoleResponse, status_code=status.HTTP_201_CREATED)
-async def create_role(payload: RoleCreateRequest, handler: Annotated[CreateRoleHandler, Depends(get_create_role_handler)]) -> RoleResponse:
-	return RoleResponse.from_dto(await handler.handle(CreateRoleCommand(role_id=uuid4(), name=payload.name)))
-
-
 @router.get("/roles/{role_id}", response_model=RoleResponse)
 async def get_role(role_id: UUID, handler: Annotated[GetRoleHandler, Depends(get_role_handler)]) -> RoleResponse:
 	return RoleResponse.from_dto(await handler.handle(GetRoleQuery(role_id=role_id)))
