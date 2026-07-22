@@ -28,7 +28,7 @@ or, if you prefer:
 npx serve -l 5173
 ```
 
-Then open **http://localhost:5173**.
+Then open **<http://localhost:5173>**.
 
 ## 2. Add the origin to your backend config
 
@@ -47,7 +47,7 @@ a valid token.
 
 ## 3. Sign in and mint a token
 
-1. Open http://localhost:5173.
+1. Open <http://localhost:5173>.
 2. Sign in with a real user in your dev Clerk instance.
 3. Click **Get Swagger token**. This calls
    `Clerk.session.getToken({ template: 'swagger' })` — the client-side call
