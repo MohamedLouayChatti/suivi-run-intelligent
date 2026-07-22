@@ -34,6 +34,10 @@ class Settings(BaseSettings):
 		default=None,
 		validation_alias="CLERK_WEBHOOK_SIGNING_SECRET",
 	)
+	clerk_swagger_jwt_template: str = Field(
+		default="swagger",
+		validation_alias="CLERK_SWAGGER_JWT_TEMPLATE",
+	)
 
 	@field_validator("clerk_authorized_parties", mode="before")
 	@classmethod

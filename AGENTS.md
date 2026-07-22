@@ -177,6 +177,7 @@ This task added the following shared persistence foundation files:
 - `app/shared/events/subscriptions.py`
 - `app/shared/events/event_bus.py`
 - `alembic/env.py`
+- `app/devtools/generate_swagger_token.py` (development-only Clerk Swagger token CLI)
 
 ---
 
