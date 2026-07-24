@@ -9,8 +9,7 @@ from app.modules.ticket_management.application.commands.start_progress.command i
 from app.modules.ticket_management.application.commands.resolve_ticket.command import ResolveTicketCommand
 from app.modules.ticket_management.application.commands.close_ticket.command import CloseTicketCommand
 from app.modules.ticket_management.application.commands.resume_ticket.command import ResumeTicketCommand
-from app.modules.ticket_management.application.commands.internal_transfer_ticket.command import InternalTransferTicketCommand
-from app.modules.ticket_management.application.commands.external_transfer_ticket.command import ExternalTransferTicketCommand
+from app.modules.ticket_management.application.commands.transfer_ticket.command import TransferTicketCommand
 from app.modules.ticket_management.application.commands.reassign_ticket.command import ReassignTicketCommand
 from app.modules.ticket_management.application.commands.change_priority.command import ChangePriorityCommand
 from app.modules.ticket_management.application.commands.add_comment.command import AddCommentCommand
@@ -63,11 +62,7 @@ async def resume_ticket(ticket_id: UUID, handler=Depends(dep.get_resume_ticket_h
 
 @router.post("/{ticket_id}/internal-transfer", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.transfer_application"))])
 async def internal_transfer(ticket_id: UUID, payload: TransferRequest, handler=Depends(dep.get_internal_transfer_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(InternalTransferTicketCommand(ticket_id, payload.transferred_to, now())))
-
-@router.post("/{ticket_id}/external-transfer", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.transfer_application"))])
-async def external_transfer(ticket_id: UUID, payload: TransferRequest, handler=Depends(dep.get_external_transfer_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(ExternalTransferTicketCommand(ticket_id, payload.transferred_to, now())))
+	return TicketDetailResponse.from_dto(await handler.handle(TransferTicketCommand(ticket_id, payload.transferred_to, now())))
 
 @router.patch("/{ticket_id}/assignee", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.assign"))])
 async def reassign(ticket_id: UUID, payload: ReassignRequest, handler=Depends(dep.get_reassign_ticket_handler)):
