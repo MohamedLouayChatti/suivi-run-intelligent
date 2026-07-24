@@ -273,9 +273,13 @@ shared in-memory event bus through its `InMemoryEventPublisher` adapter.
 
 The Auth domain is an authorization boundary; external authentication is represented only by the immutable `AuthProviderUserId` value object. It owns two aggregates: `User`, which stores role IDs plus direct and revoked permission exceptions, and `Role`, which stores permission IDs. `Permission` is seeded reference-data.
 
+`User` also owns organizational identity: exactly one `FunctionalTeam` and a collection of `ApplicationAssignment` value objects. Application assignments contain an application and a `PRIMARY` or `BACKUP` assignment type; they are organizational data, not permissions. These assignments are persisted through the Authorization-owned `user_application_assignments` table and are exposed through `UserDTO` and `CurrentUser`.
+
 `AuthorizationService` resolves effective permissions as assigned-role permissions union direct permissions, minus revoked permissions. It is synchronous and accepts domain entities only, keeping cross-aggregate permission validation out of the `User` aggregate.
 
 The module defines `UserCreated`, activation/deactivation, user role/permission assignment, and role permission assignment/revocation events. Aggregates record these events; the application layer publishes them after a successful Unit of Work commit.
+
+Generic instance-authorization infrastructure lives under `app/shared/security/`: `AuthorizationResult`, `InstanceAuthorizationPolicy`, `InstanceAuthorizationRegistry`, and `require_instance_permission`. The application lifespan creates and owns the registry, but no resource-specific policy is registered yet. Shared infrastructure contains no Ticket rules.
 
 ---
 

@@ -19,6 +19,8 @@ class CreateUserHandler:
 			auth_provider_user_id=command.auth_provider_user_id,
 			email=command.email,
 			display_name=command.display_name,
+			functional_team=command.functional_team,
+			application_assignments=set(command.application_assignments),
 		)
 		await self.uow.users.add(user)
 		try:
@@ -32,6 +34,8 @@ class CreateUserHandler:
 				auth_provider_user_id=user.auth_provider_user_id,
 				email=user.email,
 				display_name=user.display_name,
+				functional_team=user.functional_team,
+				application_assignments=frozenset(user.application_assignments),
 			)
 		)
 		return UserDTO.from_user(user)

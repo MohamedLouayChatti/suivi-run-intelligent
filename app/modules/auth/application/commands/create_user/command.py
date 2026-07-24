@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from app.modules.auth.domain.value_objects.auth_provider_user_id import AuthProviderUserId
+from app.modules.auth.domain.enums.functional_team import FunctionalTeam
+from app.modules.auth.domain.value_objects.application_assignment import ApplicationAssignment
 
 
 @dataclass(frozen=True)
@@ -12,3 +14,5 @@ class CreateUserCommand:
 	auth_provider_user_id: AuthProviderUserId
 	email: str
 	display_name: str
+	functional_team: FunctionalTeam = FunctionalTeam.SUPPORT
+	application_assignments: frozenset[ApplicationAssignment] = frozenset()

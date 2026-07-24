@@ -10,7 +10,9 @@ from app.modules.auth.domain.events.role_revoked_from_user import RoleRevokedFro
 from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
-from app.modules.auth.domain.exceptions import InvalidPermissionState
+from app.modules.auth.domain.exceptions import InvalidFunctionalTeam, InvalidPermissionState
+from app.modules.auth.domain.enums.functional_team import FunctionalTeam
+from app.modules.auth.domain.value_objects.application_assignment import ApplicationAssignment
 from app.modules.auth.domain.value_objects.auth_provider_user_id import AuthProviderUserId
 from app.shared.events.event import DomainEvent
 
@@ -24,11 +26,15 @@ class User:
 	email: str
 	display_name: str
 	active: bool
+	functional_team: FunctionalTeam = FunctionalTeam.SUPPORT
+	application_assignments: set[ApplicationAssignment] = field(default_factory=set)
 	role_ids: set[UUID] = field(default_factory=set)
 	direct_permission_ids: set[UUID] = field(default_factory=set)
 	revoked_permission_ids: set[UUID] = field(default_factory=set)
 
 	def __post_init__(self) -> None:
+		if not isinstance(self.functional_team, FunctionalTeam):
+			raise InvalidFunctionalTeam()
 		if self.direct_permission_ids & self.revoked_permission_ids:
 			raise InvalidPermissionState()
 
@@ -40,6 +46,8 @@ class User:
 		auth_provider_user_id: AuthProviderUserId,
 		email: str,
 		display_name: str,
+		functional_team: FunctionalTeam = FunctionalTeam.SUPPORT,
+		application_assignments: set[ApplicationAssignment] | None = None,
 	) -> User:
 		user = cls(
 			id=id,
@@ -47,8 +55,21 @@ class User:
 			email=email,
 			display_name=display_name,
 			active=True,
+			functional_team=functional_team,
+			application_assignments=set(application_assignments or ()),
 		)
 		return user
+
+	def update_organizational_identity(
+		self,
+		*,
+		functional_team: FunctionalTeam | None = None,
+		application_assignments: set[ApplicationAssignment] | None = None,
+	) -> None:
+		if functional_team is not None:
+			self.functional_team = functional_team
+		if application_assignments is not None:
+			self.application_assignments = set(application_assignments)
 
 	def assign_role(self, role_id: UUID) -> None:
 		if role_id in self.role_ids:

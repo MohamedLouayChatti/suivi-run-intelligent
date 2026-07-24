@@ -53,6 +53,7 @@ class SqlAlchemyUserReadRepository(UserReadRepository):
 			selectinload(UserModel.roles).selectinload(RoleModel.permissions),
 			selectinload(UserModel.direct_permissions),
 			selectinload(UserModel.revoked_permissions),
+			selectinload(UserModel.application_assignments),
 		)
 
 	async def _load_user(self, user_id: UUID) -> UserModel | None:

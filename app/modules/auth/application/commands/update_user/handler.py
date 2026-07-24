@@ -18,6 +18,11 @@ class UpdateUserHandler:
 			user.email = command.email
 		if command.display_name is not None:
 			user.display_name = command.display_name
+		if command.functional_team is not None or command.application_assignments is not None:
+			user.update_organizational_identity(
+				functional_team=command.functional_team,
+				application_assignments=None if command.application_assignments is None else set(command.application_assignments),
+			)
 		await self.uow.users.update(user)
 		try:
 			await self.uow.commit()

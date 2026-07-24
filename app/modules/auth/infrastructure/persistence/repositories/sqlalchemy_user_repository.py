@@ -13,6 +13,7 @@ from app.modules.auth.infrastructure.persistence import mapper
 from app.modules.auth.infrastructure.persistence.models.permission_model import PermissionModel
 from app.modules.auth.infrastructure.persistence.models.role_model import RoleModel
 from app.modules.auth.infrastructure.persistence.models.user_model import UserModel
+from app.modules.auth.infrastructure.persistence.models.application_assignment_model import ApplicationAssignmentModel
 
 
 class SqlAlchemyUserRepository(UserRepository):
@@ -48,7 +49,7 @@ class SqlAlchemyUserRepository(UserRepository):
 
 	async def _load_user_model(self, condition) -> UserModel | None:
 		stmt = select(UserModel).where(condition).options(
-			selectinload(UserModel.roles), selectinload(UserModel.direct_permissions), selectinload(UserModel.revoked_permissions)
+			selectinload(UserModel.roles), selectinload(UserModel.direct_permissions), selectinload(UserModel.revoked_permissions), selectinload(UserModel.application_assignments)
 		)
 		return await self.session.scalar(stmt)
 

@@ -10,6 +10,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.modules.auth.api.dependencies import get_auth_provider, get_user_read_repository
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
 from app.shared.security.auth_provider import AuthProvider
+from app.modules.auth.domain.enums.functional_team import FunctionalTeam
+from app.modules.auth.domain.value_objects.application_assignment import ApplicationAssignment
 
 
 @dataclass(frozen=True, slots=True)
@@ -18,6 +20,8 @@ class CurrentUser:
 	auth_provider_user_id: str
 	email: str
 	display_name: str
+	functional_team: FunctionalTeam
+	application_assignments: frozenset[ApplicationAssignment]
 
 
 _bearer_scheme = HTTPBearer(auto_error=False)
@@ -45,4 +49,6 @@ async def get_current_user(
 		auth_provider_user_id=user.auth_provider_user_id.value,
 		email=user.email,
 		display_name=user.display_name,
+		functional_team=user.functional_team,
+		application_assignments=user.application_assignments,
 	)

@@ -22,3 +22,7 @@ class InvalidAuthProviderUserId(AuthorizationDomainError):
 
 class InvalidAssignedRoles(AuthorizationDomainError):
 	pass
+
+
+class InvalidFunctionalTeam(AuthorizationDomainError):
+	pass
