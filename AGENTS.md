@@ -314,6 +314,7 @@ Archive, restore, reassign, transfer, comment edit/delete, and attachment delete
 Domain model currently includes:
 
 - Ticket aggregate
+- Conditional ticket fields: Jira ID and optional delivery date, application-specific offer/version/element, and VIO app
 - Comment entity
 - Attachment entity
 - Application, Priority, and Status enums
@@ -322,6 +323,7 @@ Domain model currently includes:
 Business rules currently covered in the domain layer:
 
 - Ticket creation and validation
+- Conditional field validation: Jira delivery date requires a Jira ID; VIO requires `vio_app`; application-specific fields are rejected for unrelated applications
 - Assignment and reassignment
 - Status transitions between OPEN, IN_PROGRESS, PENDING, RESOLVED, and CLOSED
 - Priority changes

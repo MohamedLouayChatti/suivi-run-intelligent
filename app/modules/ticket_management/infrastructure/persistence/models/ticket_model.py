@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, String, Text
+from sqlalchemy import Boolean, Date, DateTime, Enum as SAEnum, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +21,7 @@ from app.modules.ticket_management.domain.enums.offer import Offer
 from app.modules.ticket_management.domain.enums.priority import Priority
 from app.modules.ticket_management.domain.enums.status import Status
 from app.modules.ticket_management.domain.enums.transfer_destination import TransferDestination
+from app.modules.ticket_management.domain.enums.vio_app import VioApp
 from app.modules.ticket_management.domain.enums.version import Version
 from app.shared.database.base import Base
 
@@ -40,11 +41,13 @@ class TicketModel(Base):
 	genergy_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 	oceane_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
 	jira_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+	jira_delivery_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 	requires_jira: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 	operational_highlight: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 	offer: Mapped[Offer | None] = mapped_column(SAEnum(Offer, name="ticket_offer"), nullable=True)
 	version: Mapped[Version | None] = mapped_column(SAEnum(Version, name="ticket_version"), nullable=True)
 	element: Mapped[Element | None] = mapped_column(SAEnum(Element, name="ticket_element"), nullable=True)
+	vio_app: Mapped[VioApp | None] = mapped_column(SAEnum(VioApp, name="ticket_vio_app"), nullable=True)
 	transferred_to: Mapped[TransferDestination | None] = mapped_column(SAEnum(TransferDestination, name="ticket_transfer_destination"), nullable=True)
 	created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 	updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

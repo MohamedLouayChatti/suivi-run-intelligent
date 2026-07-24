@@ -27,11 +27,13 @@ class CreateTicketHandler:
 			genergy_id=command.genergy_id,
 			oceane_id=command.oceane_id,
 			jira_id=command.jira_id,
+			jira_delivery_date=command.jira_delivery_date,
 			requires_jira=command.requires_jira,
 			operational_highlight=command.operational_highlight,
 			offer=command.offer,
 			version=command.version,
 			element=command.element,
+			vio_app=command.vio_app,
 		)
 		await self.uow.tickets.add(ticket)
 		try:

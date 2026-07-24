@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from app.modules.ticket_management.domain.entities.attachment import Attachment
@@ -14,13 +14,14 @@ from app.modules.ticket_management.domain.enums.offer import Offer
 from app.modules.ticket_management.domain.enums.priority import Priority
 from app.modules.ticket_management.domain.enums.status import Status
 from app.modules.ticket_management.domain.enums.transfer_destination import TransferDestination
+from app.modules.ticket_management.domain.enums.vio_app import VioApp
 from app.modules.ticket_management.domain.enums.version import Version
 from app.modules.ticket_management.domain.exceptions import (
 	AttachmentNotFound, CommentNotFound, ConditionalFieldForbidden, DuplicateAttachment,
 	ElementRequired, EmptyComment, EmptyDescription, EmptyTitle, InvalidAssignee,
 	InvalidStatusTransition, JiraIdRequired, OfferRequired, ResolutionNotesRequired,
 	TicketArchived, TicketClosed, TicketNotArchived, TransferDestinationRequired,
-	VersionRequired,
+	VersionRequired, VioAppRequired,
 )
 
 
@@ -40,11 +41,13 @@ class Ticket:
 	genergy_id: str | None = None
 	oceane_id: str | None = None
 	jira_id: str | None = None
+	jira_delivery_date: date | None = None
 	requires_jira: bool = False
 	operational_highlight: bool = False
 	offer: Offer | None = None
 	version: Version | None = None
 	element: Element | None = None
+	vio_app: VioApp | None = None
 	resolved_at: datetime | None = None
 	closed_at: datetime | None = None
 	resolution_notes: str | None = None
@@ -60,7 +63,9 @@ class Ticket:
 			genergy_id: str | None = None, oceane_id: str | None = None,
 			jira_id: str | None = None, requires_jira: bool = False,
 			operational_highlight: bool = False, offer: Offer | None = None,
-			version: Version | None = None, element: Element | None = None) -> Ticket:
+			version: Version | None = None, element: Element | None = None,
+			jira_delivery_date: date | None = None,
+			vio_app: VioApp | None = None) -> Ticket:
 		if not title.strip():
 			raise EmptyTitle()
 		if not description.strip():
@@ -73,7 +78,7 @@ class Ticket:
 			updated_at=created_at, genergy_id=genergy_id, oceane_id=oceane_id,
 			jira_id=jira_id, requires_jira=requires_jira,
 			operational_highlight=operational_highlight, offer=offer, version=version,
-			element=element)
+			element=element, jira_delivery_date=jira_delivery_date, vio_app=vio_app)
 		ticket._validate_conditional_fields()
 		return ticket
 
@@ -82,15 +87,26 @@ class Ticket:
 			raise JiraIdRequired()
 		if not self.requires_jira and self.jira_id:
 			raise ConditionalFieldForbidden()
+		if self.jira_id is None and self.jira_delivery_date is not None:
+			raise ConditionalFieldForbidden()
 		if self.application == Application.COLORIS:
 			if self.offer is None:
 				raise OfferRequired()
 			if self.version is None:
 				raise VersionRequired()
+			if self.element is not None or self.vio_app is not None:
+				raise ConditionalFieldForbidden()
 		elif self.application == Application.AERO:
 			if self.element is None:
 				raise ElementRequired()
-		elif self.offer is not None or self.version is not None or self.element is not None:
+			if self.offer is not None or self.version is not None or self.vio_app is not None:
+				raise ConditionalFieldForbidden()
+		elif self.application == Application.VIO:
+			if self.vio_app is None:
+				raise VioAppRequired()
+			if self.offer is not None or self.version is not None or self.element is not None:
+				raise ConditionalFieldForbidden()
+		elif self.offer is not None or self.version is not None or self.element is not None or self.vio_app is not None:
 			raise ConditionalFieldForbidden()
 
 	def _ensure_not_closed(self) -> None:

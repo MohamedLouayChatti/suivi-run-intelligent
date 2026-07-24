@@ -27,6 +27,10 @@ class ElementRequired(TicketDomainError):
 	pass
 
 
+class VioAppRequired(TicketDomainError):
+	pass
+
+
 class JiraIdRequired(TicketDomainError):
 	pass
 

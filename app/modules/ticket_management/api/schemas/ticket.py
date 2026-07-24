@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -17,6 +17,7 @@ from app.modules.ticket_management.domain.enums.priority import Priority
 from app.modules.ticket_management.domain.enums.status import Status
 from app.modules.ticket_management.domain.enums.transfer_destination import TransferDestination
 from app.modules.ticket_management.domain.enums.version import Version
+from app.modules.ticket_management.domain.enums.vio_app import VioApp
 
 
 class TicketCreateRequest(BaseModel):
@@ -30,11 +31,13 @@ class TicketCreateRequest(BaseModel):
 	genergy_id: str | None = None
 	oceane_id: str | None = None
 	jira_id: str | None = None
+	jira_delivery_date: date | None = None
 	requires_jira: bool = False
 	operational_highlight: bool = False
 	offer: Offer | None = None
 	version: Version | None = None
 	element: Element | None = None
+	vio_app: VioApp | None = None
 
 
 class ReassignRequest(BaseModel):
@@ -80,11 +83,13 @@ class TicketDetailResponse(TicketSummaryResponse):
 	genergy_id: str | None
 	oceane_id: str | None
 	jira_id: str | None
+	jira_delivery_date: date | None
 	requires_jira: bool
 	operational_highlight: bool
 	offer: Offer | None
 	version: Version | None
 	element: Element | None
+	vio_app: VioApp | None
 	transferred_to: TransferDestination | None
 	resolution_notes: str | None
 	comments: list[CommentResponse]
@@ -109,11 +114,13 @@ class TicketDetailResponse(TicketSummaryResponse):
 			genergy_id=ticket.genergy_id,
 			oceane_id=ticket.oceane_id,
 			jira_id=ticket.jira_id,
+			jira_delivery_date=ticket.jira_delivery_date,
 			requires_jira=ticket.requires_jira,
 			operational_highlight=ticket.operational_highlight,
 			offer=ticket.offer,
 			version=ticket.version,
 			element=ticket.element,
+			vio_app=ticket.vio_app,
 			transferred_to=ticket.transferred_to,
 			resolution_notes=ticket.resolution_notes,
 			comments=[CommentResponse.from_dto(item) for item in ticket.comments],
