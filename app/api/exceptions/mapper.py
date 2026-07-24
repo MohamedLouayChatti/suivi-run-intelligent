@@ -9,7 +9,6 @@ from app.modules.ticket_management.domain.exceptions import (
     CommentNotFound,
     DuplicateAttachment,
     InvalidStatusTransition,
-    TicketAlreadyAssigned,
     TicketArchived,
     TicketClosed,
     TicketNotArchived,
@@ -22,7 +21,6 @@ from app.shared.exceptions.application_exceptions import ApplicationError
 
 EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     InvalidStatusTransition: status.HTTP_409_CONFLICT,
-    TicketAlreadyAssigned: status.HTTP_409_CONFLICT,
     TicketNotAssigned: status.HTTP_409_CONFLICT,
     TicketClosed: status.HTTP_409_CONFLICT,
     TicketArchived: status.HTTP_409_CONFLICT,

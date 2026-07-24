@@ -6,6 +6,6 @@ from enum import StrEnum
 class Status(StrEnum):
 	OPEN = "OPEN"
 	IN_PROGRESS = "IN_PROGRESS"
-	PENDING = "PENDING"
+	TRANSFERRED = "TRANSFERRED"
 	RESOLVED = "RESOLVED"
 	CLOSED = "CLOSED"

@@ -11,15 +11,31 @@ class InvalidStatusTransition(TicketDomainError):
 	pass
 
 
-class PendingReasonRequired(TicketDomainError):
+class TransferDestinationRequired(TicketDomainError):
+	pass
+
+
+class OfferRequired(TicketDomainError):
+	pass
+
+
+class VersionRequired(TicketDomainError):
+	pass
+
+
+class ElementRequired(TicketDomainError):
+	pass
+
+
+class JiraIdRequired(TicketDomainError):
+	pass
+
+
+class ConditionalFieldForbidden(TicketDomainError):
 	pass
 
 
 class ResolutionNotesRequired(TicketDomainError):
-	pass
-
-
-class TicketAlreadyAssigned(TicketDomainError):
 	pass
 
 
@@ -68,5 +84,5 @@ class EmptyDescription(TicketDomainError):
 class InvalidAssignee(TicketDomainError):
 	pass
 
-class SameApplicationTransfer(TicketDomainError):
+class AssigneeRequired(TicketDomainError):
 	pass

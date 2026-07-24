@@ -1,12 +1,9 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-
 @dataclass(frozen=True)
-class AssignTicketCommand:
+class ResolveTicketCommand:
 	ticket_id: UUID
-	assignee_id: UUID
-	assigned_at: datetime
+	resolution_notes: str
+	resolved_at: datetime

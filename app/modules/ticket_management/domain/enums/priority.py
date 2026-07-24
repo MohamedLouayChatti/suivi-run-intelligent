@@ -4,7 +4,7 @@ from enum import StrEnum
 
 
 class Priority(StrEnum):
-	LOW = "LOW"
-	MEDIUM = "MEDIUM"
-	HIGH = "HIGH"
-	CRITICAL = "CRITICAL"
+	LOW = "P4"
+	MEDIUM = "P3"
+	HIGH = "P2"
+	CRITICAL = "P1"

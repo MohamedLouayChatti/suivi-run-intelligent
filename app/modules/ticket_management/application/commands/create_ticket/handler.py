@@ -22,6 +22,16 @@ class CreateTicketHandler:
 			created_at=command.created_at,
 			application=command.application,
 			assignee_id=command.assignee_id,
+			category=command.category,
+			functional_team=command.functional_team,
+			genergy_id=command.genergy_id,
+			oceane_id=command.oceane_id,
+			jira_id=command.jira_id,
+			requires_jira=command.requires_jira,
+			operational_highlight=command.operational_highlight,
+			offer=command.offer,
+			version=command.version,
+			element=command.element,
 		)
 		await self.uow.tickets.add(ticket)
 		try:
@@ -37,6 +47,9 @@ class CreateTicketHandler:
 				status=ticket.status,
 				priority=ticket.priority,
 				created_at=ticket.created_at,
+				assignee_id=ticket.assignee_id,
+				category=ticket.category,
+				functional_team=ticket.functional_team,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

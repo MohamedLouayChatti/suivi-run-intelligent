@@ -5,6 +5,8 @@ from datetime import datetime
 from uuid import UUID
 
 from app.modules.ticket_management.domain.enums.priority import Priority
+from app.modules.ticket_management.domain.enums.category import Category
+from app.modules.ticket_management.domain.enums.functional_team import FunctionalTeam
 from app.modules.ticket_management.domain.enums.status import Status
 from app.shared.events.event import DomainEvent
 
@@ -16,3 +18,6 @@ class TicketCreated(DomainEvent):
 	status: Status
 	priority: Priority
 	created_at: datetime
+	assignee_id: UUID
+	category: Category
+	functional_team: FunctionalTeam

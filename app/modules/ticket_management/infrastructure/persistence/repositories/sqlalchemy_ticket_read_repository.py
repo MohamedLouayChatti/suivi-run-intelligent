@@ -45,17 +45,17 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 
 	def _build_list_query(self, query: ListTicketsQuery) -> Select[tuple[TicketModel]]:
 		stmt = select(TicketModel)
-		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.include_archived)
+		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.functional_team, query.category, query.operational_highlight, query.include_archived)
 		return stmt.order_by(TicketModel.created_at.desc(), TicketModel.updated_at.desc()).limit(query.limit).offset(query.offset)
 
 	def _build_search_query(self, query: SearchTicketsQuery) -> Select[tuple[TicketModel]]:
 		stmt = select(TicketModel)
-		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.include_archived)
+		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.functional_team, query.category, query.operational_highlight, query.include_archived)
 		pattern = f"%{query.term}%"
 		stmt = stmt.where(or_(TicketModel.title.ilike(pattern), TicketModel.description.ilike(pattern)))
 		return stmt.order_by(TicketModel.created_at.desc(), TicketModel.updated_at.desc()).limit(query.limit).offset(query.offset)
 
-	def _apply_common_filters(self, stmt: Select[tuple[TicketModel]], application, status, priority, assignee_id, include_archived: bool) -> Select[tuple[TicketModel]]:
+	def _apply_common_filters(self, stmt: Select[tuple[TicketModel]], application, status, priority, assignee_id, functional_team, category, operational_highlight, include_archived: bool) -> Select[tuple[TicketModel]]:
 		conditions = []
 		if application is not None:
 			conditions.append(TicketModel.application == application)
@@ -65,6 +65,12 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 			conditions.append(TicketModel.priority == priority)
 		if assignee_id is not None:
 			conditions.append(TicketModel.assignee_id == assignee_id)
+		if functional_team is not None:
+			conditions.append(TicketModel.functional_team == functional_team)
+		if category is not None:
+			conditions.append(TicketModel.category == category)
+		if operational_highlight is not None:
+			conditions.append(TicketModel.operational_highlight == operational_highlight)
 		if not include_archived:
 			conditions.append(TicketModel.archived_at.is_(None))
 		if conditions:

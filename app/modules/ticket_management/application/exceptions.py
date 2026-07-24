@@ -16,3 +16,11 @@ class CommentNotFound(TicketApplicationError):
 
 class AttachmentNotFound(TicketApplicationError):
 	pass
+
+
+class AssigneeNotFound(TicketApplicationError):
+	pass
+
+
+class AssigneeNotAuthorized(TicketApplicationError):
+	pass

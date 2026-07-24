@@ -17,7 +17,8 @@ class ReassignTicketHandler:
 		ticket = await self.uow.tickets.get(command.ticket_id)
 		if ticket is None:
 			raise TicketNotFound()
-		ticket.reassign(command.assignee_id, command.reassigned_at)
+		# Cross-aggregate authorization requires the Auth application interface.
+		raise NotImplementedError("Auth access validation for reassignment is not implemented yet")
 		await self.uow.tickets.save(ticket)
 		try:
 			await self.uow.commit()

@@ -1,147 +1,112 @@
-from __future__ import annotations
-
 from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID, uuid4
-
 from fastapi import APIRouter, Depends, Query, Response, status
-
-from app.modules.ticket_management.api.dependencies import (
-	get_add_comment_handler, get_add_ticket_attachment_handler, get_archive_ticket_handler,
-	get_assign_ticket_handler, get_change_priority_handler, get_change_status_handler,
-	get_create_ticket_handler, get_delete_comment_handler, get_delete_ticket_attachment_handler,
-	get_edit_comment_handler, get_get_ticket_handler, get_list_tickets_handler,
-	get_restore_ticket_handler, get_search_tickets_handler, get_transfer_application_handler,
-)
-from app.modules.ticket_management.api.schemas import (
-	ApplicationUpdateRequest, AssignmentUpdateRequest, AttachmentCreateRequest,
-	CommentCreateRequest, CommentUpdateRequest, PriorityUpdateRequest, StatusUpdateRequest,
-	TicketCreateRequest, TicketDetailResponse, TicketSummaryResponse,
-)
-from app.modules.ticket_management.application.commands.add_comment.command import AddCommentCommand
-from app.modules.ticket_management.application.commands.add_comment.handler import AddCommentHandler
-from app.modules.ticket_management.application.commands.add_ticket_attachment.command import AddTicketAttachmentCommand
-from app.modules.ticket_management.application.commands.add_ticket_attachment.handler import AddTicketAttachmentHandler
-from app.modules.ticket_management.application.commands.archive_ticket.command import ArchiveTicketCommand
-from app.modules.ticket_management.application.commands.archive_ticket.handler import ArchiveTicketHandler
-from app.modules.ticket_management.application.commands.assign_ticket.command import AssignTicketCommand
-from app.modules.ticket_management.application.commands.assign_ticket.handler import AssignTicketHandler
-from app.modules.ticket_management.application.commands.change_priority.command import ChangePriorityCommand
-from app.modules.ticket_management.application.commands.change_priority.handler import ChangePriorityHandler
-from app.modules.ticket_management.application.commands.change_status.command import ChangeStatusCommand
-from app.modules.ticket_management.application.commands.change_status.handler import ChangeStatusHandler
+from app.modules.ticket_management.api import dependencies as dep
+from app.modules.ticket_management.api.schemas import *
 from app.modules.ticket_management.application.commands.create_ticket.command import CreateTicketCommand
-from app.modules.ticket_management.application.commands.create_ticket.handler import CreateTicketHandler
-from app.modules.ticket_management.application.commands.delete_comment.command import DeleteCommentCommand
-from app.modules.ticket_management.application.commands.delete_comment.handler import DeleteCommentHandler
-from app.modules.ticket_management.application.commands.delete_ticket_attachment.command import DeleteTicketAttachmentCommand
-from app.modules.ticket_management.application.commands.delete_ticket_attachment.handler import DeleteTicketAttachmentHandler
+from app.modules.ticket_management.application.commands.start_progress.command import StartProgressCommand
+from app.modules.ticket_management.application.commands.resolve_ticket.command import ResolveTicketCommand
+from app.modules.ticket_management.application.commands.close_ticket.command import CloseTicketCommand
+from app.modules.ticket_management.application.commands.resume_ticket.command import ResumeTicketCommand
+from app.modules.ticket_management.application.commands.internal_transfer_ticket.command import InternalTransferTicketCommand
+from app.modules.ticket_management.application.commands.external_transfer_ticket.command import ExternalTransferTicketCommand
+from app.modules.ticket_management.application.commands.reassign_ticket.command import ReassignTicketCommand
+from app.modules.ticket_management.application.commands.change_priority.command import ChangePriorityCommand
+from app.modules.ticket_management.application.commands.add_comment.command import AddCommentCommand
 from app.modules.ticket_management.application.commands.edit_comment.command import EditCommentCommand
-from app.modules.ticket_management.application.commands.edit_comment.handler import EditCommentHandler
+from app.modules.ticket_management.application.commands.delete_comment.command import DeleteCommentCommand
+from app.modules.ticket_management.application.commands.add_ticket_attachment.command import AddTicketAttachmentCommand
+from app.modules.ticket_management.application.commands.delete_ticket_attachment.command import DeleteTicketAttachmentCommand
+from app.modules.ticket_management.application.commands.archive_ticket.command import ArchiveTicketCommand
 from app.modules.ticket_management.application.commands.restore_ticket.command import RestoreTicketCommand
-from app.modules.ticket_management.application.commands.restore_ticket.handler import RestoreTicketHandler
-from app.modules.ticket_management.application.commands.transfer_application.command import TransferApplicationCommand
-from app.modules.ticket_management.application.commands.transfer_application.handler import TransferApplicationHandler
 from app.modules.ticket_management.application.queries.get_ticket.handler import GetTicketHandler
 from app.modules.ticket_management.application.queries.get_ticket.query import GetTicketQuery
-from app.modules.ticket_management.application.queries.list_tickets.handler import ListTicketsHandler
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
-from app.modules.ticket_management.application.queries.search_tickets.handler import SearchTicketsHandler
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
-
 from app.shared.security.permissions import require_permissions
 
 router = APIRouter(prefix="/tickets", tags=["tickets"])
+now = lambda: datetime.now(UTC)
 
-
-@router.post("", response_model=TicketDetailResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_permissions("ticket.create"))])
-async def create_ticket(payload: TicketCreateRequest, handler: Annotated[CreateTicketHandler, Depends(get_create_ticket_handler)]) -> TicketDetailResponse:
-	ticket = await handler.handle(CreateTicketCommand(ticket_id=uuid4(), created_at=datetime.now(UTC), **payload.model_dump()))
-	return TicketDetailResponse.from_dto(ticket)
-
-
-@router.get("/search", response_model=list[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
-async def search_tickets(term: Annotated[str, Query(min_length=1)], handler: Annotated[SearchTicketsHandler, Depends(get_search_tickets_handler)], page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 50) -> list[TicketSummaryResponse]:
-	tickets = await handler.handle(SearchTicketsQuery(term=term, limit=page_size, offset=(page - 1) * page_size))
-	return [TicketSummaryResponse.from_dto(ticket) for ticket in tickets]
-
+@router.post("", response_model=TicketDetailResponse, status_code=201, dependencies=[Depends(require_permissions("ticket.create"))])
+async def create_ticket(payload: TicketCreateRequest, handler=Depends(dep.get_create_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(CreateTicketCommand(ticket_id=uuid4(), created_at=now(), **payload.model_dump())))
 
 @router.get("", response_model=list[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
-async def list_tickets(handler: Annotated[ListTicketsHandler, Depends(get_list_tickets_handler)], page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 100) -> list[TicketSummaryResponse]:
-	tickets = await handler.handle(ListTicketsQuery(limit=page_size, offset=(page - 1) * page_size))
-	return [TicketSummaryResponse.from_dto(ticket) for ticket in tickets]
+async def list_tickets(handler=Depends(dep.get_list_tickets_handler), page: int = 1, page_size: int = 100):
+	return [TicketSummaryResponse.from_dto(x) for x in await handler.handle(ListTicketsQuery(limit=page_size, offset=(page-1)*page_size))]
 
+@router.get("/search", response_model=list[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
+async def search_tickets(term: Annotated[str, Query(min_length=1)], handler=Depends(dep.get_search_tickets_handler), page: int = 1, page_size: int = 50):
+	return [TicketSummaryResponse.from_dto(x) for x in await handler.handle(SearchTicketsQuery(term, limit=page_size, offset=(page-1)*page_size))]
 
 @router.get("/{ticket_id}", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.read"))])
-async def get_ticket(ticket_id: UUID, handler: Annotated[GetTicketHandler, Depends(get_get_ticket_handler)]) -> TicketDetailResponse:
-	return TicketDetailResponse.from_dto(await handler.handle(GetTicketQuery(ticket_id=ticket_id)))
+async def get_ticket(ticket_id: UUID, handler=Depends(dep.get_get_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(GetTicketQuery(ticket_id)))
 
+@router.post("/{ticket_id}/start", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status"))])
+async def start_progress(ticket_id: UUID, handler=Depends(dep.get_start_progress_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(StartProgressCommand(ticket_id, now())))
 
-@router.patch("/{ticket_id}/assignment", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.assign"))])
-async def assign_ticket(ticket_id: UUID, payload: AssignmentUpdateRequest, handler: Annotated[AssignTicketHandler, Depends(get_assign_ticket_handler)]) -> TicketDetailResponse:
-	ticket = await handler.handle(AssignTicketCommand(ticket_id=ticket_id, assignee_id=payload.assignee_id, assigned_at=datetime.now(UTC)))
-	return TicketDetailResponse.from_dto(ticket)
+@router.post("/{ticket_id}/resolve", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status"))])
+async def resolve_ticket(ticket_id: UUID, payload: ResolveRequest, handler=Depends(dep.get_resolve_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ResolveTicketCommand(ticket_id, payload.resolution_notes, now())))
 
+@router.post("/{ticket_id}/close", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status"))])
+async def close_ticket(ticket_id: UUID, handler=Depends(dep.get_close_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(CloseTicketCommand(ticket_id, now())))
+
+@router.post("/{ticket_id}/resume", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status"))])
+async def resume_ticket(ticket_id: UUID, handler=Depends(dep.get_resume_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ResumeTicketCommand(ticket_id, now())))
+
+@router.post("/{ticket_id}/internal-transfer", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.transfer_application"))])
+async def internal_transfer(ticket_id: UUID, payload: TransferRequest, handler=Depends(dep.get_internal_transfer_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(InternalTransferTicketCommand(ticket_id, payload.transferred_to, now())))
+
+@router.post("/{ticket_id}/external-transfer", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.transfer_application"))])
+async def external_transfer(ticket_id: UUID, payload: TransferRequest, handler=Depends(dep.get_external_transfer_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ExternalTransferTicketCommand(ticket_id, payload.transferred_to, now())))
+
+@router.patch("/{ticket_id}/assignee", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.assign"))])
+async def reassign(ticket_id: UUID, payload: ReassignRequest, handler=Depends(dep.get_reassign_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ReassignTicketCommand(ticket_id, payload.assignee_id, now())))
 
 @router.patch("/{ticket_id}/priority", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_priority"))])
-async def change_priority(ticket_id: UUID, payload: PriorityUpdateRequest, handler: Annotated[ChangePriorityHandler, Depends(get_change_priority_handler)]) -> TicketDetailResponse:
-	ticket = await handler.handle(ChangePriorityCommand(ticket_id=ticket_id, priority=payload.priority, changed_at=datetime.now(UTC)))
-	return TicketDetailResponse.from_dto(ticket)
+async def change_priority(ticket_id: UUID, payload: PriorityUpdateRequest, handler=Depends(dep.get_change_priority_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ChangePriorityCommand(ticket_id, payload.priority, now())))
 
-
-@router.patch("/{ticket_id}/status", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status"))])
-async def change_status(ticket_id: UUID, payload: StatusUpdateRequest, handler: Annotated[ChangeStatusHandler, Depends(get_change_status_handler)]) -> TicketDetailResponse:
-	ticket = await handler.handle(ChangeStatusCommand(ticket_id=ticket_id, changed_at=datetime.now(UTC), **payload.model_dump()))
-	return TicketDetailResponse.from_dto(ticket)
-
-
-@router.patch("/{ticket_id}/application", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.transfer_application"))])
-async def transfer_application(ticket_id: UUID, payload: ApplicationUpdateRequest, handler: Annotated[TransferApplicationHandler, Depends(get_transfer_application_handler)]) -> TicketDetailResponse:
-	ticket = await handler.handle(TransferApplicationCommand(ticket_id=ticket_id, new_application=payload.application, new_assignee=payload.assignee_id, transferred_at=datetime.now(UTC)))
-	return TicketDetailResponse.from_dto(ticket)
-
-
-@router.post("/{ticket_id}/comments", response_model=TicketDetailResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_permissions("comment.create"))])
-async def add_comment(ticket_id: UUID, payload: CommentCreateRequest, handler: Annotated[AddCommentHandler, Depends(get_add_comment_handler)]) -> TicketDetailResponse:
-	ticket = await handler.handle(AddCommentCommand(ticket_id=ticket_id, comment_id=uuid4(), created_at=datetime.now(UTC), **payload.model_dump()))
-	return TicketDetailResponse.from_dto(ticket)
-
-
-@router.post("/{ticket_id}/attachments", response_model=TicketDetailResponse, status_code=status.HTTP_201_CREATED, dependencies=[Depends(require_permissions("attachment.create"))])
-async def add_ticket_attachment(ticket_id: UUID, payload: AttachmentCreateRequest, handler: Annotated[AddTicketAttachmentHandler, Depends(get_add_ticket_attachment_handler)]) -> TicketDetailResponse:
-	ticket = await handler.handle(AddTicketAttachmentCommand(ticket_id=ticket_id, attachment_id=uuid4(), uploaded_at=datetime.now(UTC), **payload.model_dump()))
-	return TicketDetailResponse.from_dto(ticket)
-
-
-@router.post("/{ticket_id}/archive", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.archive"))])
-async def archive_ticket(ticket_id: UUID, handler: Annotated[ArchiveTicketHandler, Depends(get_archive_ticket_handler)]) -> TicketDetailResponse:
-	return TicketDetailResponse.from_dto(await handler.handle(ArchiveTicketCommand(ticket_id=ticket_id, archived_at=datetime.now(UTC))))
-
-
-@router.post("/{ticket_id}/restore", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.restore"))])
-async def restore_ticket(ticket_id: UUID, handler: Annotated[RestoreTicketHandler, Depends(get_restore_ticket_handler)]) -> TicketDetailResponse:
-	return TicketDetailResponse.from_dto(await handler.handle(RestoreTicketCommand(ticket_id=ticket_id, restored_at=datetime.now(UTC))))
-
-
+# Nested resource routers remain public module routes.
 comments_router = APIRouter(prefix="/comments", tags=["comments"])
-
-
-@comments_router.patch("/{comment_id}", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("comment.update"))])
-async def edit_comment(comment_id: UUID, ticket_id: UUID, payload: CommentUpdateRequest, handler: Annotated[EditCommentHandler, Depends(get_edit_comment_handler)]) -> TicketDetailResponse:
-	ticket = await handler.handle(EditCommentCommand(ticket_id=ticket_id, comment_id=comment_id, content=payload.content, edited_at=datetime.now(UTC)))
-	return TicketDetailResponse.from_dto(ticket)
-
-
-@comments_router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_permissions("comment.delete"))])
-async def delete_comment(comment_id: UUID, ticket_id: UUID, handler: Annotated[DeleteCommentHandler, Depends(get_delete_comment_handler)]) -> Response:
-	await handler.handle(DeleteCommentCommand(ticket_id=ticket_id, comment_id=comment_id, deleted_at=datetime.now(UTC)))
-	return Response(status_code=status.HTTP_204_NO_CONTENT)
-
-
 attachments_router = APIRouter(prefix="/attachments", tags=["attachments"])
 
+@router.post("/{ticket_id}/comments", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("comment.create"))])
+async def add_comment(ticket_id: UUID, payload: CommentCreateRequest, handler=Depends(dep.get_add_comment_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(AddCommentCommand(ticket_id=ticket_id, comment_id=uuid4(), created_at=now(), **payload.model_dump())))
 
-@attachments_router.delete("/{attachment_id}", status_code=status.HTTP_204_NO_CONTENT, dependencies=[Depends(require_permissions("attachment.delete"))])
-async def delete_ticket_attachment(attachment_id: UUID, ticket_id: UUID, handler: Annotated[DeleteTicketAttachmentHandler, Depends(get_delete_ticket_attachment_handler)]) -> Response:
-	await handler.handle(DeleteTicketAttachmentCommand(ticket_id=ticket_id, attachment_id=attachment_id, deleted_at=datetime.now(UTC)))
-	return Response(status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/{ticket_id}/attachments", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("attachment.create"))])
+async def add_attachment(ticket_id: UUID, payload: AttachmentCreateRequest, handler=Depends(dep.get_add_ticket_attachment_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(AddTicketAttachmentCommand(ticket_id=ticket_id, attachment_id=uuid4(), uploaded_at=now(), **payload.model_dump())))
+
+@router.post("/{ticket_id}/archive", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.archive"))])
+async def archive(ticket_id: UUID, handler=Depends(dep.get_archive_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ArchiveTicketCommand(ticket_id, now())))
+
+@router.post("/{ticket_id}/restore", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.restore"))])
+async def restore(ticket_id: UUID, handler=Depends(dep.get_restore_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(RestoreTicketCommand(ticket_id, now())))
+
+@comments_router.patch("/{comment_id}", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("comment.update"))])
+async def edit_comment(comment_id: UUID, ticket_id: UUID, payload: CommentUpdateRequest, handler=Depends(dep.get_edit_comment_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(EditCommentCommand(ticket_id, comment_id, payload.content, now())))
+
+@comments_router.delete("/{comment_id}", status_code=204, dependencies=[Depends(require_permissions("comment.delete"))])
+async def delete_comment(comment_id: UUID, ticket_id: UUID, handler=Depends(dep.get_delete_comment_handler)):
+	await handler.handle(DeleteCommentCommand(ticket_id, comment_id, now()))
+	return Response(status_code=204)
+
+@attachments_router.delete("/{attachment_id}", status_code=204, dependencies=[Depends(require_permissions("attachment.delete"))])
+async def delete_attachment(attachment_id: UUID, ticket_id: UUID, handler=Depends(dep.get_delete_ticket_attachment_handler)):
+	await handler.handle(DeleteTicketAttachmentCommand(ticket_id, attachment_id, now()))
+	return Response(status_code=204)
