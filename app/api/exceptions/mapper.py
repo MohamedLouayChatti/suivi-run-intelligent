@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import status
 
+from app.modules.ticket_management.application.exceptions import TicketNotFound
 from app.modules.ticket_management.domain.exceptions import (
     AttachmentNotFound,
     CommentNotFound,
@@ -28,6 +29,7 @@ EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     DuplicateAttachment: status.HTTP_409_CONFLICT,
     CommentNotFound: status.HTTP_404_NOT_FOUND,
     AttachmentNotFound: status.HTTP_404_NOT_FOUND,
+    TicketNotFound: status.HTTP_404_NOT_FOUND,
 }
 
 
