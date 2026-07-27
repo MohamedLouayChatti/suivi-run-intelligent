@@ -23,3 +23,4 @@ class SearchTicketsQuery:
 	include_archived: bool = False
 	limit: int = 50
 	offset: int = 0
+	allowed_applications: frozenset[Application] | None = None

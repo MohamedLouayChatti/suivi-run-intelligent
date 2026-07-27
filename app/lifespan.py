@@ -24,5 +24,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 	ticket_management_bootstrap.register_subscriptions(registry)
 	auth_bootstrap.register_subscriptions(registry)
-	
+
+	ticket_management_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
+
 	yield

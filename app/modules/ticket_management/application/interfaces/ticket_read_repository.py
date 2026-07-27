@@ -20,3 +20,11 @@ class TicketReadRepository(ABC):
 	@abstractmethod
 	async def search_tickets(self, query: SearchTicketsQuery) -> list[TicketSummaryDTO]:
 		raise NotImplementedError
+
+	@abstractmethod
+	async def get_ticket_id_for_comment(self, comment_id: UUID) -> UUID | None:
+		raise NotImplementedError
+
+	@abstractmethod
+	async def get_ticket_id_for_attachment(self, attachment_id: UUID) -> UUID | None:
+		raise NotImplementedError

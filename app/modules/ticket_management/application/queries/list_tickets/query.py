@@ -22,3 +22,4 @@ class ListTicketsQuery:
 	include_archived: bool = False
 	limit: int = 100
 	offset: int = 0
+	allowed_applications: frozenset[Application] | None = None

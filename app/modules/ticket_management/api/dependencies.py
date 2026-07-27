@@ -1,14 +1,41 @@
 from collections.abc import AsyncIterator
-from typing import Annotated
-from fastapi import Depends, Request
+from typing import Annotated, cast
+from fastapi import Depends, HTTPException, Request, status
+from app.modules.ticket_management.api.schemas.ticket import TicketCreateRequest
 from app.modules.ticket_management.application.interfaces.unit_of_work import UnitOfWork
+from app.modules.ticket_management.application.security.ticket_access_policy import TicketAccessPolicy
+from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.infrastructure.events.in_memory_event_publisher import InMemoryEventPublisher
 from app.modules.ticket_management.infrastructure.persistence.repositories.sqlalchemy_ticket_read_repository import SqlAlchemyTicketReadRepository
 from app.modules.ticket_management.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
 from app.shared.database.session import create_session
 from app.shared.events.event_bus import InMemoryEventBus
+from app.shared.security.current_user import CurrentUser, get_current_user
+from app.shared.security.instance_authorization_registry import InstanceAuthorizationRegistry
 from app.modules.auth.api.dependencies import get_user_read_repository
 from app.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_read_repository import SqlAlchemyUserReadRepository
+
+
+async def require_ticket_creation_authorized(
+	request: Request,
+	payload: TicketCreateRequest,
+	current_user: Annotated[CurrentUser, Depends(get_current_user)],
+) -> TicketCreateRequest:
+	registry: InstanceAuthorizationRegistry = request.app.state.instance_authorization_registry
+	policy = cast(TicketAccessPolicy, registry.resolve("ticket"))
+	result = await policy.authorize_creation(current_user=current_user, application=payload.application, functional_team=payload.functional_team)
+	if not result.allowed:
+		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=result.reason)
+	return payload
+
+
+async def require_ticket_read_scope(
+	request: Request,
+	current_user: Annotated[CurrentUser, Depends(get_current_user)],
+) -> frozenset[Application] | None:
+	registry: InstanceAuthorizationRegistry = request.app.state.instance_authorization_registry
+	policy = cast(TicketAccessPolicy, registry.resolve("ticket"))
+	return await policy.allowed_applications_filter(current_user=current_user)
 
 async def get_unit_of_work() -> AsyncIterator[SqlAlchemyUnitOfWork]:
 	uow = SqlAlchemyUnitOfWork()
