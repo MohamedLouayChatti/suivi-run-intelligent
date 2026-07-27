@@ -56,9 +56,9 @@ def get_create_ticket_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_u
 	from app.modules.ticket_management.application.commands.create_ticket.handler import CreateTicketHandler
 	return _command_handler(CreateTicketHandler, uow, publisher)
 
-def get_reassign_ticket_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)]):
+def get_reassign_ticket_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)], users: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]):
 	from app.modules.ticket_management.application.commands.reassign_ticket.handler import ReassignTicketHandler
-	return _command_handler(ReassignTicketHandler, uow, publisher)
+	return ReassignTicketHandler(uow, publisher, users)
 
 def _provider(name):
 	def provider(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)]):

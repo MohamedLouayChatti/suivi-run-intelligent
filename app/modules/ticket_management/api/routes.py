@@ -24,6 +24,7 @@ from app.modules.ticket_management.application.queries.get_ticket.query import G
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
 from app.modules.ticket_management.domain.enums.application import Application
+from app.shared.security.current_user import CurrentUser, get_current_user
 from app.shared.security.instance_permissions import require_instance_permission
 from app.shared.security.permissions import require_permissions
 
@@ -31,8 +32,8 @@ router = APIRouter(prefix="/tickets", tags=["tickets"])
 now = lambda: datetime.now(UTC)
 
 @router.post("", response_model=TicketDetailResponse, status_code=201, dependencies=[Depends(require_permissions("ticket.create"))])
-async def create_ticket(payload: Annotated[TicketCreateRequest, Depends(dep.require_ticket_creation_authorized)], handler=Depends(dep.get_create_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(CreateTicketCommand(ticket_id=uuid4(), created_at=now(), **payload.model_dump())))
+async def create_ticket(payload: Annotated[TicketCreateRequest, Depends(dep.require_ticket_creation_authorized)], current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_create_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(CreateTicketCommand(ticket_id=uuid4(), created_at=now(), assignee_id=current_user.id, **payload.model_dump())))
 
 @router.get("", response_model=list[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
 async def list_tickets(handler=Depends(dep.get_list_tickets_handler), allowed_applications: Annotated[frozenset[Application] | None, Depends(dep.require_ticket_read_scope)] = None, page: int = 1, page_size: int = 100):

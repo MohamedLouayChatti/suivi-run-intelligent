@@ -20,8 +20,8 @@ from app.modules.ticket_management.domain.exceptions import (
 	AttachmentNotFound, CommentNotFound, ConditionalFieldForbidden, DuplicateAttachment,
 	ElementRequired, EmptyComment, EmptyDescription, EmptyTitle, InvalidAssignee,
 	InvalidStatusTransition, JiraIdRequired, OfferRequired, ResolutionNotesRequired,
-	TicketArchived, TicketClosed, TicketNotArchived, TransferDestinationRequired,
-	VersionRequired, VioAppRequired,
+	TicketArchived, TicketClosed, TicketNotArchived, TransferDestinationIsOrigin,
+	TransferDestinationRequired, VersionRequired, VioAppRequired,
 )
 
 
@@ -190,6 +190,8 @@ class Ticket:
 		self._ensure_mutable()
 		if destination is None:
 			raise TransferDestinationRequired()
+		if destination.is_origin_of(self.functional_team, self.application):
+			raise TransferDestinationIsOrigin()
 		self._transition_to(Status.TRANSFERRED, transferred_at)
 		self.transferred_to = destination
 

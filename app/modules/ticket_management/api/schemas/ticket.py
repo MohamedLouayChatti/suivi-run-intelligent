@@ -26,7 +26,6 @@ class TicketCreateRequest(BaseModel):
 	description: str
 	priority: Priority
 	application: Application
-	assignee_id: UUID
 	category: Category
 	functional_team: FunctionalTeam
 	genergy_id: str | None = None

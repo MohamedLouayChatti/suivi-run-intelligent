@@ -15,6 +15,10 @@ class TransferDestinationRequired(TicketDomainError):
 	pass
 
 
+class TransferDestinationIsOrigin(TicketDomainError):
+	pass
+
+
 class OfferRequired(TicketDomainError):
 	pass
 
