@@ -17,8 +17,6 @@ def upgrade() -> None:
 	application = sa.Enum("FCI", "COLORIS", "AERO", "VIO", name="auth_application")
 	assignment_type = sa.Enum("PRIMARY", "BACKUP", name="auth_assignment_type")
 	functional_team.create(op.get_bind(), checkfirst=True)
-	application.create(op.get_bind(), checkfirst=True)
-	assignment_type.create(op.get_bind(), checkfirst=True)
 
 	op.add_column("users", sa.Column("functional_team", functional_team, nullable=True))
 	op.execute("UPDATE users SET functional_team = 'SUPPORT' WHERE functional_team IS NULL")
