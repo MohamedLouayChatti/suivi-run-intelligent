@@ -5,6 +5,7 @@ from datetime import datetime
 from uuid import UUID
 
 from app.modules.ticket_management.domain.entities.attachment import Attachment
+from app.modules.ticket_management.application.dto.user_summary_dto import UserSummaryDTO
 
 
 @dataclass(frozen=True)
@@ -16,6 +17,7 @@ class AttachmentDTO:
 	uploaded_by: UUID
 	uploaded_at: datetime
 	deleted_at: datetime | None
+	uploader: UserSummaryDTO | None = None
 
 	@classmethod
 	def from_attachment(cls, attachment: Attachment) -> AttachmentDTO:

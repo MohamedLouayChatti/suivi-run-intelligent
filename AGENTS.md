@@ -297,6 +297,12 @@ Application handlers orchestrate the write side through an async Unit of Work, u
 
 Read handlers use a dedicated TicketReadRepository and return DTO read models.
 
+Ticket query handlers enrich read DTOs with lightweight user summaries through
+the Auth application's UserReadRepository. Ticket persistence and write DTOs
+continue to store and accept only assignee, author, and uploader UUIDs; the
+HTTP read responses expose nested user id/display_name projections for
+frontend consumption.
+
 The current domain event model exposes:
 
 - TicketCreated

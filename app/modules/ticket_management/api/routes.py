@@ -60,8 +60,8 @@ async def close_ticket(ticket_id: UUID, handler=Depends(dep.get_close_ticket_han
 async def resume_ticket(ticket_id: UUID, handler=Depends(dep.get_resume_ticket_handler)):
 	return TicketDetailResponse.from_dto(await handler.handle(ResumeTicketCommand(ticket_id, now())))
 
-@router.post("/{ticket_id}/internal-transfer", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.transfer_application"))])
-async def internal_transfer(ticket_id: UUID, payload: TransferRequest, handler=Depends(dep.get_internal_transfer_ticket_handler)):
+@router.post("/{ticket_id}/transfer", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.transfer_application"))])
+async def transfer(ticket_id: UUID, payload: TransferRequest, handler=Depends(dep.get_transfer_ticket_handler)):
 	return TicketDetailResponse.from_dto(await handler.handle(TransferTicketCommand(ticket_id, payload.transferred_to, now())))
 
 @router.patch("/{ticket_id}/assignee", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.assign"))])

@@ -7,6 +7,8 @@ from app.modules.ticket_management.infrastructure.persistence.repositories.sqlal
 from app.modules.ticket_management.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
 from app.shared.database.session import create_session
 from app.shared.events.event_bus import InMemoryEventBus
+from app.modules.auth.api.dependencies import get_user_read_repository
+from app.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_read_repository import SqlAlchemyUserReadRepository
 
 async def get_unit_of_work() -> AsyncIterator[SqlAlchemyUnitOfWork]:
 	uow = SqlAlchemyUnitOfWork()
@@ -42,22 +44,21 @@ get_start_progress_handler = _provider("app.modules.ticket_management.applicatio
 get_resolve_ticket_handler = _provider("app.modules.ticket_management.application.commands.resolve_ticket.handler.ResolveTicketHandler")
 get_close_ticket_handler = _provider("app.modules.ticket_management.application.commands.close_ticket.handler.CloseTicketHandler")
 get_resume_ticket_handler = _provider("app.modules.ticket_management.application.commands.resume_ticket.handler.ResumeTicketHandler")
-get_internal_transfer_ticket_handler = _provider("app.modules.ticket_management.application.commands.internal_transfer_ticket.handler.InternalTransferTicketHandler")
-get_external_transfer_ticket_handler = _provider("app.modules.ticket_management.application.commands.external_transfer_ticket.handler.ExternalTransferTicketHandler")
+get_transfer_ticket_handler = _provider("app.modules.ticket_management.application.commands.transfer_ticket.handler.TransferTicketHandler")
 
 def get_change_priority_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)]):
 	from app.modules.ticket_management.application.commands.change_priority.handler import ChangePriorityHandler
 	return ChangePriorityHandler(uow, publisher)
 
-def get_get_ticket_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)]):
+def get_get_ticket_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)], users: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]):
 	from app.modules.ticket_management.application.queries.get_ticket.handler import GetTicketHandler
-	return GetTicketHandler(repository)
-def get_list_tickets_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)]):
+	return GetTicketHandler(repository, users)
+def get_list_tickets_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)], users: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]):
 	from app.modules.ticket_management.application.queries.list_tickets.handler import ListTicketsHandler
-	return ListTicketsHandler(repository)
-def get_search_tickets_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)]):
+	return ListTicketsHandler(repository, users)
+def get_search_tickets_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)], users: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]):
 	from app.modules.ticket_management.application.queries.search_tickets.handler import SearchTicketsHandler
-	return SearchTicketsHandler(repository)
+	return SearchTicketsHandler(repository, users)
 
 def _crud_provider(handler_name):
 	def provider(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)]):

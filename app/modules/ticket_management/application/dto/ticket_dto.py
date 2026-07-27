@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.application.dto.comment_dto import CommentDTO
+from app.modules.ticket_management.application.dto.user_summary_dto import UserSummaryDTO
 from app.modules.ticket_management.domain.entities.ticket import Ticket
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.category import Category
@@ -25,6 +26,7 @@ class TicketSummaryDTO:
 	assignee_id: UUID; category: Category; functional_team: FunctionalTeam
 	operational_highlight: bool; transferred_to: TransferDestination | None
 	created_at: datetime; updated_at: datetime; archived_at: datetime | None
+	assignee: UserSummaryDTO | None = None
 
 	@classmethod
 	def from_ticket(cls, ticket: Ticket) -> TicketSummaryDTO:
@@ -44,6 +46,7 @@ class TicketDetailDTO:
 	comments: list[CommentDTO] = field(default_factory=list)
 	attachments: list[AttachmentDTO] = field(default_factory=list)
 	archived_at: datetime | None = None
+	assignee: UserSummaryDTO | None = None
 
 	@classmethod
 	def from_ticket(cls, ticket: Ticket) -> TicketDetailDTO:

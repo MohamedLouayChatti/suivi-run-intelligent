@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from app.modules.ticket_management.api.schemas.attachment import AttachmentResponse
 from app.modules.ticket_management.api.schemas.comment import CommentResponse
+from app.modules.ticket_management.api.schemas.attachment import UserSummaryResponse
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.category import Category
@@ -62,7 +63,7 @@ class TicketSummaryResponse(BaseModel):
 	application: Application
 	status: Status
 	priority: Priority
-	assignee_id: UUID
+	assignee: UserSummaryResponse | None
 	category: Category
 	functional_team: FunctionalTeam
 	operational_highlight: bool
@@ -73,7 +74,13 @@ class TicketSummaryResponse(BaseModel):
 
 	@classmethod
 	def from_dto(cls, ticket: TicketSummaryDTO) -> TicketSummaryResponse:
-		return cls(**ticket.__dict__)
+		return cls(
+			id=ticket.id, title=ticket.title, application=ticket.application, status=ticket.status,
+			priority=ticket.priority, assignee=UserSummaryResponse.from_dto(ticket.assignee),
+			category=ticket.category, functional_team=ticket.functional_team,
+			operational_highlight=ticket.operational_highlight, transferred_to=ticket.transferred_to,
+			created_at=ticket.created_at, updated_at=ticket.updated_at, archived_at=ticket.archived_at,
+		)
 
 
 class TicketDetailResponse(TicketSummaryResponse):
@@ -104,7 +111,7 @@ class TicketDetailResponse(TicketSummaryResponse):
 			application=ticket.application,
 			status=ticket.status,
 			priority=ticket.priority,
-			assignee_id=ticket.assignee_id,
+			assignee=UserSummaryResponse.from_dto(ticket.assignee),
 			created_at=ticket.created_at,
 			updated_at=ticket.updated_at,
 			resolved_at=ticket.resolved_at,

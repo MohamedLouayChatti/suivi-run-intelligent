@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.domain.entities.comment import Comment
+from app.modules.ticket_management.application.dto.user_summary_dto import UserSummaryDTO
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class CommentDTO:
 	attachments: list[AttachmentDTO] = field(default_factory=list)
 	edited_at: datetime | None = None
 	deleted_at: datetime | None = None
+	author: UserSummaryDTO | None = None
 
 	@classmethod
 	def from_comment(cls, comment: Comment) -> CommentDTO:

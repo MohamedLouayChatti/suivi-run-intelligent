@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
-from app.modules.ticket_management.api.schemas.attachment import AttachmentResponse
+from app.modules.ticket_management.api.schemas.attachment import AttachmentResponse, UserSummaryResponse
 from app.modules.ticket_management.application.dto.comment_dto import CommentDTO
 
 
@@ -20,7 +20,7 @@ class CommentUpdateRequest(BaseModel):
 
 class CommentResponse(BaseModel):
 	id: UUID
-	author_id: UUID
+	author: UserSummaryResponse | None
 	content: str
 	created_at: datetime
 	attachments: list[AttachmentResponse]
@@ -31,7 +31,7 @@ class CommentResponse(BaseModel):
 	def from_dto(cls, comment: CommentDTO) -> CommentResponse:
 		return cls(
 			id=comment.id,
-			author_id=comment.author_id,
+			author=UserSummaryResponse.from_dto(comment.author),
 			content=comment.content,
 			created_at=comment.created_at,
 			attachments=[AttachmentResponse.from_dto(item) for item in comment.attachments],
