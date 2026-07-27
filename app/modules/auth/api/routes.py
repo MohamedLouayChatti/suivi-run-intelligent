@@ -61,6 +61,7 @@ from app.modules.auth.application.queries.list_roles.query import ListRolesQuery
 from app.modules.auth.application.queries.list_users.query import ListUsersQuery
 from app.modules.auth.domain.value_objects.auth_provider_user_id import AuthProviderUserId
 
+from app.shared.security.instance_permissions import require_instance_permission
 from app.shared.security.permissions import require_permissions
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -70,7 +71,7 @@ async def list_users(handler: Annotated[ListUsersHandler, Depends(get_list_users
 	return [UserResponse.from_dto(user) for user in await handler.handle(ListUsersQuery(limit=page_size, offset=(page - 1) * page_size))]
 
 
-@router.get("/users/{user_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("user.read"))])
+@router.get("/users/{user_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read", path_param="user_id"))])
 async def get_user(user_id: UUID, handler: Annotated[GetUserHandler, Depends(get_user_handler)]) -> UserResponse:
 	return UserResponse.from_dto(await handler.handle(GetUserQuery(user_id=user_id)))
 
@@ -85,17 +86,17 @@ async def deactivate_user(user_id: UUID, handler: Annotated[DeactivateUserHandle
 	return UserResponse.from_dto(await handler.handle(DeactivateUserCommand(user_id=user_id)))
 
 
-@router.get("/users/{user_id}/roles", response_model=list[RoleResponse], dependencies=[Depends(require_permissions("user.read"))])
+@router.get("/users/{user_id}/roles", response_model=list[RoleResponse], dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read_roles", path_param="user_id"))])
 async def get_user_roles(user_id: UUID, handler: Annotated[GetUserRolesHandler, Depends(get_user_roles_handler)]) -> list[RoleResponse]:
 	return [RoleResponse.from_dto(role) for role in await handler.handle(GetUserRolesQuery(user_id=user_id))]
 
 
-@router.get("/users/{user_id}/permissions", response_model=list[PermissionResponse], dependencies=[Depends(require_permissions("user.read"))])
+@router.get("/users/{user_id}/permissions", response_model=list[PermissionResponse], dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read_direct_permissions", path_param="user_id"))])
 async def get_user_direct_permissions(user_id: UUID, handler: Annotated[GetUserDirectPermissionsHandler, Depends(get_user_direct_permissions_handler)]) -> list[PermissionResponse]:
 	return [PermissionResponse.from_dto(permission) for permission in await handler.handle(GetUserDirectPermissionsQuery(user_id=user_id))]
 
 
-@router.get("/users/{user_id}/revoked-permissions", response_model=list[PermissionResponse], dependencies=[Depends(require_permissions("user.read"))])
+@router.get("/users/{user_id}/revoked-permissions", response_model=list[PermissionResponse], dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read_revoked_permissions", path_param="user_id"))])
 async def get_user_revoked_permissions(user_id: UUID, handler: Annotated[GetUserRevokedPermissionsHandler, Depends(get_user_revoked_permissions_handler)]) -> list[PermissionResponse]:
 	return [PermissionResponse.from_dto(permission) for permission in await handler.handle(GetUserRevokedPermissionsQuery(user_id=user_id))]
 
