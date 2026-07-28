@@ -72,6 +72,14 @@ coverage.xml
 *.swo
 .DS_Store
 
-# claude
+# Agents
 CLAUDE.md
 .claude/
+.agents/
+
+# Data
+data/
+
+# UV cache
+.uv-cache/
+.uv-cache-check/
