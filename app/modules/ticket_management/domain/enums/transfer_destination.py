@@ -21,6 +21,7 @@ class TransferDestination(StrEnum):
 	SANTAFE = "SantaFE"
 	PROXIMA = "Proxima"
 	HABILITATION = "Habilitation"
+	DEVELOPMENT_TEAM = "Équipe Développement"
 
 	def is_origin_of(self, functional_team: FunctionalTeam, application: Application) -> bool:
 		"""True when this destination represents the ticket's own team/application, i.e. a no-op transfer."""

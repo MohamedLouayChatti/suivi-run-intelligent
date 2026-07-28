@@ -12,3 +12,4 @@ class Category(StrEnum):
 	CATEGORY_OPERATION_DE_SERVICE = "Opération de service"
 	CATEGORY_HABILITATION = "Habilitation"
 	CATEGORY_HORS_PERIMETRE = "Hors périmètre"
+	CATEGORY_INFRASTRUCTURE = "Infrastructure"
