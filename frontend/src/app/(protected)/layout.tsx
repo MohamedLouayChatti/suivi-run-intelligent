@@ -12,7 +12,7 @@ export default function ProtectedLayout({
       <AppSidebar />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col">{children}</div>
+        <div className="flex flex-1 flex-col bg-surface">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   );

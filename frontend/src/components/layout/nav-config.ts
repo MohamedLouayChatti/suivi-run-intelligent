@@ -17,22 +17,26 @@ export interface NavItem {
   icon: LucideIcon;
 }
 
+export const primaryNavGroupLabel = "Opérations";
+
 export const primaryNavItems: NavItem[] = [
-  { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Tableau de bord", href: "/dashboard", icon: LayoutDashboard },
   { title: "Tickets", href: "/tickets", icon: Ticket },
-  { title: "History", href: "/history", icon: History },
+  { title: "Historique", href: "/history", icon: History },
   { title: "Chatbot", href: "/chatbot", icon: MessageSquare },
-  { title: "Analytics", href: "/analytics", icon: BarChart3 },
+  { title: "Analyses", href: "/analytics", icon: BarChart3 },
 ];
 
+export const administrationNavGroupLabel = "Administration";
+
 export const administrationNavItems: NavItem[] = [
-  { title: "Users", href: "/admin/users", icon: Users },
-  { title: "Roles", href: "/admin/roles", icon: ShieldCheck },
+  { title: "Utilisateurs", href: "/admin/users", icon: Users },
+  { title: "Rôles", href: "/admin/roles", icon: ShieldCheck },
   { title: "Audit", href: "/admin/audit", icon: ScrollText },
 ];
 
 export const settingsNavItem: NavItem = {
-  title: "Settings",
+  title: "Paramètres",
   href: "/settings",
   icon: Settings,
 };
