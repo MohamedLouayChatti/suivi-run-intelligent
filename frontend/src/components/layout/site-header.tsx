@@ -39,10 +39,10 @@ export function SiteHeader({
           <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Rechercher des tickets, incidents, connaissances..."
-            className="pl-8 pr-12"
+            className="pl-8 pr-16"
           />
           <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-            ⌘K
+            Ctrl K
           </kbd>
         </div>
       </div>
