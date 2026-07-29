@@ -10,7 +10,7 @@ from app.modules.auth.domain.value_objects.application_assignment import Applica
 from app.modules.auth.domain.value_objects.auth_provider_user_id import AuthProviderUserId
 from app.modules.auth.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
 from app.shared.database.engine import engine
-from app.shared.seeding.users.historical_users import HISTORICAL_USERS, HistoricalUserDefinition
+from app.scripts.seeding.users.historical_users import HISTORICAL_USERS, HistoricalUserDefinition
 
 logger = logging.getLogger(__name__)
 
