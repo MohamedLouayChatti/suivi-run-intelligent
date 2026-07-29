@@ -13,8 +13,8 @@ from app.modules.auth.infrastructure.persistence.models.permission_model import 
 from app.modules.auth.infrastructure.persistence.models.role_model import RoleModel
 from app.shared.database.engine import engine
 from app.shared.database.session import create_session
-from app.scripts.seeding.permissions import PERMISSION_CATALOG, PERMISSIONS_BY_NAME
-from app.scripts.seeding.roles import SEEDED_ROLE_DEFINITIONS, SEEDED_ROLE_NAMES
+from app.scripts.seeding.roles_permissions.permissions import PERMISSION_CATALOG, PERMISSIONS_BY_NAME
+from app.scripts.seeding.roles_permissions.roles import SEEDED_ROLE_DEFINITIONS, SEEDED_ROLE_NAMES
 
 logger = logging.getLogger(__name__)
 
