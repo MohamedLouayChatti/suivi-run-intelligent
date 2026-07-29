@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from app.scripts.seeding.roles_permissions.permissions import PERMISSIONS_BY_NAME
+from app.shared.seeding.roles_permissions.permissions import PERMISSIONS_BY_NAME
 
 
 @dataclass(frozen=True, slots=True)
