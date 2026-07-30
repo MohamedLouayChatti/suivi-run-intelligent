@@ -14,7 +14,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { StatusBadge, PriorityBadge } from "@/components/app/status"
 import type { components } from "@/types/api"
 
-type TicketSummary = components["schemas"]["TicketSummaryResponse"]
+// Detail is a superset of Summary (adds closed_at/resolved_at/etc.) and every current data
+// source already hands the table full detail objects, so the table type is widened here
+// rather than plumbing an extra field through TicketSummaryResponse.
+type TicketRow = components["schemas"]["TicketDetailResponse"]
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
@@ -22,16 +25,36 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   year: "numeric",
 })
 
+interface DateColumn {
+  label: string
+  getValue: (ticket: TicketRow) => string
+}
+
+const defaultDateColumns: DateColumn[] = [
+  { label: "Créé", getValue: (t) => t.created_at },
+  { label: "Mis à jour", getValue: (t) => t.updated_at },
+]
+
 interface TicketsTableProps {
-  tickets: TicketSummary[]
+  tickets: TicketRow[]
   isLoading: boolean
   showAssignee: boolean
   emptyMessage: string
+  showPriority?: boolean
+  dateColumns?: DateColumn[]
 }
 
-function TicketsTable({ tickets, isLoading, showAssignee, emptyMessage }: TicketsTableProps) {
+function TicketsTable({
+  tickets,
+  isLoading,
+  showAssignee,
+  emptyMessage,
+  showPriority = true,
+  dateColumns = defaultDateColumns,
+}: TicketsTableProps) {
   const router = useRouter()
-  const columnCount = showAssignee ? 7 : 6
+  const columnCount =
+    2 + (showPriority ? 1 : 0) + 1 + (showAssignee ? 1 : 0) + 1 + dateColumns.length
 
   return (
     <Table>
@@ -39,12 +62,13 @@ function TicketsTable({ tickets, isLoading, showAssignee, emptyMessage }: Ticket
         <TableRow className="hover:bg-transparent">
           <TableHead>ID</TableHead>
           <TableHead>Titre</TableHead>
-          <TableHead>Priorité</TableHead>
+          {showPriority && <TableHead>Priorité</TableHead>}
           <TableHead>Statut</TableHead>
           {showAssignee && <TableHead>Assigné à</TableHead>}
           <TableHead>Application</TableHead>
-          <TableHead>Créé</TableHead>
-          <TableHead>Mis à jour</TableHead>
+          {dateColumns.map((col) => (
+            <TableHead key={col.label}>{col.label}</TableHead>
+          ))}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -78,9 +102,11 @@ function TicketsTable({ tickets, isLoading, showAssignee, emptyMessage }: Ticket
                 {t.id.slice(0, 8)}
               </TableCell>
               <TableCell className="max-w-[320px] truncate font-medium">{t.title}</TableCell>
-              <TableCell>
-                <PriorityBadge priority={t.priority} />
-              </TableCell>
+              {showPriority && (
+                <TableCell>
+                  <PriorityBadge priority={t.priority} />
+                </TableCell>
+              )}
               <TableCell>
                 <StatusBadge status={t.status} />
               </TableCell>
@@ -88,12 +114,11 @@ function TicketsTable({ tickets, isLoading, showAssignee, emptyMessage }: Ticket
                 <TableCell className="text-sm">{t.assignee?.display_name ?? "—"}</TableCell>
               )}
               <TableCell className="text-sm text-muted-foreground">{t.application}</TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {dateFormatter.format(new Date(t.created_at))}
-              </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {dateFormatter.format(new Date(t.updated_at))}
-              </TableCell>
+              {dateColumns.map((col) => (
+                <TableCell key={col.label} className="text-sm text-muted-foreground">
+                  {dateFormatter.format(new Date(col.getValue(t)))}
+                </TableCell>
+              ))}
             </TableRow>
           ))
         )}
@@ -103,3 +128,4 @@ function TicketsTable({ tickets, isLoading, showAssignee, emptyMessage }: Ticket
 }
 
 export { TicketsTable }
+export type { DateColumn }

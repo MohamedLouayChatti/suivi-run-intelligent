@@ -17,6 +17,10 @@ const priorityOptions: Priority[] = ["P1", "P2", "P3", "P4"]
 
 const activeStatusOptions: Status[] = ["OPEN", "IN_PROGRESS", "RESOLVED"]
 
+// Statuses that represent completed work — these belong to History, never to the active
+// Tickets page (see the comment in filter-tickets.ts).
+const completedStatusOptions: Status[] = ["CLOSED", "TRANSFERRED"]
+
 const functionalTeamLabels: Record<FunctionalTeam, string> = {
   SUPPORT: "Support",
   CONFIGURATION: "Paramétrage",
@@ -97,6 +101,7 @@ export {
   applicationOptions,
   priorityOptions,
   activeStatusOptions,
+  completedStatusOptions,
   functionalTeamLabels,
   functionalTeamOptions,
   categoryOptions,
