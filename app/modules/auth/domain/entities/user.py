@@ -54,7 +54,7 @@ class User:
 			auth_provider_user_id=auth_provider_user_id,
 			email=email,
 			display_name=display_name,
-			active=True,
+			active=False,
 			functional_team=functional_team,
 			application_assignments=set(application_assignments or ()),
 		)
