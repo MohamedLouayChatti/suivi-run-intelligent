@@ -17,11 +17,11 @@ from app.modules.ticket_management.domain.enums.transfer_destination import Tran
 from app.modules.ticket_management.domain.enums.vio_app import VioApp
 from app.modules.ticket_management.domain.enums.version import Version
 from app.modules.ticket_management.domain.exceptions import (
-	AttachmentNotFound, CommentNotFound, ConditionalFieldForbidden, DuplicateAttachment,
-	ElementRequired, EmptyComment, EmptyDescription, EmptyTitle, InvalidAssignee,
-	InvalidStatusTransition, JiraIdRequired, OfferRequired, ResolutionNotesRequired,
-	TicketArchived, TicketClosed, TicketNotArchived, TransferDestinationIsOrigin,
-	TransferDestinationRequired, VersionRequired, VioAppRequired,
+	AttachmentNotFound, ChronologicalOrderViolation, CommentNotFound, ConditionalFieldForbidden,
+	DuplicateAttachment, ElementRequired, EmptyComment, EmptyDescription, EmptyTitle,
+	InvalidAssignee, InvalidStatusTransition, JiraIdRequired, OfferRequired,
+	ResolutionNotesRequired, TicketArchived, TicketClosed, TicketNotArchived,
+	TransferDestinationIsOrigin, TransferDestinationRequired, VersionRequired, VioAppRequired,
 )
 
 
@@ -117,18 +117,25 @@ class Ticket:
 		if self.archived_at is not None:
 			raise TicketArchived()
 
-	def _ensure_mutable(self) -> None:
+	def _ensure_chronological(self, at: datetime) -> None:
+		if at < self.updated_at:
+			raise ChronologicalOrderViolation()
+
+	def _ensure_mutable(self, at: datetime) -> None:
 		self._ensure_not_closed()
 		self._ensure_not_archived()
+		self._ensure_chronological(at)
 
 	def archive(self, archived_at: datetime) -> None:
 		self._ensure_not_archived()
+		self._ensure_chronological(archived_at)
 		self.archived_at = archived_at
 		self.updated_at = archived_at
 
 	def restore(self, restored_at: datetime) -> None:
 		if self.archived_at is None:
 			raise TicketNotArchived()
+		self._ensure_chronological(restored_at)
 		self.archived_at = None
 		self.updated_at = restored_at
 
@@ -147,18 +154,18 @@ class Ticket:
 		self.updated_at = changed_at
 
 	def reassign(self, assignee_id: UUID, reassigned_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(reassigned_at)
 		if not isinstance(assignee_id, UUID):
 			raise InvalidAssignee()
 		self.assignee_id = assignee_id
 		self.updated_at = reassigned_at
 
 	def start_progress(self, started_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(started_at)
 		self._transition_to(Status.IN_PROGRESS, started_at)
 
 	def resume(self, resumed_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(resumed_at)
 		if self.status not in {Status.RESOLVED, Status.TRANSFERRED}:
 			raise InvalidStatusTransition()
 		was_resolved = self.status == Status.RESOLVED
@@ -170,7 +177,7 @@ class Ticket:
 			self.transferred_to = None
 
 	def resolve(self, notes: str, resolved_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(resolved_at)
 		if not notes.strip():
 			raise ResolutionNotesRequired()
 		self._transition_to(Status.RESOLVED, resolved_at)
@@ -179,7 +186,7 @@ class Ticket:
 		self.transferred_to = None
 
 	def close(self, closed_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(closed_at)
 		if self.status not in {Status.RESOLVED, Status.TRANSFERRED}:
 			raise InvalidStatusTransition()
 		self.status = Status.CLOSED
@@ -187,7 +194,7 @@ class Ticket:
 		self.updated_at = closed_at
 
 	def transfer(self, destination: TransferDestination, transferred_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(transferred_at)
 		if destination is None:
 			raise TransferDestinationRequired()
 		if destination.is_origin_of(self.functional_team, self.application):
@@ -196,12 +203,12 @@ class Ticket:
 		self.transferred_to = destination
 
 	def change_priority(self, priority: Priority, changed_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(changed_at)
 		self.priority = priority
 		self.updated_at = changed_at
 
 	def add_comment(self, comment: Comment, added_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(added_at)
 		if not comment.content.strip():
 			raise EmptyComment()
 		self.comments.append(comment)
@@ -214,29 +221,29 @@ class Ticket:
 		return comment
 
 	def add_attachment(self, attachment: Attachment, added_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(added_at)
 		if any(existing.id == attachment.id for existing in self.attachments):
 			raise DuplicateAttachment()
 		self.attachments.append(attachment)
 		self.updated_at = added_at
 
 	def edit_comment(self, comment_id: UUID, content: str, edited_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(edited_at)
 		self._get_comment(comment_id).edit(content, edited_at)
 		self.updated_at = edited_at
 
 	def delete_comment(self, comment_id: UUID, deleted_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(deleted_at)
 		self._get_comment(comment_id).delete(deleted_at)
 		self.updated_at = deleted_at
 
 	def add_attachment_to_comment(self, comment_id: UUID, attachment: Attachment, added_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(added_at)
 		self._get_comment(comment_id).add_attachment(attachment, added_at)
 		self.updated_at = added_at
 
 	def delete_attachment_from_comment(self, comment_id: UUID, attachment_id: UUID, deleted_at: datetime) -> None:
-		self._ensure_mutable()
+		self._ensure_mutable(deleted_at)
 		comment = self._get_comment(comment_id)
 		attachment = next((item for item in comment.attachments if item.id == attachment_id), None)
 		if attachment is None:

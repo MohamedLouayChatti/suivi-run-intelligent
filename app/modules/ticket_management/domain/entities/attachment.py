@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
 
-from app.modules.ticket_management.domain.exceptions import AttachmentDeleted, TicketDomainError
+from app.modules.ticket_management.domain.exceptions import (
+	AttachmentDeleted, ChronologicalOrderViolation, TicketDomainError,
+)
 
 
 @dataclass
@@ -43,7 +45,9 @@ class Attachment:
 	def _ensure_not_deleted(self) -> None:
 		if self.deleted_at is not None:
 			raise AttachmentDeleted()
-		
+
 	def delete(self, deleted_at: datetime) -> None:
 		self._ensure_not_deleted()
+		if deleted_at < self.uploaded_at:
+			raise ChronologicalOrderViolation()
 		self.deleted_at = deleted_at

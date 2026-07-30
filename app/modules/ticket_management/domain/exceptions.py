@@ -94,3 +94,6 @@ class InvalidAssignee(TicketDomainError):
 
 class AssigneeRequired(TicketDomainError):
 	pass
+
+class ChronologicalOrderViolation(TicketDomainError):
+	pass

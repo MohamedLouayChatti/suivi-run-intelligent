@@ -5,7 +5,9 @@ from datetime import datetime
 from uuid import UUID
 
 from app.modules.ticket_management.domain.entities.attachment import Attachment
-from app.modules.ticket_management.domain.exceptions import CommentDeleted, EmptyComment, DuplicateAttachment
+from app.modules.ticket_management.domain.exceptions import (
+	ChronologicalOrderViolation, CommentDeleted, DuplicateAttachment, EmptyComment,
+)
 
 
 @dataclass
@@ -40,13 +42,22 @@ class Comment:
 	def _ensure_not_deleted(self) -> None:
 		if self.deleted_at is not None:
 			raise CommentDeleted()
-	
+
+	def _last_modified_at(self) -> datetime:
+		return self.edited_at or self.created_at
+
+	def _ensure_chronological(self, at: datetime) -> None:
+		if at < self._last_modified_at():
+			raise ChronologicalOrderViolation()
+
 	def delete(self, deleted_at: datetime) -> None:
 		self._ensure_not_deleted()
+		self._ensure_chronological(deleted_at)
 		self.deleted_at = deleted_at
 
 	def edit(self, content: str, edited_at: datetime) -> None:
 		self._ensure_not_deleted()
+		self._ensure_chronological(edited_at)
 		if not content.strip():
 			raise EmptyComment()
 		self.content = content
@@ -54,6 +65,7 @@ class Comment:
 
 	def add_attachment(self, attachment: Attachment, added_at: datetime) -> None:
 		self._ensure_not_deleted()
+		self._ensure_chronological(added_at)
 		if any(existing.id == attachment.id for existing in self.attachments):
 			raise DuplicateAttachment()
 		self.attachments.append(attachment)
