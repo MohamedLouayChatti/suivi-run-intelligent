@@ -1,0 +1,33 @@
+import { PageHeader } from "@/components/app/page"
+import { TicketActions } from "@/features/tickets/details/ticket-actions"
+import type { components } from "@/types/api"
+
+type TicketDetail = components["schemas"]["TicketDetailResponse"]
+type Priority = components["schemas"]["Priority"]
+type TransferDestination = components["schemas"]["TransferDestination"]
+
+interface TicketHeaderProps {
+  ticket: TicketDetail
+  onStart: () => void
+  onResolve: () => void
+  onArchive: () => void
+  onRestore: () => void
+  onReassign: (assigneeId: string) => void
+  onChangePriority: (priority: Priority) => void
+  onTransfer: (destination: TransferDestination) => void
+}
+
+function TicketHeader(props: TicketHeaderProps) {
+  const { ticket } = props
+
+  return (
+    <PageHeader
+      title={ticket.title}
+      description={<span className="font-mono text-xs">{ticket.id}</span>}
+      breadcrumbs={[{ label: "Tickets", href: "/tickets" }, { label: ticket.id.slice(0, 8) }]}
+      actions={<TicketActions {...props} />}
+    />
+  )
+}
+
+export { TicketHeader }
