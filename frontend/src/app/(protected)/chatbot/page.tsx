@@ -1,5 +1,21 @@
-import { PagePlaceholder } from "@/components/common/page-placeholder";
+"use client"
+
+import { PageBody } from "@/components/app/page"
+import { ChatbotHeader } from "@/features/chatbot/chatbot-header"
+import { ChatPanel } from "@/features/chatbot/chat-panel"
+import { ConversationsPanel } from "@/features/chatbot/conversations-panel"
+import { useChatbot } from "@/features/chatbot/use-chatbot"
 
 export default function ChatbotPage() {
-  return <PagePlaceholder title="Chatbot" />;
+  const { messages, isStreaming, sendMessage, startNewConversation } = useChatbot()
+
+  return (
+    <>
+      <ChatbotHeader onNewConversation={startNewConversation} />
+      <PageBody className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_18rem]">
+        <ChatPanel messages={messages} isStreaming={isStreaming} onSend={sendMessage} />
+        <ConversationsPanel />
+      </PageBody>
+    </>
+  )
 }
