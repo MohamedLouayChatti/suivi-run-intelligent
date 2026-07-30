@@ -42,4 +42,20 @@ function PriorityBadge({ priority, className }: { priority: Priority; className?
   )
 }
 
-export { StatusBadge, PriorityBadge, statusConfig, priorityConfig }
+// Account activity has exactly two states — same orange/grey split as Status above,
+// not a third semantic color, to stay consistent with the rest of the app.
+function ActiveBadge({ active, className }: { active: boolean; className?: string }) {
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(
+        active ? "bg-primary/10 text-primary" : "bg-muted-foreground/10 text-muted-foreground",
+        className
+      )}
+    >
+      {active ? "Actif" : "Inactif"}
+    </Badge>
+  )
+}
+
+export { StatusBadge, PriorityBadge, ActiveBadge, statusConfig, priorityConfig }
