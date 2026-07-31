@@ -1,5 +1,7 @@
 import type { components } from "@/types/api"
 
+import { mockRoles } from "@/features/roles/mock-data"
+
 type UserResponse = components["schemas"]["UserResponse"]
 type Application = components["schemas"]["Application"]
 
@@ -11,7 +13,7 @@ const mockCurrentUser: UserResponse = {
   email: "engineer@example.com",
   display_name: "Camille Martin",
   active: true,
-  role_ids: [],
+  role_ids: [mockRoles[2].id],
   direct_permission_ids: [],
   revoked_permission_ids: [],
   functional_team: "SUPPORT",

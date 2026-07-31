@@ -1,4 +1,5 @@
-import { Bell, ChevronDown, LogOut, Search, Settings as Cog, User } from "lucide-react";
+import Link from "next/link";
+import { Bell, ChevronDown, LogOut, Search, User } from "lucide-react";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -73,11 +74,10 @@ export function SiteHeader({
               )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User /> Profil
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Cog /> Préférences
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <User /> Profil
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive">
