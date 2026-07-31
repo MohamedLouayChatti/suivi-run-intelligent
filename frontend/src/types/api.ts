@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Me */
+        get: operations["get_me_auth_me_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/users": {
         parameters: {
             query?: never;
@@ -612,7 +629,7 @@ export interface components {
          * Category
          * @enum {string}
          */
-        Category: "Bug" | "Anomalie applicatif" | "Manque d'information" | "Assistance client" | "Bon usage" | "vide" | "Synchronisation des données" | "Opération de service" | "Habilitation" | "Hors périmètre";
+        Category: "Bug" | "Anomalie applicatif" | "Manque d'information" | "Assistance client" | "Bon usage" | "vide" | "Synchronisation des données" | "Opération de service" | "Habilitation" | "Hors périmètre" | "Infrastructure";
         /** CommentCreateRequest */
         CommentCreateRequest: {
             /**
@@ -665,11 +682,32 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** MeResponse */
+        MeResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Auth Provider User Id */
+            auth_provider_user_id: string;
+            /** Email */
+            email: string;
+            /** Display Name */
+            display_name: string;
+            functional_team: components["schemas"]["FunctionalTeam"];
+            /** Application Assignments */
+            application_assignments: components["schemas"]["ApplicationAssignmentSchema"][];
+            /** Roles */
+            roles: components["schemas"]["RoleResponse"][];
+            /** Effective Permissions */
+            effective_permissions: components["schemas"]["PermissionResponse"][];
+        };
         /**
          * Offer
          * @enum {string}
          */
-        Offer: "GCFTTX" | "NRAZO" | "MCIFO" | "GCRIA" | "TEMP" | "GCNRASR" | "MUTUFTTH" | "IPCNX" | "RIPPD" | "INFPR" | "PRMUT" | "DEGPG" | "MUTMD" | "HBNRO" | "MADPC" | "GCBLO" | "RFHLA" | "PCOZO" | "MUTSP" | "RFHCA" | "RFHGD" | "RFHAU" | "RFHBR" | "REBTD" | "RFHMO" | "DGRPG" | "RFHGE" | "REGSC" | "REMNU" | "REVTD" | "RFHVE" | "RELOA" | "RFHLO" | "SNCFR" | "RFPBR" | "NROPB" | "RFRBR" | "RFHAR" | "RFHAX" | "RFHBC" | "RFHCM" | "RFHGI" | "RFHMA" | "RFHOM" | "REMAY" | "RFRAX" | "PCNAO" | "REART" | "REAXT" | "REBFC" | "RECMT" | "REGTD" | "REOMT" | "RFROM" | "RFRGI" | "RFHSY" | "RFHVI" | "RFRPS" | "REAPS" | "RFHVT" | "REVAR" | "REVIE" | "REDSN" | "LNPMB" | "LPMCD" | "RFPAX" | "RFIAX" | "RFLAX" | "RE1AX" | "REHAU" | "RFPMA" | "RFPAR" | "RFPBC" | "RFPOM" | "RFPLA" | "RFRLA" | "RELTD" | "ROPDM_MONU" | "RFRGD" | "ROPDM_VTHD" | "ROPDM_OMTD" | "ROPDM_AXTD" | "ROPDM_MAYE" | "RFULA" | "RFRAU" | "RFPVT" | "RFPMO" | "RFHRT" | "ROPDM_ATHD_HEB" | "ROPDM_ATHD_LC" | "RONZO_THDB" | "REDAX" | "RERRT" | "RFPVI" | "RFPVE" | "RFPLN" | "RFPGD" | "RFPGN" | "RFPDS" | "RFPCM" | "RFPPS" | "RFPAU" | "RFNRA_CAPS" | "LPMSP" | "RFNRA_THDB" | "RFNRA_LTHD" | "RFNRA_VTHD" | "RORAC_IND_GTHD" | "RORAC_IRU_GTHD" | "RFRAR" | "RFCOL_GTHD" | "RFRVT" | "CSMFON" | "RFHKF" | "RFPKF" | "RECHD" | "ROPDM_CORS" | "NRA_NRO_RIP" | "ROPAP_HASF" | "ROHEB_HASF" | "RORAC_HASF" | "RFMUT_HASF" | "ROPDM_HASF" | "ROHPO_AXTD" | "ROHPO_VTHD" | "BSNRO" | "RFMUT_YANA" | "RORAC_GERS" | "ROHEB_YANA" | "ROHPA_HASF" | "ROHEB_LOAN" | "ROPAP_YANA" | "RORAC_YANA" | "ROPAP_MAYO" | "GCBLO_IFP" | "ROHPO_LTHD" | "RONZO_HASF" | "DSRIT" | "RVOPT" | "HEBEP" | "ROHEB_GDHD" | "CMS_SUPPORT" | "OPTSV" | "NRA_NRO_RIP_2" | "EVOL_GC" | "ROGCI_MONU" | "ROGCI_AXTD" | "ROGCI_CMTD" | "ROGCI_HASF" | "ROGCI_VTHD" | "ROGCI_OMTD" | "ROGCI_GERS" | "ROGCI_YANA" | "ROGCI_RRTH" | "ROGCI_ARTD" | "ROGCI_KOUR" | "ROGCI_THDB" | "ROGCI_BFCF" | "ROGCI_GTHD" | "ROGCI_CAPS" | "ROGCI_ATHD" | "ROGCI_MAYE" | "ROGCI_SY79" | "ROGCI_VIEN" | "ROHEB_THDB" | "ROHEB_SY79" | "ROHEB_VIEN" | "ROHEB_LTHD" | "ROHEB_ARTD" | "ROHEB_AXTD" | "ROHEB_BFCF" | "ROHEB_VTHD" | "ROHEB_CAPS" | "ROHEB_GTHD" | "ROHEB_YANA22" | "ROHEB_GERS" | "ROHEB_MAYE" | "ROHEB_RRTH" | "ROHEB_MONU" | "CPMFO" | "DEPOS" | "ITDMX" | "ROGCI_RTBM" | "ROHEB_RTBM" | "ROHPO_RTBM" | "ROHPO_RTRM";
+        Offer: "GCFTTX" | "NRAZO" | "MCIFO" | "GCRIA" | "TEMP" | "GCNRASR" | "MUTUFTTH" | "IPCNX" | "RIPPD" | "INFPR" | "PRMUT" | "DEGPG" | "MUTMD" | "HBNRO" | "MADPC" | "GCBLO" | "RFHLA" | "PCOZO" | "MUTSP" | "RFHCA" | "RFHGD" | "RFHAU" | "RFHBR" | "REBTD" | "RFHMO" | "DGRPG" | "RFHGE" | "REGSC" | "REMNU" | "REVTD" | "RFHVE" | "RELOA" | "RFHLO" | "SNCFR" | "RFPBR" | "NROPB" | "RFRBR" | "RFHAR" | "RFHAX" | "RFHBC" | "RFHCM" | "RFHGI" | "RFHMA" | "RFHOM" | "REMAY" | "RFRAX" | "PCNAO" | "REART" | "REAXT" | "REBFC" | "RECMT" | "REGTD" | "REOMT" | "RFROM" | "RFRGI" | "RFHSY" | "RFHVI" | "RFRPS" | "REAPS" | "RFHVT" | "REVAR" | "REVIE" | "REDSN" | "LNPMB" | "LPMCD" | "RFPAX" | "RFIAX" | "RFLAX" | "RE1AX" | "REHAU" | "RFPMA" | "RFPAR" | "RFPBC" | "RFPOM" | "RFPLA" | "RFRLA" | "RELTD" | "ROPDM_MONU" | "RFRGD" | "ROPDM_VTHD" | "ROPDM_OMTD" | "ROPDM_AXTD" | "ROPDM_MAYE" | "RFULA" | "RFRAU" | "RFPVT" | "RFPMO" | "RFHRT" | "ROPDM_ATHD_HEB" | "ROPDM_ATHD_LC" | "RONZO_THDB" | "REDAX" | "RERRT" | "RFPVI" | "RFPVE" | "RFPLN" | "RFPGD" | "RFPGN" | "RFPDS" | "RFPCM" | "RFPPS" | "RFPAU" | "RFNRA_CAPS" | "LPMSP" | "RFNRA_THDB" | "RFNRA_LTHD" | "RFNRA_VTHD" | "RORAC_IND_GTHD" | "RORAC_IRU_GTHD" | "RFRAR" | "RFCOL_GTHD" | "RFRVT" | "CSMFON" | "RFHKF" | "RFPKF" | "RECHD" | "ROPDM_CORS" | "NRA_NRO_RIP" | "ROPAP_HASF" | "ROHEB_HASF" | "RORAC_HASF" | "RFMUT_HASF" | "ROPDM_HASF" | "ROHPO_AXTD" | "ROHPO_VTHD" | "BSNRO" | "RFMUT_YANA" | "RORAC_GERS" | "ROHEB_YANA" | "ROHPA_HASF" | "ROHEB_LOAN" | "ROPAP_YANA" | "RORAC_YANA" | "ROPAP_MAYO" | "GCBLO_IFP" | "ROHPO_LTHD" | "RONZO_HASF" | "DSRIT" | "RVOPT" | "HEBEP" | "ROHEB_GDHD" | "CMS_SUPPORT" | "OPTSV" | "NRA_NRO_RIP_2" | "EVOL_GC" | "ROGCI_MONU" | "ROGCI_AXTD" | "ROGCI_CMTD" | "ROGCI_HASF" | "ROGCI_VTHD" | "ROGCI_OMTD" | "ROGCI_GERS" | "ROGCI_YANA" | "ROGCI_RRTH" | "ROGCI_ARTD" | "ROGCI_KOUR" | "ROGCI_THDB" | "ROGCI_BFCF" | "ROGCI_GTHD" | "ROGCI_CAPS" | "ROGCI_ATHD" | "ROGCI_MAYE" | "ROGCI_SY79" | "ROGCI_VIEN" | "ROHEB_THDB" | "ROHEB_SY79" | "ROHEB_VIEN" | "ROHEB_LTHD" | "ROHEB_ARTD" | "ROHEB_AXTD" | "ROHEB_BFCF" | "ROHEB_VTHD" | "ROHEB_CAPS" | "ROHEB_GTHD" | "ROHEB_YANA22" | "ROHEB_GERS" | "ROHEB_MAYE" | "ROHEB_RRTH" | "ROHEB_MONU" | "CPMFO" | "DEPOS" | "ITDMX" | "ROGCI_RTBM" | "ROHEB_RTBM" | "ROHPO_RTBM" | "ROHPO_RTRM" | "Not Specified";
         /** PermissionResponse */
         PermissionResponse: {
             /**
@@ -846,7 +884,7 @@ export interface components {
          * TransferDestination
          * @enum {string}
          */
-        TransferDestination: "Support FCI" | "Paramétrage FCI" | "Support COLORIS" | "Paramétrage COLORIS" | "AERO" | "VIO" | "EEP" | "CLIP" | "BANCO" | "Ulysse" | "ACACIA" | "SantaFE" | "Proxima" | "Habilitation";
+        TransferDestination: "Support FCI" | "Paramétrage FCI" | "Support COLORIS" | "Paramétrage COLORIS" | "AERO" | "VIO" | "EEP" | "CLIP" | "BANCO" | "Ulysse" | "ACACIA" | "SantaFE" | "Proxima" | "Habilitation" | "Équipe Développement";
         /** TransferRequest */
         TransferRequest: {
             transferred_to: components["schemas"]["TransferDestination"];
@@ -903,7 +941,7 @@ export interface components {
          * Version
          * @enum {string}
          */
-        Version: "V1" | "V2" | "V3" | "V4" | "V5";
+        Version: "V1" | "V2" | "V3" | "V4" | "V5" | "V6" | "V1R4" | "V1R6" | "V14" | "V15" | "V32" | "V16" | "V42" | "V41" | "V50" | "V22" | "Not Specified";
         /**
          * VioApp
          * @enum {string}
@@ -918,6 +956,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    get_me_auth_me_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+        };
+    };
     list_users_auth_users_get: {
         parameters: {
             query?: {

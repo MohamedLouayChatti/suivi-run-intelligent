@@ -38,12 +38,16 @@ class Settings(BaseSettings):
 		default="swagger",
 		validation_alias="CLERK_SWAGGER_JWT_TEMPLATE",
 	)
+	cors_allowed_origins: Annotated[list[str], NoDecode] = Field(
+		default_factory=list,
+		validation_alias="CORS_ALLOWED_ORIGINS",
+	)
 
-	@field_validator("clerk_authorized_parties", mode="before")
+	@field_validator("clerk_authorized_parties", "cors_allowed_origins", mode="before")
 	@classmethod
-	def _split_authorized_parties(cls, value: str | list[str]) -> list[str]:
+	def _split_comma_separated(cls, value: str | list[str]) -> list[str]:
 		if isinstance(value, str):
-			return [party.strip() for party in value.split(",") if party.strip()]
+			return [item.strip() for item in value.split(",") if item.strip()]
 		return value
 
 

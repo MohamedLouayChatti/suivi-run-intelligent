@@ -152,6 +152,7 @@ const categoryWeights: Record<Category, number> = {
   "Opération de service": 0.09,
   Habilitation: 0.06,
   "Hors périmètre": 0.04,
+  Infrastructure: 0,
 }
 
 function getCategoryDistribution(filters: AnalyticsFilters): Record<Category, number> {
