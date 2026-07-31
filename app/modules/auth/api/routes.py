@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Query, status
 
 from app.modules.auth.api.dependencies import (
 	get_activate_user_handler, get_assign_role_handler, get_create_role_handler,
-	get_create_user_handler, get_deactivate_user_handler,
+	get_create_user_handler, get_current_user_profile_handler, get_deactivate_user_handler,
 	get_grant_permission_to_role_handler, get_grant_permission_to_user_handler,
 	get_list_permissions_handler, get_list_roles_handler, get_list_users_handler,
 	get_permission_handler, get_revoke_permission_from_role_handler,
@@ -16,7 +16,7 @@ from app.modules.auth.api.dependencies import (
 	get_user_direct_permissions_handler, get_user_handler, get_user_roles_handler,
 	get_user_revoked_permissions_handler,
 )
-from app.modules.auth.api.schemas import PermissionResponse, RoleCreateRequest, RoleResponse, UserCreateRequest, UserResponse, UserUpdateRequest
+from app.modules.auth.api.schemas import MeResponse, PermissionResponse, RoleCreateRequest, RoleResponse, UserCreateRequest, UserResponse, UserUpdateRequest
 from app.modules.auth.application.commands.activate_user.handler import ActivateUserHandler
 from app.modules.auth.application.commands.assign_role.handler import AssignRoleHandler
 from app.modules.auth.application.commands.create_role.handler import CreateRoleHandler
@@ -28,6 +28,7 @@ from app.modules.auth.application.commands.revoke_permission_from_role.handler i
 from app.modules.auth.application.commands.revoke_permission_from_user.handler import RevokePermissionFromUserHandler
 from app.modules.auth.application.commands.revoke_role.handler import RevokeRoleHandler
 from app.modules.auth.application.commands.update_user.handler import UpdateUserHandler
+from app.modules.auth.application.queries.get_current_user_profile.handler import GetCurrentUserProfileHandler
 from app.modules.auth.application.queries.get_permission.handler import GetPermissionHandler
 from app.modules.auth.application.queries.get_role.handler import GetRoleHandler
 from app.modules.auth.application.queries.get_role_permissions.handler import GetRolePermissionsHandler
@@ -49,6 +50,7 @@ from app.modules.auth.application.commands.revoke_permission_from_role.command i
 from app.modules.auth.application.commands.revoke_permission_from_user.command import RevokePermissionFromUserCommand
 from app.modules.auth.application.commands.revoke_role.command import RevokeRoleCommand
 from app.modules.auth.application.commands.update_user.command import UpdateUserCommand
+from app.modules.auth.application.queries.get_current_user_profile.query import GetCurrentUserProfileQuery
 from app.modules.auth.application.queries.get_permission.query import GetPermissionQuery
 from app.modules.auth.application.queries.get_role.query import GetRoleQuery
 from app.modules.auth.application.queries.get_role_permissions.query import GetRolePermissionsQuery
@@ -61,10 +63,19 @@ from app.modules.auth.application.queries.list_roles.query import ListRolesQuery
 from app.modules.auth.application.queries.list_users.query import ListUsersQuery
 from app.modules.auth.domain.value_objects.auth_provider_user_id import AuthProviderUserId
 
+from app.shared.security.current_user import CurrentUser, get_current_user
 from app.shared.security.instance_permissions import require_instance_permission
 from app.shared.security.permissions import require_permissions
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+@router.get("/me", response_model=MeResponse)
+async def get_me(
+	current_user: Annotated[CurrentUser, Depends(get_current_user)],
+	handler: Annotated[GetCurrentUserProfileHandler, Depends(get_current_user_profile_handler)],
+) -> MeResponse:
+	return MeResponse.from_dto(await handler.handle(GetCurrentUserProfileQuery(user_id=current_user.id)))
+
 
 @router.get("/users", response_model=list[UserResponse], dependencies=[Depends(require_permissions("user.read"))])
 async def list_users(handler: Annotated[ListUsersHandler, Depends(get_list_users_handler)], page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 100) -> list[UserResponse]:

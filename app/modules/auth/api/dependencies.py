@@ -18,6 +18,7 @@ from app.modules.auth.application.commands.revoke_permission_from_user.handler i
 from app.modules.auth.application.commands.revoke_role.handler import RevokeRoleHandler
 from app.modules.auth.application.commands.update_user.handler import UpdateUserHandler
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
+from app.modules.auth.application.queries.get_current_user_profile.handler import GetCurrentUserProfileHandler
 from app.modules.auth.application.queries.get_effective_permissions.handler import GetEffectivePermissionsHandler
 from app.modules.auth.application.queries.get_user.handler import GetUserHandler
 from app.modules.auth.application.queries.get_user_roles.handler import GetUserRolesHandler
@@ -135,3 +136,4 @@ def get_role_permissions_handler(repo: Annotated[SqlAlchemyRoleReadRepository, D
 def get_permission_handler(repo: Annotated[SqlAlchemyPermissionReadRepository, Depends(get_permission_read_repository)]) -> GetPermissionHandler: return _read_handler(GetPermissionHandler, repo)
 def get_list_permissions_handler(repo: Annotated[SqlAlchemyPermissionReadRepository, Depends(get_permission_read_repository)]) -> ListPermissionsHandler: return _read_handler(ListPermissionsHandler, repo)
 def get_effective_permissions_handler(repo: Annotated[SqlAlchemyPermissionReadRepository, Depends(get_permission_read_repository)]) -> GetEffectivePermissionsHandler: return _read_handler(GetEffectivePermissionsHandler, repo)
+def get_current_user_profile_handler(user_repo: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)], permission_repo: Annotated[SqlAlchemyPermissionReadRepository, Depends(get_permission_read_repository)]) -> GetCurrentUserProfileHandler: return GetCurrentUserProfileHandler(user_repo, permission_repo)
