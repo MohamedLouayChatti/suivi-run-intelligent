@@ -1,5 +1,17 @@
-import { PagePlaceholder } from "@/components/common/page-placeholder";
+import { PageHeader, PageBody } from "@/components/app/page"
+import { RolesPanel } from "@/features/roles/roles-panel"
 
 export default function RolesPage() {
-  return <PagePlaceholder title="Rôles" />;
+  return (
+    <>
+      <PageHeader
+        title="Rôles"
+        description="Ensembles de permissions appliqués sur la plateforme"
+        breadcrumbs={[{ label: "Suivi Run", href: "/" }, { label: "Administration" }, { label: "Rôles" }]}
+      />
+      <PageBody>
+        <RolesPanel />
+      </PageBody>
+    </>
+  )
 }

@@ -1,20 +1,9 @@
 import type { components } from "@/types/api"
 
+import { mockRoles } from "@/features/roles/mock-data"
+
 type UserResponse = components["schemas"]["UserResponse"]
 type RoleResponse = components["schemas"]["RoleResponse"]
-
-// Placeholder roles mirroring the real seeded catalog
-// (app/scripts/seeding/roles_permissions/roles.py). Replace with a real
-// services/api/roles.ts call once it exists.
-const mockRoles: RoleResponse[] = [
-  { id: "10000000-0000-0000-0000-000000000001", name: "Admin", permission_ids: [] },
-  { id: "10000000-0000-0000-0000-000000000002", name: "Support Engineer", permission_ids: [] },
-  {
-    id: "10000000-0000-0000-0000-000000000003",
-    name: "Support Engineer Supervisor",
-    permission_ids: [],
-  },
-]
 
 // `last_active_label`/`member_since_label` are display-only mock fields — the backend
 // UserResponse schema doesn't track activity/membership dates yet, and baking fixed
