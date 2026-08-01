@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 
@@ -38,9 +39,14 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-14 justify-center border-b border-sidebar-border">
         <div className="flex items-center gap-2.5 px-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary text-[13px] font-semibold text-primary-foreground">
-            SR
-          </div>
+          <Image
+            src="/icon_sofrecom_logo.png"
+            alt="Logo Sofrecom"
+            width={139}
+            height={150}
+            priority
+            className="h-8 w-auto shrink-0 object-contain group-data-[collapsible=icon]:h-6"
+          />
           <span className="truncate text-[15px] font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
             Suivi Run
           </span>

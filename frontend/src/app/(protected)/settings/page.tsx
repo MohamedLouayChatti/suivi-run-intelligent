@@ -4,7 +4,7 @@ import { useState } from "react"
 
 import { PageHeader, PageBody } from "@/components/app/page"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { useCurrentUser } from "@/hooks/use-current-user"
+import { useCurrentUser } from "@/lib/auth"
 import { ProfileTab } from "@/features/settings/profile-tab"
 import { AppearanceTab } from "@/features/settings/appearance-tab"
 
@@ -14,14 +14,16 @@ function splitDisplayName(displayName: string): { prenom: string; nom: string } 
 }
 
 export default function SettingsPage() {
-  const user = useCurrentUser()
-  const [{ prenom, nom }, setName] = useState(() => splitDisplayName(user.display_name))
+  const { data: user } = useCurrentUser()
+  const [{ prenom, nom }, setName] = useState(() => splitDisplayName(user?.displayName ?? ""))
   const [justSaved, setJustSaved] = useState(false)
 
   function handleSave() {
     setJustSaved(true)
     setTimeout(() => setJustSaved(false), 2000)
   }
+
+  if (!user) return null
 
   return (
     <>

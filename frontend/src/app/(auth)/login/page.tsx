@@ -4,6 +4,7 @@ import { type FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSignIn } from "@clerk/nextjs/legacy";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { AuthLayout } from "@/components/app/auth-layout";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { getClerkErrorMessage } from "@/features/auth/clerk-error";
 export default function LoginPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,6 +38,9 @@ export default function LoginPage() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
+        // Wipe any state cached under the previous session (e.g. another user who never
+        // clicked "Se déconnecter") so the dashboard never renders stale identity/data.
+        queryClient.clear();
         router.push("/dashboard");
         return;
       }

@@ -1,32 +1,32 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import type { components } from "@/types/api"
-import { mockTickets } from "@/features/tickets/mock-data"
+import { listTickets, createTicket } from "@/services/api/tickets"
 
-type TicketDetail = components["schemas"]["TicketDetailResponse"]
+type TicketCreateRequest = components["schemas"]["TicketCreateRequest"]
 
-// Placeholder data source for the Tickets page. Replace with a real TanStack Query hook
-// backed by services/api/tickets.ts once the endpoint is wired — consumers only depend on
-// { tickets, isLoading, isError, addTicket }, so swapping the implementation is a one-line change.
+const ticketsListQueryKey = ["tickets", "list"] as const
+
 function useTicketsList() {
-  const [tickets, setTickets] = useState<TicketDetail[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const queryClient = useQueryClient()
+  const query = useQuery({
+    queryKey: ticketsListQueryKey,
+    queryFn: () => listTickets(),
+  })
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTickets(mockTickets)
-      setIsLoading(false)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [])
+  const createMutation = useMutation({
+    mutationFn: (payload: TicketCreateRequest) => createTicket(payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ticketsListQueryKey }),
+  })
 
-  function addTicket(ticket: TicketDetail) {
-    setTickets((prev) => [ticket, ...prev])
+  return {
+    tickets: query.data ?? [],
+    isLoading: query.isPending,
+    isError: query.isError,
+    addTicket: createMutation.mutateAsync,
   }
-
-  return { tickets, isLoading, isError: false, addTicket }
 }
 
-export { useTicketsList }
+export { useTicketsList, ticketsListQueryKey }

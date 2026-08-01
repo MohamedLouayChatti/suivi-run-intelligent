@@ -1,23 +1,15 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
 // Next.js 16 renamed the network-boundary file from middleware.ts to proxy.ts;
 // clerkMiddleware itself is unchanged.
 //
-// Edge-level responsibility ends at "does a Clerk session exist" — it must never
-// call /auth/me or reason about roles/permissions/applications. auth.protect()
-// redirects unauthenticated requests to NEXT_PUBLIC_CLERK_SIGN_IN_URL (/login);
-// everything past that point is decided client-side once GET /auth/me resolves.
-const isPublicRoute = createRouteMatcher([
-  "/login(.*)",
-  "/signup(.*)",
-  "/forgot-password(.*)",
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (!isPublicRoute(req)) {
-    await auth.protect();
-  }
-});
+// Session protection is no longer done here via createRouteMatcher path-matching
+// (deprecated by Clerk — see https://clerk.com/docs/guides/development/upgrading/upgrade-guides/migrate-from-create-route-matcher).
+// Each protected resource now calls auth.protect() itself — see app/(protected)/layout.tsx,
+// which gates the whole route group. auth.protect() redirects unauthenticated requests to
+// NEXT_PUBLIC_CLERK_SIGN_IN_URL (/login); everything past that point is decided client-side
+// once GET /auth/me resolves.
+export default clerkMiddleware();
 
 export const config = {
   matcher: [

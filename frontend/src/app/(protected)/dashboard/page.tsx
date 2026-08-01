@@ -1,10 +1,14 @@
+"use client"
+
 import Link from "next/link"
 import { ArrowUpRight, Plus } from "lucide-react"
 
 import { PageHeader, PageBody } from "@/components/app/page"
 import { Button } from "@/components/ui/button"
-import { useCurrentUser, getPrimaryApplication, getBackupApplication } from "@/hooks/use-current-user"
-import { mockAssignedTickets, mockTrend, mockConversations, mockKpis } from "@/features/dashboard/mock-data"
+import { useCurrentUser } from "@/lib/auth"
+import { getPrimaryApplication, getBackupApplication } from "@/services/api/auth"
+import { useTicketsList } from "@/features/tickets/use-tickets-list"
+import { mockTrend, mockConversations, mockKpis } from "@/features/dashboard/mock-data"
 import { KpiCards } from "@/features/dashboard/kpi-cards"
 import { MyAssignments } from "@/features/dashboard/my-assignments"
 import { TicketStatusSummary } from "@/features/dashboard/ticket-status-summary"
@@ -25,14 +29,16 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
 })
 
 export default function DashboardPage() {
-  const user = useCurrentUser()
-  const primaryApplication = getPrimaryApplication(user)
-  const backupApplication = getBackupApplication(user)
+  const { data: user } = useCurrentUser()
+  const { tickets } = useTicketsList()
+  const myTickets = tickets.filter((t) => t.assignee?.id === user?.id)
+  const primaryApplication = user ? getPrimaryApplication(user) : null
+  const backupApplication = user ? getBackupApplication(user) : null
   const today = dateFormatter.format(new Date())
 
   const descriptionParts = [
     today,
-    `Équipe ${functionalTeamLabels[user.functional_team] ?? user.functional_team}`,
+    `Équipe ${(user && functionalTeamLabels[user.functionalTeam]) ?? user?.functionalTeam ?? "—"}`,
     `App. principale ${primaryApplication ?? "—"}`,
   ]
   if (backupApplication) {
@@ -61,22 +67,22 @@ export default function DashboardPage() {
       />
       <PageBody className="space-y-6">
         <KpiCards
-          activeAssignments={mockKpis.activeAssignments}
+          activeAssignments={myTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS").length}
           resolvedThisWeek={mockKpis.resolvedThisWeek}
           createdThisWeek={mockKpis.createdThisWeek}
           avgResolutionMinutes={mockKpis.avgResolutionMinutes}
         />
 
         <div className="grid gap-6 xl:grid-cols-3">
-          <MyAssignments tickets={mockAssignedTickets} />
-          <TicketStatusSummary tickets={mockAssignedTickets} />
+          <MyAssignments tickets={myTickets} />
+          <TicketStatusSummary tickets={myTickets} />
         </div>
 
         <IncidentTrendChart data={mockTrend} />
 
         <div className="grid gap-6 xl:grid-cols-3">
           <div className="xl:col-span-2">
-            <RecentTickets tickets={mockAssignedTickets} />
+            <RecentTickets tickets={myTickets} />
           </div>
           <ContinueConversations conversations={mockConversations} />
         </div>

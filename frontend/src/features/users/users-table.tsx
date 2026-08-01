@@ -23,10 +23,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ActiveBadge } from "@/components/app/status"
-import { getPrimaryApplication } from "@/hooks/use-current-user"
-import { mockRoles, getRoleName, type MockUser } from "@/features/users/mock-data"
+import { getPrimaryApplication } from "@/services/api/users"
+import { getRoleName } from "@/features/users/get-role-name"
 import { functionalTeamLabels } from "@/features/users/constants"
 import { UserDetailsSheet } from "@/features/users/user-details-sheet"
+import { useRolesList } from "@/hooks/use-roles-list"
+import type { components } from "@/types/api"
+
+type UserResponse = components["schemas"]["UserResponse"]
 
 function initials(name: string): string {
   return name
@@ -38,12 +42,13 @@ function initials(name: string): string {
 }
 
 interface UsersTableProps {
-  users: MockUser[]
+  users: UserResponse[]
   onChangeRole: (userId: string, roleId: string) => void
   onToggleActive: (userId: string) => void
 }
 
 function UsersTable({ users, onChangeRole, onToggleActive }: UsersTableProps) {
+  const { roles } = useRolesList()
   const [query, setQuery] = useState("")
   const [roleId, setRoleId] = useState("all")
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
@@ -71,7 +76,7 @@ function UsersTable({ users, onChangeRole, onToggleActive }: UsersTableProps) {
           <SelectTrigger className="w-[13rem]"><SelectValue placeholder="Rôle" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les rôles</SelectItem>
-            {mockRoles.map((r) => (
+            {roles.map((r) => (
               <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
             ))}
           </SelectContent>
@@ -85,14 +90,13 @@ function UsersTable({ users, onChangeRole, onToggleActive }: UsersTableProps) {
             <TableHead>Application</TableHead>
             <TableHead>Équipe fonctionnelle</TableHead>
             <TableHead>Statut</TableHead>
-            <TableHead>Dernière activité</TableHead>
             <TableHead />
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.length === 0 ? (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={7} className="py-8 text-center whitespace-normal text-sm text-muted-foreground">
+              <TableCell colSpan={6} className="py-8 text-center whitespace-normal text-sm text-muted-foreground">
                 Aucun utilisateur ne correspond à ces critères.
               </TableCell>
             </TableRow>
@@ -110,11 +114,10 @@ function UsersTable({ users, onChangeRole, onToggleActive }: UsersTableProps) {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell>{getRoleName(u, mockRoles)}</TableCell>
+                <TableCell>{getRoleName(u, roles)}</TableCell>
                 <TableCell className="text-muted-foreground">{getPrimaryApplication(u) ?? "—"}</TableCell>
                 <TableCell className="text-muted-foreground">{functionalTeamLabels[u.functional_team]}</TableCell>
                 <TableCell><ActiveBadge active={u.active} /></TableCell>
-                <TableCell className="text-muted-foreground">{u.last_active_label ?? "—"}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

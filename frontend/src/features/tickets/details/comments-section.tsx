@@ -7,11 +7,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { currentUserId, findUser } from "@/features/tickets/mock-data"
+import { useCurrentUser } from "@/lib/auth"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
-type Comment = components["schemas"]["CommentResponse"]
 
 const dateTimeFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
@@ -33,24 +32,16 @@ function initials(name: string): string {
 interface CommentsSectionProps {
   ticket: TicketDetail
   isLoading: boolean
-  onAddComment: (comment: Comment) => void
+  onAddComment: (content: string) => void
 }
 
 function CommentsSection({ ticket, isLoading, onAddComment }: CommentsSectionProps) {
   const [draft, setDraft] = useState("")
-  const currentUser = findUser(currentUserId)
+  const { data: currentUser } = useCurrentUser()
 
   function handleSubmit() {
     if (!draft.trim()) return
-    onAddComment({
-      id: crypto.randomUUID(),
-      author: currentUser,
-      content: draft.trim(),
-      created_at: new Date().toISOString(),
-      attachments: [],
-      edited_at: null,
-      deleted_at: null,
-    })
+    onAddComment(draft.trim())
     setDraft("")
   }
 
@@ -89,7 +80,7 @@ function CommentsSection({ ticket, isLoading, onAddComment }: CommentsSectionPro
 
         <div className="flex gap-3 border-t border-border pt-4">
           <Avatar size="sm">
-            <AvatarFallback>{initials(currentUser.display_name)}</AvatarFallback>
+            <AvatarFallback>{initials(currentUser?.displayName ?? "")}</AvatarFallback>
           </Avatar>
           <div className="flex-1 space-y-2">
             <Textarea

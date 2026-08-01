@@ -59,5 +59,17 @@ async function getCurrentUser(): Promise<CurrentUser> {
   return toCurrentUser(data);
 }
 
-export { getCurrentUser };
+function getPrimaryApplication(user: CurrentUser): components["schemas"]["Application"] | null {
+  return (
+    user.applicationAssignments.find((a) => a.assignmentType === "PRIMARY")?.application ?? null
+  );
+}
+
+function getBackupApplication(user: CurrentUser): components["schemas"]["Application"] | null {
+  return (
+    user.applicationAssignments.find((a) => a.assignmentType === "BACKUP")?.application ?? null
+  );
+}
+
+export { getCurrentUser, getPrimaryApplication, getBackupApplication };
 export type { CurrentUser, CurrentUserApplicationAssignment, CurrentUserPermission, CurrentUserRole };

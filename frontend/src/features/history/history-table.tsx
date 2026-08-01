@@ -8,14 +8,14 @@ import { TicketsTable, type DateColumn } from "@/features/tickets/ticket-table"
 import { applyHistoryFilters, getCompletedAt, type HistoryFilters } from "@/features/history/filter-history"
 import type { components } from "@/types/api"
 
-type TicketDetail = components["schemas"]["TicketDetailResponse"]
+type TicketSummary = components["schemas"]["TicketSummaryResponse"]
 
 const PAGE_SIZE = 10
 
 const completedAtColumn: DateColumn[] = [{ label: "Complété le", getValue: getCompletedAt }]
 
 interface HistoryTableProps {
-  tickets: TicketDetail[]
+  tickets: TicketSummary[]
   filters: HistoryFilters
   isLoading: boolean
 }

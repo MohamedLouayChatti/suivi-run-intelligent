@@ -1,7 +1,7 @@
 import type { components } from "@/types/api"
 import { activeStatusOptions } from "@/features/tickets/constants"
 
-type TicketDetail = components["schemas"]["TicketDetailResponse"]
+type TicketSummary = components["schemas"]["TicketSummaryResponse"]
 type Application = components["schemas"]["Application"]
 type Priority = components["schemas"]["Priority"]
 type Status = components["schemas"]["Status"]
@@ -28,7 +28,7 @@ const defaultTicketFilters: TicketFilters = {
 // Applies the shared filter bar to a ticket list, always scoped to the statuses that
 // represent active operational work (OPEN, IN_PROGRESS, RESOLVED) — this page never
 // displays CLOSED or TRANSFERRED tickets, those belong to History.
-function applyTicketFilters(tickets: TicketDetail[], filters: TicketFilters): TicketDetail[] {
+function applyTicketFilters(tickets: TicketSummary[], filters: TicketFilters): TicketSummary[] {
   return tickets.filter((t) => {
     if (!activeStatusOptions.includes(t.status)) return false
     if (filters.status !== "all" && t.status !== filters.status) return false

@@ -1,28 +1,20 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 
-import type { components } from "@/types/api"
-import { mockTickets } from "@/features/tickets/mock-data"
+import { listTickets } from "@/services/api/tickets"
+import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
 
-type TicketDetail = components["schemas"]["TicketDetailResponse"]
-
-// Placeholder data source for the History page. Replace with a real TanStack Query hook
-// backed by services/api/tickets.ts once the endpoint is wired — consumers only depend on
-// { tickets, isLoading, isError }, so swapping the implementation is a one-line change.
+// History shares the exact same "all tickets" data source as the Tickets page (GET /tickets
+// only filters by status client-side via filter-history.ts), so it reuses the same query key
+// — TanStack Query dedupes the request when both pages' data is already cached.
 function useHistoryList() {
-  const [tickets, setTickets] = useState<TicketDetail[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const query = useQuery({
+    queryKey: ticketsListQueryKey,
+    queryFn: () => listTickets(),
+  })
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setTickets(mockTickets)
-      setIsLoading(false)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [])
-
-  return { tickets, isLoading, isError: false }
+  return { tickets: query.data ?? [], isLoading: query.isPending, isError: query.isError }
 }
 
 export { useHistoryList }

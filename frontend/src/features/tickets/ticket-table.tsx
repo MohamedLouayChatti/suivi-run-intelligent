@@ -14,10 +14,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { StatusBadge, PriorityBadge } from "@/components/app/status"
 import type { components } from "@/types/api"
 
-// Detail is a superset of Summary (adds closed_at/resolved_at/etc.) and every current data
-// source already hands the table full detail objects, so the table type is widened here
-// rather than plumbing an extra field through TicketSummaryResponse.
-type TicketRow = components["schemas"]["TicketDetailResponse"]
+// GET /tickets only ever returns TicketSummaryResponse — that's the row shape everywhere
+// this table is used (active tickets and completed/History tickets alike).
+type TicketRow = components["schemas"]["TicketSummaryResponse"]
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",

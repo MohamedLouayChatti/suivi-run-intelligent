@@ -1,5 +1,7 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
+
 import {
   Sheet,
   SheetContent,
@@ -15,54 +17,52 @@ import { IncidentFields } from "@/features/tickets/create-ticket/incident-fields
 import { AssignmentFields } from "@/features/tickets/create-ticket/assignment-fields"
 import { BusinessFields } from "@/features/tickets/create-ticket/business-fields"
 import { ReferencesFields } from "@/features/tickets/create-ticket/references-fields"
-import { findUser } from "@/features/tickets/mock-data"
+import { reassignTicket } from "@/services/api/tickets"
+import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
+import { useUsersList } from "@/hooks/use-users-list"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
+type TicketCreateRequest = components["schemas"]["TicketCreateRequest"]
 
 interface CreateTicketDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreated: (ticket: TicketDetail) => void
+  onCreated: (payload: TicketCreateRequest) => Promise<TicketDetail>
 }
 
 function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawerProps) {
   const { values, setField, reset, isValid } = useCreateTicketForm()
+  const { users } = useUsersList()
+  const queryClient = useQueryClient()
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!isValid) return
-    const now = new Date().toISOString()
-    const ticket: TicketDetail = {
-      id: crypto.randomUUID(),
+    const payload: TicketCreateRequest = {
       title: values.title.trim(),
       description: values.description.trim(),
-      application: values.application,
-      status: "OPEN",
       priority: values.priority,
-      assignee: values.assigneeId ? findUser(values.assigneeId) : null,
+      application: values.application,
       category: values.category,
       functional_team: values.functionalTeam,
-      operational_highlight: values.operationalHighlight,
-      transferred_to: null,
-      created_at: now,
-      updated_at: now,
-      archived_at: null,
-      resolved_at: null,
-      closed_at: null,
       genergy_id: values.genergyId || null,
       oceane_id: values.oceaneId || null,
       jira_id: values.jiraId || null,
       jira_delivery_date: values.jiraDeliveryDate || null,
       requires_jira: values.requiresJira,
+      operational_highlight: values.operationalHighlight,
       offer: values.offer || null,
       version: values.version || null,
       element: values.element || null,
       vio_app: values.vioApp || null,
-      resolution_notes: null,
-      comments: [],
-      attachments: [],
     }
-    onCreated(ticket)
+    // The backend always assigns the creator; a different pick in the form is applied as a
+    // follow-up reassignment so the "Assigné à" field still behaves as the user expects.
+    const ticket = await onCreated(payload)
+    if (values.assigneeId && values.assigneeId !== ticket.assignee?.id) {
+      await reassignTicket(ticket.id, values.assigneeId)
+      queryClient.invalidateQueries({ queryKey: ticketsListQueryKey })
+    }
     reset()
     onOpenChange(false)
   }
@@ -90,7 +90,7 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawe
           <Separator />
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Affectation</h3>
-            <AssignmentFields values={values} setField={setField} />
+            <AssignmentFields values={values} setField={setField} users={users} />
           </section>
           <Separator />
           <section className="space-y-4">

@@ -1,19 +1,13 @@
-import type { components } from "@/types/api"
-
 import { SectionCard } from "@/components/app/page"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { mockRoles } from "@/features/roles/mock-data"
-import { getRoleName } from "@/features/users/mock-data"
 import { functionalTeamLabels } from "@/features/users/constants"
-import { getPrimaryApplication, getBackupApplication } from "@/hooks/use-current-user"
-
-type UserResponse = components["schemas"]["UserResponse"]
+import { getPrimaryApplication, getBackupApplication, type CurrentUser } from "@/services/api/auth"
 
 interface ProfileTabProps {
-  user: UserResponse
+  user: CurrentUser
   prenom: string
   nom: string
   onPrenomChange: (value: string) => void
@@ -73,14 +67,14 @@ function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved,
           <Label htmlFor="team">Équipe</Label>
           <Input
             id="team"
-            defaultValue={functionalTeamLabels[user.functional_team]}
+            defaultValue={functionalTeamLabels[user.functionalTeam]}
             readOnly
             className="bg-surface"
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="role">Rôle</Label>
-          <Input id="role" defaultValue={getRoleName(user, mockRoles)} readOnly className="bg-surface" />
+          <Input id="role" defaultValue={user.roles[0]?.name ?? "—"} readOnly className="bg-surface" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="primary-app">Application principale</Label>

@@ -1,7 +1,7 @@
 import type { components } from "@/types/api"
 import { completedStatusOptions } from "@/features/tickets/constants"
 
-type TicketDetail = components["schemas"]["TicketDetailResponse"]
+type TicketSummary = components["schemas"]["TicketSummaryResponse"]
 type Application = components["schemas"]["Application"]
 type Status = components["schemas"]["Status"]
 type Category = components["schemas"]["Category"]
@@ -26,17 +26,17 @@ const defaultHistoryFilters: HistoryFilters = {
   dateTo: "",
 }
 
-// Tickets have no dedicated "transferred_at" field, so the completion moment is the
-// closing timestamp when available, falling back to the last update (set alongside the
-// status transition for TRANSFERRED tickets).
-function getCompletedAt(ticket: TicketDetail): string {
-  return ticket.closed_at ?? ticket.updated_at
+// TicketSummaryResponse (the only shape GET /tickets returns) has no closed_at/transferred_at
+// field — updated_at is set alongside the CLOSED/TRANSFERRED status transition itself, so it's
+// the completion moment for every row here.
+function getCompletedAt(ticket: TicketSummary): string {
+  return ticket.updated_at
 }
 
 // Applies the shared filter bar to a ticket list, always scoped to the statuses that
 // represent completed work (CLOSED, TRANSFERRED) — History never displays active tickets,
 // those belong to the Tickets page.
-function applyHistoryFilters(tickets: TicketDetail[], filters: HistoryFilters): TicketDetail[] {
+function applyHistoryFilters(tickets: TicketSummary[], filters: HistoryFilters): TicketSummary[] {
   return tickets
     .filter((t) => {
       if (!completedStatusOptions.includes(t.status)) return false

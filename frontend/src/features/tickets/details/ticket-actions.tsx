@@ -10,15 +10,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { priorityOptions, transferDestinationOptions } from "@/features/tickets/constants"
-import { mockUsers } from "@/features/tickets/mock-data"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
 type Priority = components["schemas"]["Priority"]
 type TransferDestination = components["schemas"]["TransferDestination"]
+type UserSummary = components["schemas"]["UserSummaryResponse"]
 
 interface TicketActionsProps {
   ticket: TicketDetail
+  users: UserSummary[]
   onStart: () => void
   onResolve: () => void
   onArchive: () => void
@@ -30,6 +31,7 @@ interface TicketActionsProps {
 
 function TicketActions({
   ticket,
+  users,
   onStart,
   onResolve,
   onArchive,
@@ -75,7 +77,7 @@ function TicketActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {mockUsers.map((u) => (
+          {users.map((u) => (
             <DropdownMenuItem key={u.id} onSelect={() => onReassign(u.id)}>
               {u.display_name}
             </DropdownMenuItem>

@@ -6,7 +6,8 @@ import { PageBody } from "@/components/app/page"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useTicketDetail } from "@/features/tickets/details/use-ticket-detail"
 import { getSimilarIncidents } from "@/features/tickets/details/mock-similar-incidents"
-import { findUser } from "@/features/tickets/mock-data"
+import { useUsersList } from "@/hooks/use-users-list"
+import { useCurrentUser } from "@/lib/auth"
 import { TicketHeader } from "@/features/tickets/details/ticket-header"
 import { DescriptionCard } from "@/features/tickets/details/description-card"
 import { CommentsSection } from "@/features/tickets/details/comments-section"
@@ -21,7 +22,21 @@ export default function TicketDetailsPage() {
 }
 
 function TicketDetailView({ id }: { id: string }) {
-  const { ticket, isLoading, notFound, updateTicket } = useTicketDetail(id)
+  const {
+    ticket,
+    isLoading,
+    notFound,
+    onStart,
+    onResolve,
+    onArchive,
+    onRestore,
+    onReassign,
+    onChangePriority,
+    onTransfer,
+    onAddComment,
+  } = useTicketDetail(id)
+  const { users } = useUsersList()
+  const { data: currentUser } = useCurrentUser()
 
   if (isLoading) {
     return (
@@ -49,15 +64,17 @@ function TicketDetailView({ id }: { id: string }) {
     <>
       <TicketHeader
         ticket={ticket}
-        onStart={() => updateTicket({ status: "IN_PROGRESS" })}
-        onResolve={() => updateTicket({ status: "RESOLVED", resolved_at: new Date().toISOString() })}
-        onArchive={() => updateTicket({ archived_at: new Date().toISOString() })}
-        onRestore={() => updateTicket({ archived_at: null })}
-        onReassign={(assigneeId) => updateTicket({ assignee: findUser(assigneeId) })}
-        onChangePriority={(priority) => updateTicket({ priority })}
-        onTransfer={(destination) =>
-          updateTicket({ status: "TRANSFERRED", transferred_to: destination })
-        }
+        users={users}
+        onStart={onStart}
+        onResolve={() => {
+          const notes = window.prompt("Notes de résolution")
+          if (notes) onResolve(notes)
+        }}
+        onArchive={onArchive}
+        onRestore={onRestore}
+        onReassign={onReassign}
+        onChangePriority={onChangePriority}
+        onTransfer={onTransfer}
       />
       <PageBody className="space-y-6">
         <div className="grid gap-6 items-start xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -66,7 +83,7 @@ function TicketDetailView({ id }: { id: string }) {
             <CommentsSection
               ticket={ticket}
               isLoading={false}
-              onAddComment={(comment) => updateTicket({ comments: [...ticket.comments, comment] })}
+              onAddComment={(content) => currentUser && onAddComment(currentUser.id, content)}
             />
             <AttachmentsSection ticket={ticket} />
             <ActivityTimeline ticket={ticket} />

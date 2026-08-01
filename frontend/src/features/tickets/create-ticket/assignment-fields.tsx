@@ -1,15 +1,18 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { FormField } from "@/features/tickets/create-ticket/form-field"
 import { applicationOptions, functionalTeamLabels, functionalTeamOptions } from "@/features/tickets/constants"
-import { mockUsers } from "@/features/tickets/mock-data"
 import type { CreateTicketFormState } from "@/features/tickets/create-ticket/use-create-ticket-form"
+import type { components } from "@/types/api"
+
+type UserSummary = components["schemas"]["UserSummaryResponse"]
 
 interface AssignmentFieldsProps {
   values: CreateTicketFormState
   setField: <K extends keyof CreateTicketFormState>(key: K, value: CreateTicketFormState[K]) => void
+  users: UserSummary[]
 }
 
-function AssignmentFields({ values, setField }: AssignmentFieldsProps) {
+function AssignmentFields({ values, setField, users }: AssignmentFieldsProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <FormField label="Application">
@@ -36,7 +39,7 @@ function AssignmentFields({ values, setField }: AssignmentFieldsProps) {
             <SelectValue placeholder="Sélectionner un ingénieur" />
           </SelectTrigger>
           <SelectContent>
-            {mockUsers.map((u) => (
+            {users.map((u) => (
               <SelectItem key={u.id} value={u.id}>
                 {u.display_name}
               </SelectItem>

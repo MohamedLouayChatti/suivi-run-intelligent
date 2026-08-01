@@ -8,10 +8,11 @@ import { HistoryFiltersBar } from "@/features/history/history-filters"
 import { HistoryTable } from "@/features/history/history-table"
 import { useHistoryList } from "@/features/history/use-history-list"
 import { defaultHistoryFilters, type HistoryFilters } from "@/features/history/filter-history"
-import { mockUsers } from "@/features/tickets/mock-data"
+import { useUsersList } from "@/hooks/use-users-list"
 
 export default function HistoryPage() {
   const { tickets, isLoading } = useHistoryList()
+  const { users } = useUsersList()
   const [filters, setFilters] = useState<HistoryFilters>(defaultHistoryFilters)
 
   function handleFilterChange(patch: Partial<HistoryFilters>) {
@@ -26,7 +27,7 @@ export default function HistoryPage() {
           filters={filters}
           onChange={handleFilterChange}
           onReset={() => setFilters(defaultHistoryFilters)}
-          assignees={mockUsers}
+          assignees={users}
         />
         <HistoryTable tickets={tickets} filters={filters} isLoading={isLoading} />
       </PageBody>

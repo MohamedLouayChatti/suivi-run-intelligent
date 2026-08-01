@@ -1,42 +1,79 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import type { components } from "@/types/api"
-import { getTicketById } from "@/features/tickets/mock-data"
+import {
+  getTicket,
+  startTicket,
+  resolveTicket,
+  transferTicket,
+  reassignTicket,
+  changeTicketPriority,
+  archiveTicket,
+  restoreTicket,
+  addComment,
+} from "@/services/api/tickets"
+import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
 
-type TicketDetail = components["schemas"]["TicketDetailResponse"]
+type Priority = components["schemas"]["Priority"]
+type TransferDestination = components["schemas"]["TransferDestination"]
 
-// Placeholder data source for the Ticket Details page. Replace with a real TanStack Query
-// hook backed by services/api/tickets.ts once the endpoint is wired — consumers only depend
-// on { ticket, isLoading, notFound, updateTicket }, so swapping the implementation is a
-// one-line change.
-//
-// Callers must remount this hook per ticket id (e.g. `<TicketDetailView key={id} .../>`) —
-// it does not reset its own loading state when `id` changes.
+function ticketDetailQueryKey(id: string) {
+  return ["tickets", "detail", id] as const
+}
+
 function useTicketDetail(id: string) {
-  const [ticket, setTicket] = useState<TicketDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [notFound, setNotFound] = useState(false)
+  const queryClient = useQueryClient()
+  const query = useQuery({
+    queryKey: ticketDetailQueryKey(id),
+    queryFn: () => getTicket(id),
+    retry: false,
+  })
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const found = getTicketById(id)
-      if (found) {
-        setTicket(found)
-      } else {
-        setNotFound(true)
-      }
-      setIsLoading(false)
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [id])
-
-  function updateTicket(patch: Partial<TicketDetail>) {
-    setTicket((prev) => (prev ? { ...prev, ...patch } : prev))
+  function afterMutation() {
+    queryClient.invalidateQueries({ queryKey: ticketDetailQueryKey(id) })
+    queryClient.invalidateQueries({ queryKey: ticketsListQueryKey })
   }
 
-  return { ticket, isLoading, notFound, updateTicket }
+  const start = useMutation({ mutationFn: () => startTicket(id), onSuccess: afterMutation })
+  const resolve = useMutation({
+    mutationFn: (resolutionNotes: string) => resolveTicket(id, resolutionNotes),
+    onSuccess: afterMutation,
+  })
+  const transfer = useMutation({
+    mutationFn: (destination: TransferDestination) => transferTicket(id, destination),
+    onSuccess: afterMutation,
+  })
+  const reassign = useMutation({
+    mutationFn: (assigneeId: string) => reassignTicket(id, assigneeId),
+    onSuccess: afterMutation,
+  })
+  const changePriority = useMutation({
+    mutationFn: (priority: Priority) => changeTicketPriority(id, priority),
+    onSuccess: afterMutation,
+  })
+  const archive = useMutation({ mutationFn: () => archiveTicket(id), onSuccess: afterMutation })
+  const restore = useMutation({ mutationFn: () => restoreTicket(id), onSuccess: afterMutation })
+  const addTicketComment = useMutation({
+    mutationFn: ({ authorId, content }: { authorId: string; content: string }) =>
+      addComment(id, authorId, content),
+    onSuccess: afterMutation,
+  })
+
+  return {
+    ticket: query.data ?? null,
+    isLoading: query.isPending,
+    notFound: query.isError,
+    onStart: () => start.mutate(),
+    onResolve: (resolutionNotes: string) => resolve.mutate(resolutionNotes),
+    onTransfer: (destination: TransferDestination) => transfer.mutate(destination),
+    onReassign: (assigneeId: string) => reassign.mutate(assigneeId),
+    onChangePriority: (priority: Priority) => changePriority.mutate(priority),
+    onArchive: () => archive.mutate(),
+    onRestore: () => restore.mutate(),
+    onAddComment: (authorId: string, content: string) => addTicketComment.mutate({ authorId, content }),
+  }
 }
 
 export { useTicketDetail }

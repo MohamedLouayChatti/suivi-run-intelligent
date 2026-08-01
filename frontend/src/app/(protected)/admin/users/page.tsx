@@ -1,22 +1,12 @@
 "use client"
 
-import { useState } from "react"
-
 import { PageHeader, PageBody } from "@/components/app/page"
 import { UsersTable } from "@/features/users/users-table"
-import { mockUsers, type MockUser } from "@/features/users/mock-data"
+import { useUsersAdmin } from "@/features/users/use-users-admin"
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<MockUser[]>(mockUsers)
+  const { users, toggleActive, changeRole } = useUsersAdmin()
   const activeCount = users.filter((u) => u.active).length
-
-  function handleChangeRole(userId: string, roleId: string) {
-    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role_ids: [roleId] } : u)))
-  }
-
-  function handleToggleActive(userId: string) {
-    setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, active: !u.active } : u)))
-  }
 
   return (
     <>
@@ -26,7 +16,17 @@ export default function UsersPage() {
         breadcrumbs={[{ label: "Suivi Run", href: "/" }, { label: "Administration" }, { label: "Utilisateurs" }]}
       />
       <PageBody>
-        <UsersTable users={users} onChangeRole={handleChangeRole} onToggleActive={handleToggleActive} />
+        <UsersTable
+          users={users}
+          onChangeRole={(userId, roleId) => {
+            const user = users.find((u) => u.id === userId)
+            if (user) changeRole(userId, roleId, user.role_ids)
+          }}
+          onToggleActive={(userId) => {
+            const user = users.find((u) => u.id === userId)
+            if (user) toggleActive(userId, user.active)
+          }}
+        />
       </PageBody>
     </>
   )

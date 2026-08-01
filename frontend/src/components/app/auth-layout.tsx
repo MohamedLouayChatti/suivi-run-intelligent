@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 interface AuthLayoutProps {
   title: string;
@@ -37,9 +38,14 @@ function AuthLayout({ title, description, children }: AuthLayoutProps) {
       </div>
 
       <div className="hidden border-l border-border bg-surface lg:col-span-3 lg:flex lg:items-center lg:justify-center">
-        <div className="flex size-40 items-center justify-center rounded-2xl border border-dashed border-border text-center text-sm text-muted-foreground">
-          Logo de l&apos;entreprise
-        </div>
+        <Image
+          src="/wide_sofrecom_logo.png"
+          alt="Logo Sofrecom"
+          width={600}
+          height={152}
+          className="h-auto w-[min(75%,360px)] max-w-full"
+          priority
+        />
       </div>
     </div>
   );
