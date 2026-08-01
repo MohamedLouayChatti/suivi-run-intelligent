@@ -1,6 +1,6 @@
 import axios, { type AxiosError } from "axios";
 
-import { getAuthToken } from "@/lib/auth";
+import { getAuthToken, notifyAuthFailure } from "@/lib/auth";
 
 import { normalizeApiError, type BackendErrorBody } from "./errors";
 
@@ -34,7 +34,12 @@ httpClient.interceptors.request.use(async (config) => {
 
 httpClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<BackendErrorBody>) => Promise.reject(normalizeApiError(error)),
+  (error: AxiosError<BackendErrorBody>) => {
+    if (error.response?.status === 401) {
+      notifyAuthFailure();
+    }
+    return Promise.reject(normalizeApiError(error));
+  },
 );
 
 export { httpClient };

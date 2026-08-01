@@ -4,5 +4,10 @@
  */
 export { AuthTokenBridge } from "./auth-token-bridge";
 export { getAuthToken } from "./token-registry";
+export { AuthFailureBridge } from "./auth-failure-bridge";
+export { notifyAuthFailure } from "./auth-failure-registry";
 export { useAuthSession } from "./use-auth-session";
 export type { AuthSession } from "./use-auth-session";
+export { useCurrentUser, currentUserQueryKey } from "./use-current-user";
+export { AuthGate } from "./auth-gate";
+export { useLogout } from "./use-logout";

@@ -20,6 +20,7 @@ interface SiteHeaderProps {
   userRole?: string;
   userInitials?: string;
   hasNotifications?: boolean;
+  onLogout?: () => void;
 }
 
 export function SiteHeader({
@@ -27,6 +28,7 @@ export function SiteHeader({
   userRole,
   userInitials = "CO",
   hasNotifications = true,
+  onLogout,
 }: SiteHeaderProps) {
   return (
     <header className="grid h-14 shrink-0 grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-border px-4">
@@ -80,7 +82,7 @@ export function SiteHeader({
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive">
+            <DropdownMenuItem variant="destructive" onSelect={onLogout}>
               <LogOut /> Déconnexion
             </DropdownMenuItem>
           </DropdownMenuContent>
