@@ -7,7 +7,7 @@ from app.shared.security.authorization_result import AuthorizationResult
 from app.shared.security.current_user import CurrentUser
 from app.shared.security.instance_authorization_policy import InstanceAuthorizationPolicy
 
-_SELF_OR_ADMIN_OPERATIONS = frozenset({"read", "read_roles", "read_direct_permissions", "read_revoked_permissions"})
+_SELF_OR_ADMIN_OPERATIONS = frozenset({"read", "read_roles"})
 
 
 class UserAccessPolicy(InstanceAuthorizationPolicy):
