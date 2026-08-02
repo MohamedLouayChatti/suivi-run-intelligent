@@ -8,6 +8,7 @@ import { ApiError } from "@/services/api/errors";
 
 import { useAuthSession } from "./use-auth-session";
 import { useCurrentUser } from "./use-current-user";
+import { useLogout } from "./use-logout";
 
 interface AuthStateScreenProps {
   icon: ReactNode;
@@ -50,6 +51,7 @@ function LoadingScreen() {
 function AuthGate({ children }: { children: ReactNode }) {
   const { isLoaded, isSignedIn } = useAuthSession();
   const query = useCurrentUser();
+  const logout = useLogout();
 
   if (!isLoaded || !isSignedIn || query.isPending) {
     return <LoadingScreen />;
@@ -68,6 +70,11 @@ function AuthGate({ children }: { children: ReactNode }) {
           icon={<ShieldAlert className="size-8 text-muted-foreground" />}
           title="Accès refusé"
           description="Votre compte n'est pas autorisé à accéder à cette application."
+          action={
+            <Button size="sm" variant="outline" onClick={() => void logout()}>
+              Se déconnecter
+            </Button>
+          }
         />
       );
     }
@@ -78,6 +85,11 @@ function AuthGate({ children }: { children: ReactNode }) {
           icon={<UserX className="size-8 text-muted-foreground" />}
           title="Compte introuvable"
           description="Aucun compte applicatif n'est associé à votre session. Contactez un administrateur."
+          action={
+            <Button size="sm" variant="outline" onClick={() => void logout()}>
+              Se déconnecter
+            </Button>
+          }
         />
       );
     }
