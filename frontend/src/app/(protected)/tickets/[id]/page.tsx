@@ -62,13 +62,15 @@ function TicketDetailView({ id }: { id: string }) {
 
   const similarIncidents = getSimilarIncidents(ticket.id)
 
-  // Mirrors ReassignTicketHandler's own checks (app/modules/ticket_management/application/
-  // commands/reassign_ticket/handler.py) — the backend rejects a reassignment target whose
-  // functional_team or application_assignments don't match the ticket, so the picker only
-  // offers candidates that would actually be accepted.
+  // Mirrors Ticket.reassign's own checks (app/modules/ticket_management/domain/entities/
+  // ticket.py) plus ReassignTicketHandler's (application/commands/reassign_ticket/handler.py)
+  // — the backend rejects an inactive/mismatched-team/mismatched-application target, and
+  // rejects reassigning to the current assignee (no-op), so the picker only offers candidates
+  // that would actually be accepted.
   const reassignCandidates = users.filter(
     (u) =>
       u.active &&
+      u.id !== ticket.assignee?.id &&
       u.functional_team === ticket.functional_team &&
       u.application_assignments.some((a) => a.application === ticket.application)
   )

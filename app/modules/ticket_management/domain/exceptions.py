@@ -92,6 +92,9 @@ class EmptyDescription(TicketDomainError):
 class InvalidAssignee(TicketDomainError):
 	pass
 
+class AssigneeUnchanged(TicketDomainError):
+	pass
+
 class AssigneeRequired(TicketDomainError):
 	pass
 

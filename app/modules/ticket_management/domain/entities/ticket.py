@@ -18,7 +18,7 @@ from app.modules.ticket_management.domain.enums.transfer_destination import Tran
 from app.modules.ticket_management.domain.enums.vio_app import VioApp
 from app.modules.ticket_management.domain.enums.version import Version
 from app.modules.ticket_management.domain.exceptions import (
-	AttachmentNotFound, ChronologicalOrderViolation, CommentNotFound, ConditionalFieldForbidden,
+	AssigneeUnchanged, AttachmentNotFound, ChronologicalOrderViolation, CommentNotFound, ConditionalFieldForbidden,
 	DuplicateAttachment, ElementRequired, EmptyComment, EmptyDescription, EmptyTitle,
 	InvalidAssignee, InvalidStatusTransition, JiraIdRequired, OfferRequired,
 	ResolutionNotesRequired, TicketArchived, TicketClosed, TicketNotArchived,
@@ -162,6 +162,8 @@ class Ticket:
 		self._ensure_mutable(reassigned_at)
 		if not isinstance(assignee_id, UUID):
 			raise InvalidAssignee()
+		if assignee_id == self.assignee_id:
+			raise AssigneeUnchanged()
 		self.assignee_id = assignee_id
 		self.updated_at = reassigned_at
 		self.history.append(TicketHistoryEntry.reassigned(id=uuid4(), occurred_at=reassigned_at, assignee_id=assignee_id))

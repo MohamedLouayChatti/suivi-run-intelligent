@@ -10,6 +10,7 @@ from app.modules.ticket_management.application.exceptions import (
     TicketNotFound,
 )
 from app.modules.ticket_management.domain.exceptions import (
+    AssigneeUnchanged,
     AttachmentNotFound,
     ChronologicalOrderViolation,
     CommentNotFound,
@@ -39,6 +40,7 @@ EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     TransferDestinationIsOrigin: status.HTTP_409_CONFLICT,
     AssigneeNotFound: status.HTTP_404_NOT_FOUND,
     AssigneeNotAuthorized: status.HTTP_403_FORBIDDEN,
+    AssigneeUnchanged: status.HTTP_409_CONFLICT,
     ChronologicalOrderViolation: status.HTTP_409_CONFLICT,
 }
 

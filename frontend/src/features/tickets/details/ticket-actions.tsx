@@ -10,6 +10,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { priorityOptions, transferDestinationOptions } from "@/features/tickets/constants"
 import { ResolveTicketDialog } from "@/features/tickets/details/resolve-ticket-dialog"
 import type { components } from "@/types/api"
@@ -66,6 +76,7 @@ function TicketActions({
 }: TicketActionsProps) {
   const isArchived = ticket.archived_at !== null
   const [resolveOpen, setResolveOpen] = useState(false)
+  const [pendingReassignee, setPendingReassignee] = useState<UserSummary | null>(null)
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -119,7 +130,7 @@ function TicketActions({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {users.map((u) => (
-              <DropdownMenuItem key={u.id} onSelect={() => onReassign(u.id)}>
+              <DropdownMenuItem key={u.id} onSelect={() => setPendingReassignee(u)}>
                 {u.display_name}
               </DropdownMenuItem>
             ))}
@@ -155,6 +166,28 @@ function TicketActions({
               <Archive className="size-4" /> Archiver
             </Button>
           )}
+
+      <AlertDialog open={pendingReassignee !== null} onOpenChange={(open) => !open && setPendingReassignee(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Réaffecter ce ticket à {pendingReassignee?.display_name} ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingReassignee) onReassign(pendingReassignee.id)
+                setPendingReassignee(null)
+              }}
+            >
+              Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
