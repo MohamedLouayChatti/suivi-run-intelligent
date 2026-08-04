@@ -18,18 +18,10 @@ class UserSummaryResponse(BaseModel):
 		return None if user is None else cls(id=user.id, display_name=user.display_name)
 
 
-class AttachmentCreateRequest(BaseModel):
-	filename: str
-	content_type: str
-	storage_path: str
-	uploaded_by: UUID
-
-
 class AttachmentResponse(BaseModel):
 	id: UUID
 	filename: str
 	content_type: str
-	storage_path: str
 	uploader: UserSummaryResponse | None
 	uploaded_at: datetime
 	deleted_at: datetime | None
@@ -40,7 +32,6 @@ class AttachmentResponse(BaseModel):
 			id=attachment.id,
 			filename=attachment.filename,
 			content_type=attachment.content_type,
-			storage_path=attachment.storage_path,
 			uploader=UserSummaryResponse.from_dto(attachment.uploader),
 			uploaded_at=attachment.uploaded_at,
 			deleted_at=attachment.deleted_at,

@@ -6,6 +6,7 @@ from sqlalchemy import Select, and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
 from app.modules.ticket_management.application.interfaces.ticket_read_repository import TicketReadRepository
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
@@ -60,6 +61,12 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 		if ticket_id is not None:
 			return ticket_id
 		return await self.get_ticket_id_for_comment(comment_id)
+
+	async def get_attachment(self, attachment_id: UUID) -> AttachmentDTO | None:
+		attachment_model = await self.session.scalar(select(AttachmentModel).where(AttachmentModel.id == attachment_id))
+		if attachment_model is None:
+			return None
+		return mapper.attachment_model_to_dto(attachment_model)
 
 	def _build_list_query(self, query: ListTicketsQuery) -> Select[tuple[TicketModel]]:
 		stmt = select(TicketModel)

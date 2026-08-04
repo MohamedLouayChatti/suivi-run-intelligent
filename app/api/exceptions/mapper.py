@@ -9,9 +9,12 @@ from app.modules.ticket_management.application.exceptions import (
     AssigneeNotFound,
     TicketNotFound,
 )
+from app.modules.ticket_management.application.exceptions import AttachmentNotFound as ApplicationAttachmentNotFound
+from app.modules.ticket_management.application.exceptions import CommentNotFound as ApplicationCommentNotFound
 from app.modules.ticket_management.domain.exceptions import (
     AssigneeUnchanged,
     AttachmentNotFound,
+    AttachmentTooLarge,
     ChronologicalOrderViolation,
     CommentNotFound,
     DuplicateAttachment,
@@ -21,6 +24,7 @@ from app.modules.ticket_management.domain.exceptions import (
     TicketNotArchived,
     TicketNotAssigned,
     TransferDestinationIsOrigin,
+    UnsupportedAttachmentType,
 )
 from app.shared.exceptions.domain_exceptions import DomainError
 from app.shared.exceptions.application_exceptions import ApplicationError
@@ -42,6 +46,10 @@ EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     AssigneeNotAuthorized: status.HTTP_403_FORBIDDEN,
     AssigneeUnchanged: status.HTTP_409_CONFLICT,
     ChronologicalOrderViolation: status.HTTP_409_CONFLICT,
+    ApplicationAttachmentNotFound: status.HTTP_404_NOT_FOUND,
+    ApplicationCommentNotFound: status.HTTP_404_NOT_FOUND,
+    AttachmentTooLarge: status.HTTP_413_CONTENT_TOO_LARGE,
+    UnsupportedAttachmentType: status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
 }
 
 

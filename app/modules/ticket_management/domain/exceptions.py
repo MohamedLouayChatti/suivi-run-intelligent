@@ -76,6 +76,12 @@ class AttachmentDeleted(TicketDomainError):
 class DuplicateAttachment(TicketDomainError):
 	pass
 
+class AttachmentTooLarge(TicketDomainError):
+	pass
+
+class UnsupportedAttachmentType(TicketDomainError):
+	pass
+
 
 class EmptyComment(TicketDomainError):
 	pass

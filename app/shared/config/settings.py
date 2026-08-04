@@ -42,6 +42,7 @@ class Settings(BaseSettings):
 		default_factory=list,
 		validation_alias="CORS_ALLOWED_ORIGINS",
 	)
+	storage_root: str = Field(default="storage", validation_alias="STORAGE_ROOT")
 
 	@field_validator("clerk_authorized_parties", "cors_allowed_origins", mode="before")
 	@classmethod

@@ -11,6 +11,6 @@ class AddTicketAttachmentCommand:
 	attachment_id: UUID
 	filename: str
 	content_type: str
-	storage_path: str
+	content: bytes
 	uploaded_by: UUID
 	uploaded_at: datetime

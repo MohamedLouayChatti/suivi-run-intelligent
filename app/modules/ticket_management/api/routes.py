@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID, uuid4
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
 from app.modules.ticket_management.api import dependencies as dep
 from app.modules.ticket_management.api.schemas import *
 from app.modules.ticket_management.application.commands.create_ticket.command import CreateTicketCommand
@@ -17,10 +17,13 @@ from app.modules.ticket_management.application.commands.edit_comment.command imp
 from app.modules.ticket_management.application.commands.delete_comment.command import DeleteCommentCommand
 from app.modules.ticket_management.application.commands.add_ticket_attachment.command import AddTicketAttachmentCommand
 from app.modules.ticket_management.application.commands.delete_ticket_attachment.command import DeleteTicketAttachmentCommand
+from app.modules.ticket_management.application.commands.add_comment_attachment.command import AddCommentAttachmentCommand
+from app.modules.ticket_management.application.commands.delete_comment_attachment.command import DeleteCommentAttachmentCommand
 from app.modules.ticket_management.application.commands.archive_ticket.command import ArchiveTicketCommand
 from app.modules.ticket_management.application.commands.restore_ticket.command import RestoreTicketCommand
 from app.modules.ticket_management.application.queries.get_ticket.handler import GetTicketHandler
 from app.modules.ticket_management.application.queries.get_ticket.query import GetTicketQuery
+from app.modules.ticket_management.application.queries.download_attachment.query import DownloadAttachmentQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
 from app.modules.ticket_management.domain.enums.application import Application
@@ -86,8 +89,38 @@ async def add_comment(ticket_id: UUID, payload: CommentCreateRequest, handler=De
 	return TicketDetailResponse.from_dto(await handler.handle(AddCommentCommand(ticket_id=ticket_id, comment_id=uuid4(), created_at=now(), **payload.model_dump())))
 
 @router.post("/{ticket_id}/attachments", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("attachment.create")), Depends(require_instance_permission("attachment", "create", path_param="ticket_id"))])
-async def add_attachment(ticket_id: UUID, payload: AttachmentCreateRequest, handler=Depends(dep.get_add_ticket_attachment_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(AddTicketAttachmentCommand(ticket_id=ticket_id, attachment_id=uuid4(), uploaded_at=now(), **payload.model_dump())))
+async def add_attachment(ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], file: Annotated[UploadFile, File()], handler=Depends(dep.get_add_ticket_attachment_handler)):
+	content = await file.read()
+	command = AddTicketAttachmentCommand(
+		ticket_id=ticket_id,
+		attachment_id=uuid4(),
+		filename=file.filename or "unnamed",
+		content_type=file.content_type or "application/octet-stream",
+		content=content,
+		uploaded_by=current_user.id,
+		uploaded_at=now(),
+	)
+	return TicketDetailResponse.from_dto(await handler.handle(command))
+
+@router.post("/{ticket_id}/comments/{comment_id}/attachments", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("attachment.create")), Depends(require_instance_permission("attachment", "create_on_comment", path_param="comment_id"))])
+async def add_comment_attachment(ticket_id: UUID, comment_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], file: Annotated[UploadFile, File()], handler=Depends(dep.get_add_comment_attachment_handler)):
+	content = await file.read()
+	command = AddCommentAttachmentCommand(
+		ticket_id=ticket_id,
+		comment_id=comment_id,
+		attachment_id=uuid4(),
+		filename=file.filename or "unnamed",
+		content_type=file.content_type or "application/octet-stream",
+		content=content,
+		uploaded_by=current_user.id,
+		uploaded_at=now(),
+	)
+	return TicketDetailResponse.from_dto(await handler.handle(command))
+
+@comments_router.delete("/{comment_id}/attachments/{attachment_id}", status_code=204, dependencies=[Depends(require_permissions("attachment.delete")), Depends(require_instance_permission("attachment", "delete", path_param="attachment_id"))])
+async def delete_comment_attachment(comment_id: UUID, attachment_id: UUID, ticket_id: UUID, handler=Depends(dep.get_delete_comment_attachment_handler)):
+	await handler.handle(DeleteCommentAttachmentCommand(ticket_id, comment_id, attachment_id, now()))
+	return Response(status_code=204)
 
 @router.post("/{ticket_id}/archive", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.archive")), Depends(require_instance_permission("ticket", "archive", path_param="ticket_id"))])
 async def archive(ticket_id: UUID, handler=Depends(dep.get_archive_ticket_handler)):
@@ -105,6 +138,15 @@ async def edit_comment(comment_id: UUID, ticket_id: UUID, payload: CommentUpdate
 async def delete_comment(comment_id: UUID, ticket_id: UUID, handler=Depends(dep.get_delete_comment_handler)):
 	await handler.handle(DeleteCommentCommand(ticket_id, comment_id, now()))
 	return Response(status_code=204)
+
+@attachments_router.get("/{attachment_id}", dependencies=[Depends(require_permissions("attachment.read")), Depends(require_instance_permission("attachment", "read", path_param="attachment_id"))])
+async def download_attachment(attachment_id: UUID, handler=Depends(dep.get_download_attachment_handler)):
+	result = await handler.handle(DownloadAttachmentQuery(attachment_id))
+	return Response(
+		content=result.content,
+		media_type=result.content_type,
+		headers={"Content-Disposition": f'attachment; filename="{result.filename}"'},
+	)
 
 @attachments_router.delete("/{attachment_id}", status_code=204, dependencies=[Depends(require_permissions("attachment.delete")), Depends(require_instance_permission("attachment", "delete", path_param="attachment_id"))])
 async def delete_attachment(attachment_id: UUID, ticket_id: UUID, handler=Depends(dep.get_delete_ticket_attachment_handler)):

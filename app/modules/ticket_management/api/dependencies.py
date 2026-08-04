@@ -14,6 +14,8 @@ from app.shared.security.current_user import CurrentUser, get_current_user
 from app.shared.security.instance_authorization_registry import InstanceAuthorizationRegistry
 from app.modules.auth.api.dependencies import get_user_read_repository
 from app.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_read_repository import SqlAlchemyUserReadRepository
+from app.shared.storage.local_storage_service import storage_service as _storage_service
+from app.shared.storage.service import StorageService
 
 
 async def require_ticket_creation_authorized(
@@ -50,6 +52,9 @@ async def get_read_repository() -> AsyncIterator[SqlAlchemyTicketReadRepository]
 def get_event_publisher(request: Request) -> InMemoryEventPublisher:
 	return InMemoryEventPublisher(request.app.state.event_bus)
 
+def get_storage_service() -> StorageService:
+	return _storage_service
+
 def _command_handler(handler_type, uow, publisher): return handler_type(uow, publisher)
 
 def get_create_ticket_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)]):
@@ -77,6 +82,18 @@ def get_change_priority_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get
 	from app.modules.ticket_management.application.commands.change_priority.handler import ChangePriorityHandler
 	return ChangePriorityHandler(uow, publisher)
 
+def get_add_ticket_attachment_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)], storage_service: Annotated[StorageService, Depends(get_storage_service)]):
+	from app.modules.ticket_management.application.commands.add_ticket_attachment.handler import AddTicketAttachmentHandler
+	return AddTicketAttachmentHandler(uow, publisher, storage_service)
+
+def get_add_comment_attachment_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)], storage_service: Annotated[StorageService, Depends(get_storage_service)]):
+	from app.modules.ticket_management.application.commands.add_comment_attachment.handler import AddCommentAttachmentHandler
+	return AddCommentAttachmentHandler(uow, publisher, storage_service)
+
+def get_download_attachment_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)], storage_service: Annotated[StorageService, Depends(get_storage_service)]):
+	from app.modules.ticket_management.application.queries.download_attachment.handler import DownloadAttachmentHandler
+	return DownloadAttachmentHandler(repository, storage_service)
+
 def get_get_ticket_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)], users: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]):
 	from app.modules.ticket_management.application.queries.get_ticket.handler import GetTicketHandler
 	return GetTicketHandler(repository, users)
@@ -93,5 +110,5 @@ def _crud_provider(handler_name):
 		return getattr(__import__(module, fromlist=[cls]), cls)(uow, publisher)
 	return provider
 
-for _name in ("add_comment", "edit_comment", "delete_comment", "add_ticket_attachment", "delete_ticket_attachment", "archive_ticket", "restore_ticket"):
+for _name in ("add_comment", "edit_comment", "delete_comment", "delete_ticket_attachment", "delete_comment_attachment", "archive_ticket", "restore_ticket"):
 	globals()[f"get_{_name}_handler"] = _crud_provider(f"app.modules.ticket_management.application.commands.{_name}.handler.{''.join(part.title() for part in _name.split('_'))}Handler")

@@ -48,4 +48,4 @@ def register_instance_authorization_policies(registry: InstanceAuthorizationRegi
 	"""Register Ticket Management's resource instance authorization policies."""
 	registry.register("ticket", TicketAccessPolicy(_ticket_read_repository_scope, _user_read_repository_scope))
 	registry.register("comment", CommentAccessPolicy(_ticket_read_repository_scope, _user_read_repository_scope))
-	registry.register("attachment", AttachmentAccessPolicy(_ticket_read_repository_scope))
+	registry.register("attachment", AttachmentAccessPolicy(_ticket_read_repository_scope, _user_read_repository_scope))
