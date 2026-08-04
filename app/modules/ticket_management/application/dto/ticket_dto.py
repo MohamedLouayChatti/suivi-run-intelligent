@@ -6,6 +6,7 @@ from uuid import UUID
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.application.dto.comment_dto import CommentDTO
+from app.modules.ticket_management.application.dto.ticket_history_entry_dto import TicketHistoryEntryDTO
 from app.modules.ticket_management.application.dto.user_summary_dto import UserSummaryDTO
 from app.modules.ticket_management.domain.entities.ticket import Ticket
 from app.modules.ticket_management.domain.enums.application import Application
@@ -45,6 +46,7 @@ class TicketDetailDTO:
 	resolved_at: datetime | None; closed_at: datetime | None; resolution_notes: str | None
 	comments: list[CommentDTO] = field(default_factory=list)
 	attachments: list[AttachmentDTO] = field(default_factory=list)
+	history: list[TicketHistoryEntryDTO] = field(default_factory=list)
 	archived_at: datetime | None = None
 	assignee: UserSummaryDTO | None = None
 
@@ -57,4 +59,6 @@ class TicketDetailDTO:
 			ticket.transferred_to, ticket.created_at, ticket.updated_at, ticket.resolved_at,
 			ticket.closed_at, ticket.resolution_notes,
 			[CommentDTO.from_comment(c) for c in ticket.comments],
-			[AttachmentDTO.from_attachment(a) for a in ticket.attachments], ticket.archived_at)
+			[AttachmentDTO.from_attachment(a) for a in ticket.attachments],
+			[TicketHistoryEntryDTO.from_history_entry(h) for h in ticket.history],
+			ticket.archived_at)

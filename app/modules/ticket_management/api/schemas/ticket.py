@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from app.modules.ticket_management.api.schemas.attachment import AttachmentResponse
 from app.modules.ticket_management.api.schemas.comment import CommentResponse
+from app.modules.ticket_management.api.schemas.history import TicketHistoryEntryResponse
 from app.modules.ticket_management.api.schemas.attachment import UserSummaryResponse
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
 from app.modules.ticket_management.domain.enums.application import Application
@@ -100,6 +101,7 @@ class TicketDetailResponse(TicketSummaryResponse):
 	resolution_notes: str | None
 	comments: list[CommentResponse]
 	attachments: list[AttachmentResponse]
+	history: list[TicketHistoryEntryResponse]
 
 	@classmethod
 	def from_dto(cls, ticket: TicketDetailDTO) -> TicketDetailResponse:
@@ -131,5 +133,6 @@ class TicketDetailResponse(TicketSummaryResponse):
 			resolution_notes=ticket.resolution_notes,
 			comments=[CommentResponse.from_dto(item) for item in ticket.comments],
 			attachments=[AttachmentResponse.from_dto(item) for item in ticket.attachments],
+			history=[TicketHistoryEntryResponse.from_dto(item) for item in ticket.history],
 			archived_at=ticket.archived_at,
 		)

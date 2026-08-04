@@ -865,7 +865,34 @@ export interface components {
             comments: components["schemas"]["CommentResponse"][];
             /** Attachments */
             attachments: components["schemas"]["AttachmentResponse"][];
+            /** History */
+            history: components["schemas"]["TicketHistoryEntryResponse"][];
         };
+        /** TicketHistoryEntryResponse */
+        TicketHistoryEntryResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            event_type: components["schemas"]["TicketHistoryEventType"];
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            from_status: components["schemas"]["Status"] | null;
+            to_status: components["schemas"]["Status"] | null;
+            from_priority: components["schemas"]["Priority"] | null;
+            to_priority: components["schemas"]["Priority"] | null;
+            assignee: components["schemas"]["UserSummaryResponse"] | null;
+            transferred_to: components["schemas"]["TransferDestination"] | null;
+        };
+        /**
+         * TicketHistoryEventType
+         * @enum {string}
+         */
+        TicketHistoryEventType: "CREATED" | "STATUS_CHANGED" | "PRIORITY_CHANGED" | "REASSIGNED" | "TRANSFERRED" | "ARCHIVED" | "RESTORED";
         /** TicketSummaryResponse */
         TicketSummaryResponse: {
             /**

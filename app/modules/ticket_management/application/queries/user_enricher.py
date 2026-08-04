@@ -8,6 +8,7 @@ from app.modules.auth.application.interfaces.user_read_repository import UserRea
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.application.dto.comment_dto import CommentDTO
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
+from app.modules.ticket_management.application.dto.ticket_history_entry_dto import TicketHistoryEntryDTO
 from app.modules.ticket_management.application.dto.user_summary_dto import UserSummaryDTO
 
 
@@ -36,6 +37,7 @@ class TicketUserEnricher:
 		user_ids.update(comment.author_id for comment in ticket.comments)
 		user_ids.update(attachment.uploaded_by for attachment in ticket.attachments)
 		user_ids.update(attachment.uploaded_by for comment in ticket.comments for attachment in comment.attachments)
+		user_ids.update(entry.assignee_id for entry in ticket.history if entry.assignee_id is not None)
 		users = await self._load_many(user_ids)
 
 		def enrich_attachment(attachment: AttachmentDTO) -> AttachmentDTO:
@@ -44,9 +46,13 @@ class TicketUserEnricher:
 		def enrich_comment(comment: CommentDTO) -> CommentDTO:
 			return replace(comment, author=users.get(comment.author_id), attachments=[enrich_attachment(item) for item in comment.attachments])
 
+		def enrich_history_entry(entry: TicketHistoryEntryDTO) -> TicketHistoryEntryDTO:
+			return replace(entry, assignee=None if entry.assignee_id is None else users.get(entry.assignee_id))
+
 		return replace(
 			ticket,
 			assignee=users.get(ticket.assignee_id),
 			comments=[enrich_comment(comment) for comment in ticket.comments],
 			attachments=[enrich_attachment(attachment) for attachment in ticket.attachments],
+			history=[enrich_history_entry(entry) for entry in ticket.history],
 		)

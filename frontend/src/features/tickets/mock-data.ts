@@ -55,6 +55,7 @@ function makeTicket(overrides: Partial<TicketDetail> & Pick<TicketDetail, "title
     resolution_notes: null,
     comments: [],
     attachments: [],
+    history: [],
     ...overrides,
   }
 }

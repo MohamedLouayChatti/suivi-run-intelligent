@@ -3,11 +3,14 @@ from __future__ import annotations
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.application.dto.comment_dto import CommentDTO
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
+from app.modules.ticket_management.application.dto.ticket_history_entry_dto import TicketHistoryEntryDTO
 from app.modules.ticket_management.domain.entities.attachment import Attachment
 from app.modules.ticket_management.domain.entities.comment import Comment
 from app.modules.ticket_management.domain.entities.ticket import Ticket
+from app.modules.ticket_management.domain.entities.ticket_history_entry import TicketHistoryEntry
 from app.modules.ticket_management.infrastructure.persistence.models.attachment_model import AttachmentModel
 from app.modules.ticket_management.infrastructure.persistence.models.comment_model import CommentModel
+from app.modules.ticket_management.infrastructure.persistence.models.ticket_history_model import TicketHistoryModel
 from app.modules.ticket_management.infrastructure.persistence.models.ticket_model import TicketModel
 
 
@@ -42,6 +45,7 @@ def ticket_to_model(ticket: Ticket) -> TicketModel:
 	)
 	ticket_model.comments = [comment_to_model(comment, ticket_model) for comment in ticket.comments]
 	ticket_model.attachments = [attachment_to_model(attachment, ticket_model=ticket_model) for attachment in ticket.attachments]
+	ticket_model.history = [history_entry_to_model(entry, ticket_model) for entry in ticket.history]
 	return ticket_model
 
 
@@ -73,6 +77,7 @@ def sync_ticket_model(ticket_model: TicketModel, ticket: Ticket) -> TicketModel:
 	ticket_model.archived_at = ticket.archived_at
 	_sync_ticket_attachments(ticket_model, ticket.attachments)
 	_sync_ticket_comments(ticket_model, ticket.comments)
+	_sync_ticket_history(ticket_model, ticket.history)
 	return ticket_model
 
 
@@ -105,6 +110,7 @@ def ticket_model_to_domain(ticket_model: TicketModel) -> Ticket:
 		resolution_notes=ticket_model.resolution_notes,
 		comments=[comment_model_to_domain(comment_model) for comment_model in ticket_model.comments],
 		attachments=[attachment_model_to_domain(attachment_model) for attachment_model in ticket_model.attachments],
+		history=[history_entry_model_to_domain(history_model) for history_model in ticket_model.history],
 		archived_at=ticket_model.archived_at,
 	)
 
@@ -156,6 +162,7 @@ def ticket_model_to_detail_dto(ticket_model: TicketModel) -> TicketDetailDTO:
 		resolution_notes=ticket_model.resolution_notes,
 		comments=[comment_model_to_dto(comment_model) for comment_model in ticket_model.comments],
 		attachments=[attachment_model_to_dto(attachment_model) for attachment_model in ticket_model.attachments],
+		history=[history_entry_model_to_dto(history_model) for history_model in ticket_model.history],
 		archived_at=ticket_model.archived_at,
 	)
 
@@ -259,6 +266,67 @@ def attachment_model_to_dto(attachment_model: AttachmentModel) -> AttachmentDTO:
 		uploaded_at=attachment_model.uploaded_at,
 		deleted_at=attachment_model.deleted_at,
 	)
+
+
+def history_entry_to_model(entry: TicketHistoryEntry, ticket_model: TicketModel) -> TicketHistoryModel:
+	return TicketHistoryModel(
+		id=entry.id,
+		ticket=ticket_model,
+		event_type=entry.event_type,
+		occurred_at=entry.occurred_at,
+		from_status=entry.from_status,
+		to_status=entry.to_status,
+		from_priority=entry.from_priority,
+		to_priority=entry.to_priority,
+		assignee_id=entry.assignee_id,
+		transferred_to=entry.transferred_to,
+	)
+
+
+def history_entry_model_to_domain(history_model: TicketHistoryModel) -> TicketHistoryEntry:
+	return TicketHistoryEntry(
+		id=history_model.id,
+		event_type=history_model.event_type,
+		occurred_at=history_model.occurred_at,
+		from_status=history_model.from_status,
+		to_status=history_model.to_status,
+		from_priority=history_model.from_priority,
+		to_priority=history_model.to_priority,
+		assignee_id=history_model.assignee_id,
+		transferred_to=history_model.transferred_to,
+	)
+
+
+def history_entry_model_to_dto(history_model: TicketHistoryModel) -> TicketHistoryEntryDTO:
+	return TicketHistoryEntryDTO(
+		id=history_model.id,
+		event_type=history_model.event_type,
+		occurred_at=history_model.occurred_at,
+		from_status=history_model.from_status,
+		to_status=history_model.to_status,
+		from_priority=history_model.from_priority,
+		to_priority=history_model.to_priority,
+		assignee_id=history_model.assignee_id,
+		transferred_to=history_model.transferred_to,
+	)
+
+
+def _sync_ticket_history(ticket_model: TicketModel, history: list[TicketHistoryEntry]) -> None:
+	# History entries are append-only: once persisted they are never edited, only added.
+	# Still rebuilt as a full list (rather than list.append) to match how SQLAlchemy expects
+	# a single_parent relationship collection to be updated — see _sync_ticket_comments.
+	existing_history = {history_model.id: history_model for history_model in ticket_model.history}
+	synced_history: list[TicketHistoryModel] = []
+
+	for entry in history:
+		history_model = existing_history.get(entry.id)
+		if history_model is None:
+			history_model = history_entry_to_model(entry, ticket_model)
+		else:
+			history_model.ticket = ticket_model
+		synced_history.append(history_model)
+
+	ticket_model.history = synced_history
 
 
 def _sync_ticket_comments(ticket_model: TicketModel, comments: list[Comment]) -> None:

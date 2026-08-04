@@ -27,6 +27,7 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 			.options(
 				selectinload(TicketModel.attachments),
 				selectinload(TicketModel.comments).selectinload(CommentModel.attachments),
+				selectinload(TicketModel.history),
 			)
 		)
 		ticket_model = await self.session.scalar(stmt)

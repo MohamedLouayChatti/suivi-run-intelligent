@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.modules.ticket_management.infrastructure.persistence.models.comment_model import CommentModel
     from app.modules.ticket_management.infrastructure.persistence.models.attachment_model import AttachmentModel
+    from app.modules.ticket_management.infrastructure.persistence.models.ticket_history_model import TicketHistoryModel
 
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.category import Category
@@ -68,4 +69,11 @@ class TicketModel(Base):
 		lazy="selectin",
 		single_parent=True,
 		foreign_keys="AttachmentModel.ticket_id",
+	)
+	history: Mapped[list["TicketHistoryModel"]] = relationship(
+		back_populates="ticket",
+		cascade="all, delete-orphan",
+		lazy="selectin",
+		single_parent=True,
+		order_by="TicketHistoryModel.occurred_at",
 	)

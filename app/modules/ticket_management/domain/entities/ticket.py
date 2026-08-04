@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from app.modules.ticket_management.domain.entities.attachment import Attachment
 from app.modules.ticket_management.domain.entities.comment import Comment
+from app.modules.ticket_management.domain.entities.ticket_history_entry import TicketHistoryEntry
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.category import Category
 from app.modules.ticket_management.domain.enums.element import Element
@@ -54,6 +55,7 @@ class Ticket:
 	transferred_to: TransferDestination | None = None
 	comments: list[Comment] = field(default_factory=list)
 	attachments: list[Attachment] = field(default_factory=list)
+	history: list[TicketHistoryEntry] = field(default_factory=list)
 	archived_at: datetime | None = None
 
 	@classmethod
@@ -80,6 +82,7 @@ class Ticket:
 			operational_highlight=operational_highlight, offer=offer, version=version,
 			element=element, jira_delivery_date=jira_delivery_date, vio_app=vio_app)
 		ticket._validate_conditional_fields()
+		ticket.history.append(TicketHistoryEntry.created(id=uuid4(), occurred_at=created_at))
 		return ticket
 
 	def _validate_conditional_fields(self) -> None:
@@ -131,6 +134,7 @@ class Ticket:
 		self._ensure_chronological(archived_at)
 		self.archived_at = archived_at
 		self.updated_at = archived_at
+		self.history.append(TicketHistoryEntry.archived(id=uuid4(), occurred_at=archived_at))
 
 	def restore(self, restored_at: datetime) -> None:
 		if self.archived_at is None:
@@ -138,6 +142,7 @@ class Ticket:
 		self._ensure_chronological(restored_at)
 		self.archived_at = None
 		self.updated_at = restored_at
+		self.history.append(TicketHistoryEntry.restored(id=uuid4(), occurred_at=restored_at))
 
 	def _transition_to(self, new_status: Status, changed_at: datetime) -> None:
 		self._ensure_not_closed()
@@ -159,15 +164,19 @@ class Ticket:
 			raise InvalidAssignee()
 		self.assignee_id = assignee_id
 		self.updated_at = reassigned_at
+		self.history.append(TicketHistoryEntry.reassigned(id=uuid4(), occurred_at=reassigned_at, assignee_id=assignee_id))
 
 	def start_progress(self, started_at: datetime) -> None:
 		self._ensure_mutable(started_at)
+		old_status = self.status
 		self._transition_to(Status.IN_PROGRESS, started_at)
+		self.history.append(TicketHistoryEntry.status_changed(id=uuid4(), occurred_at=started_at, from_status=old_status, to_status=self.status))
 
 	def resume(self, resumed_at: datetime) -> None:
 		self._ensure_mutable(resumed_at)
 		if self.status not in {Status.RESOLVED, Status.TRANSFERRED}:
 			raise InvalidStatusTransition()
+		old_status = self.status
 		was_resolved = self.status == Status.RESOLVED
 		self._transition_to(Status.IN_PROGRESS, resumed_at)
 		if was_resolved:
@@ -175,23 +184,28 @@ class Ticket:
 			self.resolution_notes = None
 		else:
 			self.transferred_to = None
+		self.history.append(TicketHistoryEntry.status_changed(id=uuid4(), occurred_at=resumed_at, from_status=old_status, to_status=self.status))
 
 	def resolve(self, notes: str, resolved_at: datetime) -> None:
 		self._ensure_mutable(resolved_at)
 		if not notes.strip():
 			raise ResolutionNotesRequired()
+		old_status = self.status
 		self._transition_to(Status.RESOLVED, resolved_at)
 		self.resolution_notes = notes
 		self.resolved_at = resolved_at
 		self.transferred_to = None
+		self.history.append(TicketHistoryEntry.status_changed(id=uuid4(), occurred_at=resolved_at, from_status=old_status, to_status=self.status))
 
 	def close(self, closed_at: datetime) -> None:
 		self._ensure_mutable(closed_at)
 		if self.status not in {Status.RESOLVED, Status.TRANSFERRED}:
 			raise InvalidStatusTransition()
+		old_status = self.status
 		self.status = Status.CLOSED
 		self.closed_at = closed_at
 		self.updated_at = closed_at
+		self.history.append(TicketHistoryEntry.status_changed(id=uuid4(), occurred_at=closed_at, from_status=old_status, to_status=self.status))
 
 	def transfer(self, destination: TransferDestination, transferred_at: datetime) -> None:
 		self._ensure_mutable(transferred_at)
@@ -199,13 +213,17 @@ class Ticket:
 			raise TransferDestinationRequired()
 		if destination.is_origin_of(self.functional_team, self.application):
 			raise TransferDestinationIsOrigin()
+		old_status = self.status
 		self._transition_to(Status.TRANSFERRED, transferred_at)
 		self.transferred_to = destination
+		self.history.append(TicketHistoryEntry.transferred(id=uuid4(), occurred_at=transferred_at, from_status=old_status, to_status=self.status, transferred_to=destination))
 
 	def change_priority(self, priority: Priority, changed_at: datetime) -> None:
 		self._ensure_mutable(changed_at)
+		old_priority = self.priority
 		self.priority = priority
 		self.updated_at = changed_at
+		self.history.append(TicketHistoryEntry.priority_changed(id=uuid4(), occurred_at=changed_at, from_priority=old_priority, to_priority=priority))
 
 	def add_comment(self, comment: Comment, added_at: datetime) -> None:
 		self._ensure_mutable(added_at)
