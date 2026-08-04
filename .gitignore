@@ -83,3 +83,6 @@ data/
 # UV cache
 .uv-cache/
 .uv-cache-check/
+
+# Local object storage
+storage/
