@@ -32,32 +32,42 @@ function ReferencesFields({ values, setField }: ReferencesFieldsProps) {
         </FormField>
       </div>
 
-      <FormField label="Identifiant Jira" htmlFor="jira-id" required={values.requiresJira}>
-        <Input
-          id="jira-id"
-          value={values.jiraId}
-          onChange={(e) => setField("jiraId", e.target.value)}
-        />
-      </FormField>
-
       <div className="flex items-center gap-2">
         <Switch
           id="requires-jira"
           checked={values.requiresJira}
-          onCheckedChange={(checked) => setField("requiresJira", checked === true)}
+          onCheckedChange={(checked) => {
+            setField("requiresJira", checked === true)
+            // The backend rejects a jira_id/jira_delivery_date when requires_jira is false —
+            // clear both so a value entered before un-checking can't linger into the request.
+            if (checked !== true) {
+              setField("jiraId", "")
+              setField("jiraDeliveryDate", "")
+            }
+          }}
         />
         <Label htmlFor="requires-jira">Nécessite un ticket Jira</Label>
       </div>
 
       {values.requiresJira && (
-        <FormField label="Date de livraison Jira" htmlFor="jira-delivery-date">
-          <Input
-            id="jira-delivery-date"
-            type="date"
-            value={values.jiraDeliveryDate}
-            onChange={(e) => setField("jiraDeliveryDate", e.target.value)}
-          />
-        </FormField>
+        <>
+          <FormField label="Identifiant Jira" htmlFor="jira-id" required>
+            <Input
+              id="jira-id"
+              value={values.jiraId}
+              onChange={(e) => setField("jiraId", e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Date de livraison Jira" htmlFor="jira-delivery-date">
+            <Input
+              id="jira-delivery-date"
+              type="date"
+              value={values.jiraDeliveryDate}
+              onChange={(e) => setField("jiraDeliveryDate", e.target.value)}
+            />
+          </FormField>
+        </>
       )}
 
       {values.application === "VIO" && (

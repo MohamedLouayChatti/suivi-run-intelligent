@@ -48,6 +48,26 @@ async function listPermissions(pageSize = 100): Promise<PermissionResponse[]> {
   return data
 }
 
+async function grantPermissionToUser(userId: string, permissionId: string): Promise<UserResponse> {
+  const { data } = await httpClient.post<UserResponse>(`/auth/users/${userId}/permissions/${permissionId}`)
+  return data
+}
+
+async function revokePermissionFromUser(userId: string, permissionId: string): Promise<UserResponse> {
+  const { data } = await httpClient.delete<UserResponse>(`/auth/users/${userId}/permissions/${permissionId}`)
+  return data
+}
+
+async function grantPermissionToRole(roleId: string, permissionId: string): Promise<RoleResponse> {
+  const { data } = await httpClient.post<RoleResponse>(`/auth/roles/${roleId}/permissions/${permissionId}`)
+  return data
+}
+
+async function revokePermissionFromRole(roleId: string, permissionId: string): Promise<RoleResponse> {
+  const { data } = await httpClient.delete<RoleResponse>(`/auth/roles/${roleId}/permissions/${permissionId}`)
+  return data
+}
+
 function getPrimaryApplication(user: UserResponse): Application | null {
   return user.application_assignments.find((a) => a.assignment_type === "PRIMARY")?.application ?? null
 }
@@ -64,6 +84,10 @@ export {
   revokeRole,
   listRoles,
   listPermissions,
+  grantPermissionToUser,
+  revokePermissionFromUser,
+  grantPermissionToRole,
+  revokePermissionFromRole,
   getPrimaryApplication,
   getBackupApplication,
 }

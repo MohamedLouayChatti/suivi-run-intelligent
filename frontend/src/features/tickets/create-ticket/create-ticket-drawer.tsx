@@ -1,7 +1,5 @@
 "use client"
 
-import { useQueryClient } from "@tanstack/react-query"
-
 import {
   Sheet,
   SheetContent,
@@ -17,9 +15,8 @@ import { IncidentFields } from "@/features/tickets/create-ticket/incident-fields
 import { AssignmentFields } from "@/features/tickets/create-ticket/assignment-fields"
 import { BusinessFields } from "@/features/tickets/create-ticket/business-fields"
 import { ReferencesFields } from "@/features/tickets/create-ticket/references-fields"
-import { reassignTicket } from "@/services/api/tickets"
-import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
-import { useUsersList } from "@/hooks/use-users-list"
+import { useCurrentUser } from "@/lib/auth"
+import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
@@ -32,19 +29,22 @@ interface CreateTicketDrawerProps {
 }
 
 function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawerProps) {
-  const { values, setField, reset, isValid } = useCreateTicketForm()
-  const { users } = useUsersList()
-  const queryClient = useQueryClient()
+  const { data: currentUser } = useCurrentUser()
+  const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
+  const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
+  const { values, setField, setApplication, reset, isValid } = useCreateTicketForm(primaryApplication ?? "FCI")
 
   async function handleSubmit() {
-    if (!isValid) return
+    if (!isValid || !currentUser) return
+    // The creator is always the assignee and their own functional team, both fixed by the
+    // backend/business rules — never user-editable fields on this form.
     const payload: TicketCreateRequest = {
       title: values.title.trim(),
       description: values.description.trim(),
       priority: values.priority,
       application: values.application,
       category: values.category,
-      functional_team: values.functionalTeam,
+      functional_team: currentUser.functionalTeam,
       genergy_id: values.genergyId || null,
       oceane_id: values.oceaneId || null,
       jira_id: values.jiraId || null,
@@ -56,19 +56,15 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawe
       element: values.element || null,
       vio_app: values.vioApp || null,
     }
-    // The backend always assigns the creator; a different pick in the form is applied as a
-    // follow-up reassignment so the "Assigné à" field still behaves as the user expects.
-    const ticket = await onCreated(payload)
-    if (values.assigneeId && values.assigneeId !== ticket.assignee?.id) {
-      await reassignTicket(ticket.id, values.assigneeId)
-      queryClient.invalidateQueries({ queryKey: ticketsListQueryKey })
-    }
+    await onCreated(payload)
     reset()
     onOpenChange(false)
   }
 
   function handleOpenChange(next: boolean) {
-    if (!next) reset()
+    // Re-seed the form (including the Application default) every time it opens or closes,
+    // so a freshly-loaded currentUser is always reflected.
+    reset()
     onOpenChange(next)
   }
 
@@ -90,7 +86,7 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawe
           <Separator />
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Affectation</h3>
-            <AssignmentFields values={values} setField={setField} users={users} />
+            <AssignmentFields values={values} setApplication={setApplication} accessibleApplications={accessibleApplications} />
           </section>
           <Separator />
           <section className="space-y-4">
@@ -108,7 +104,7 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawe
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Annuler
           </Button>
-          <Button onClick={handleSubmit} disabled={!isValid}>
+          <Button onClick={handleSubmit} disabled={!isValid || !currentUser}>
             Créer le ticket
           </Button>
         </SheetFooter>

@@ -5,7 +5,7 @@ import { UsersTable } from "@/features/users/users-table"
 import { useUsersAdmin } from "@/features/users/use-users-admin"
 
 export default function UsersPage() {
-  const { users, toggleActive, changeRole } = useUsersAdmin()
+  const { users, toggleActive, changeRole, savePermissions } = useUsersAdmin()
   const activeCount = users.filter((u) => u.active).length
 
   return (
@@ -26,6 +26,7 @@ export default function UsersPage() {
             const user = users.find((u) => u.id === userId)
             if (user) toggleActive(userId, user.active)
           }}
+          onSavePermissions={savePermissions}
         />
       </PageBody>
     </>

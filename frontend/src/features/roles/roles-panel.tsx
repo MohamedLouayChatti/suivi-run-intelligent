@@ -1,13 +1,28 @@
 "use client"
 
 import { useState } from "react"
-import { Check, Minus } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import { useRolesList } from "@/hooks/use-roles-list"
 import { usePermissionsList } from "@/hooks/use-permissions-list"
 import { useUsersList } from "@/hooks/use-users-list"
+import { useRolesAdmin } from "@/features/roles/use-roles-admin"
+import type { components } from "@/types/api"
+
+type PermissionResponse = components["schemas"]["PermissionResponse"]
 
 // Static presentational copy — RoleResponse only carries id/name/permission_ids, and role
 // management (create/edit) isn't part of this app; roles are seeded, not authored by admins.
@@ -21,11 +36,20 @@ function RolesPanel() {
   const { roles } = useRolesList()
   const { permissions } = usePermissionsList()
   const { users } = useUsersList()
+  const { togglePermission } = useRolesAdmin()
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null)
+  const [pendingChange, setPendingChange] = useState<{ permission: PermissionResponse; granted: boolean } | null>(null)
 
   const roleId = activeRoleId ?? roles[0]?.id
   const role = roles.find((r) => r.id === roleId)
   if (!role) return null
+
+  const currentRoleId = role.id
+  function confirmPendingChange() {
+    if (!pendingChange) return
+    togglePermission(currentRoleId, pendingChange.permission.id, pendingChange.granted)
+    setPendingChange(null)
+  }
 
   const memberCounts = Object.fromEntries(
     roles.map((r) => [r.id, users.filter((u) => u.role_ids.includes(r.id)).length])
@@ -84,15 +108,14 @@ function RolesPanel() {
               const granted = role.permission_ids.includes(p.id)
               return (
                 <li key={p.id} className="flex items-center gap-3 px-5 py-3">
-                  <span
-                    className={cn(
-                      "grid size-5 shrink-0 place-items-center rounded border",
-                      granted ? "border-primary/30 bg-primary/10 text-primary" : "border-border text-muted-foreground"
-                    )}
-                  >
-                    {granted ? <Check className="size-3" /> : <Minus className="size-3" />}
-                  </span>
-                  <span className="font-mono text-xs">{p.name}</span>
+                  <Checkbox
+                    id={`role-perm-${p.id}`}
+                    checked={granted}
+                    onCheckedChange={() => setPendingChange({ permission: p, granted: !granted })}
+                  />
+                  <Label htmlFor={`role-perm-${p.id}`} className="cursor-pointer font-mono text-xs">
+                    {p.name}
+                  </Label>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {granted ? "Accordée" : "Non accordée"}
                   </span>
@@ -102,6 +125,23 @@ function RolesPanel() {
           </ul>
         </SectionCard>
       </div>
+
+      <AlertDialog open={pendingChange !== null} onOpenChange={(open) => !open && setPendingChange(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingChange?.granted
+                ? `Accorder la permission "${pendingChange.permission.name}" au rôle "${role.name}" ? Tous les membres de ce rôle en bénéficieront immédiatement.`
+                : `Révoquer la permission "${pendingChange?.permission.name}" du rôle "${role.name}" ? Tous les membres de ce rôle la perdront immédiatement, sauf si elle leur est accordée directement.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPendingChange}>Confirmer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

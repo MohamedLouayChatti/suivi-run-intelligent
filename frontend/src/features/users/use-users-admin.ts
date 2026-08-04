@@ -2,7 +2,14 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
-import { activateUser, deactivateUser, assignRole, revokeRole } from "@/services/api/users"
+import {
+  activateUser,
+  deactivateUser,
+  assignRole,
+  revokeRole,
+  grantPermissionToUser,
+  revokePermissionFromUser,
+} from "@/services/api/users"
 import { useUsersList, usersListQueryKey } from "@/hooks/use-users-list"
 
 function useUsersAdmin() {
@@ -32,7 +39,15 @@ function useUsersAdmin() {
     afterMutation()
   }
 
-  return { users, isLoading, toggleActive, changeRole }
+  async function savePermissions(userId: string, toGrant: string[], toRevoke: string[]) {
+    await Promise.all([
+      ...toGrant.map((permissionId) => grantPermissionToUser(userId, permissionId)),
+      ...toRevoke.map((permissionId) => revokePermissionFromUser(userId, permissionId)),
+    ])
+    afterMutation()
+  }
+
+  return { users, isLoading, toggleActive, changeRole, savePermissions }
 }
 
 export { useUsersAdmin }

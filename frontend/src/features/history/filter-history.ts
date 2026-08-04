@@ -26,6 +26,12 @@ const defaultHistoryFilters: HistoryFilters = {
   dateTo: "",
 }
 
+/** The filter bar defaults to the user's primary application rather than "all" — pass
+ * it in once the current user's profile (GET /auth/me) has resolved. */
+function createDefaultHistoryFilters(primaryApplication: Application): HistoryFilters {
+  return { ...defaultHistoryFilters, application: primaryApplication }
+}
+
 // TicketSummaryResponse (the only shape GET /tickets returns) has no closed_at/transferred_at
 // field — updated_at is set alongside the CLOSED/TRANSFERRED status transition itself, so it's
 // the completion moment for every row here.
@@ -57,5 +63,5 @@ function applyHistoryFilters(tickets: TicketSummary[], filters: HistoryFilters):
     .sort((a, b) => new Date(getCompletedAt(b)).getTime() - new Date(getCompletedAt(a)).getTime())
 }
 
-export { applyHistoryFilters, defaultHistoryFilters, getCompletedAt }
+export { applyHistoryFilters, defaultHistoryFilters, createDefaultHistoryFilters, getCompletedAt }
 export type { HistoryFilters }

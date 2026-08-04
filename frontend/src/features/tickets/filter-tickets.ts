@@ -25,6 +25,12 @@ const defaultTicketFilters: TicketFilters = {
   category: "all",
 }
 
+/** The filter bar defaults to the user's primary application rather than "all" — pass
+ * it in once the current user's profile (GET /auth/me) has resolved. */
+function createDefaultTicketFilters(primaryApplication: Application): TicketFilters {
+  return { ...defaultTicketFilters, application: primaryApplication }
+}
+
 // Applies the shared filter bar to a ticket list, always scoped to the statuses that
 // represent active operational work (OPEN, IN_PROGRESS, RESOLVED) — this page never
 // displays CLOSED or TRANSFERRED tickets, those belong to History.
@@ -45,5 +51,5 @@ function applyTicketFilters(tickets: TicketSummary[], filters: TicketFilters): T
   })
 }
 
-export { applyTicketFilters, defaultTicketFilters }
+export { applyTicketFilters, defaultTicketFilters, createDefaultTicketFilters }
 export type { TicketFilters }

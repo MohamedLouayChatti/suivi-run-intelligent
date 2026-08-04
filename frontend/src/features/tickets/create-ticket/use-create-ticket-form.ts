@@ -12,8 +12,6 @@ interface CreateTicketFormState {
   priority: TicketCreateRequest["priority"]
   category: TicketCreateRequest["category"]
   application: TicketCreateRequest["application"]
-  assigneeId: string
-  functionalTeam: TicketCreateRequest["functional_team"]
   offer: TicketCreateRequest["offer"] | ""
   version: TicketCreateRequest["version"] | ""
   element: TicketCreateRequest["element"] | ""
@@ -26,44 +24,57 @@ interface CreateTicketFormState {
   vioApp: TicketCreateRequest["vio_app"] | ""
 }
 
-const initialCreateTicketForm: CreateTicketFormState = {
-  title: "",
-  description: "",
-  priority: "P3",
-  category: "Bug",
-  application: "FCI",
-  assigneeId: "",
-  functionalTeam: "SUPPORT",
-  offer: "",
-  version: "",
-  element: "",
-  operationalHighlight: false,
-  oceaneId: "",
-  genergyId: "",
-  jiraId: "",
-  requiresJira: false,
-  jiraDeliveryDate: "",
-  vioApp: "",
+function buildInitialState(defaultApplication: CreateTicketFormState["application"]): CreateTicketFormState {
+  return {
+    title: "",
+    description: "",
+    priority: "P3",
+    category: "Bug",
+    application: defaultApplication,
+    offer: "",
+    version: "",
+    element: "",
+    operationalHighlight: false,
+    oceaneId: "",
+    genergyId: "",
+    jiraId: "",
+    requiresJira: false,
+    jiraDeliveryDate: "",
+    vioApp: "",
+  }
 }
 
-function useCreateTicketForm() {
-  const [values, setValues] = useState<CreateTicketFormState>(initialCreateTicketForm)
+/**
+ * `defaultApplication` seeds the Application field — it should be the creating user's primary
+ * application (the only field they may still have a second option for: their backup app).
+ */
+function useCreateTicketForm(defaultApplication: CreateTicketFormState["application"]) {
+  const [values, setValues] = useState<CreateTicketFormState>(() => buildInitialState(defaultApplication))
 
   function setField<K extends keyof CreateTicketFormState>(key: K, value: CreateTicketFormState[K]) {
     setValues((prev) => ({ ...prev, [key]: value }))
   }
 
+  // Which Métier fields apply (offer/version, element, or vio_app) depends on the application
+  // (see Ticket._validate_conditional_fields in the backend) — clear the ones that no longer
+  // apply so a stale value from a previous selection can't violate that on submit.
+  function setApplication(application: CreateTicketFormState["application"]) {
+    setValues((prev) => ({ ...prev, application, offer: "", version: "", element: "", vioApp: "" }))
+  }
+
   function reset() {
-    setValues(initialCreateTicketForm)
+    setValues(buildInitialState(defaultApplication))
   }
 
   const isValid =
     values.title.trim().length > 0 &&
     values.description.trim().length > 0 &&
     (!values.requiresJira || values.jiraId.trim().length > 0) &&
+    (values.application !== "COLORIS" || (values.offer !== "" && values.version !== "")) &&
+    (values.application !== "AERO" || values.element !== "") &&
     (values.application !== "VIO" || values.vioApp !== "")
 
-  return { values, setField, reset, isValid }
+  return { values, setField, setApplication, reset, isValid }
 }
 
 export { useCreateTicketForm }

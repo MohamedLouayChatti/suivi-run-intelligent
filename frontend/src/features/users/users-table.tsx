@@ -45,9 +45,10 @@ interface UsersTableProps {
   users: UserResponse[]
   onChangeRole: (userId: string, roleId: string) => void
   onToggleActive: (userId: string) => void
+  onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void
 }
 
-function UsersTable({ users, onChangeRole, onToggleActive }: UsersTableProps) {
+function UsersTable({ users, onChangeRole, onToggleActive, onSavePermissions }: UsersTableProps) {
   const { roles } = useRolesList()
   const [query, setQuery] = useState("")
   const [roleId, setRoleId] = useState("all")
@@ -149,6 +150,7 @@ function UsersTable({ users, onChangeRole, onToggleActive }: UsersTableProps) {
         user={selectedUser}
         onOpenChange={(open) => !open && setSelectedUserId(null)}
         onSaveRole={onChangeRole}
+        onSavePermissions={onSavePermissions}
       />
     </SectionCard>
   )
