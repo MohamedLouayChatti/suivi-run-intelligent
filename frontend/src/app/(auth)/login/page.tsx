@@ -64,7 +64,7 @@ export default function LoginPage() {
           <Input
             id="email"
             type="email"
-            placeholder="nom@interne.io"
+            placeholder="nom@sofrecom.io"
             autoComplete="email"
             required
             value={email}
