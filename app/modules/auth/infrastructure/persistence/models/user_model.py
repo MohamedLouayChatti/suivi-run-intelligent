@@ -27,6 +27,7 @@ class UserModel(Base):
 	email: Mapped[str] = mapped_column(String(320), nullable=False, unique=True)
 	display_name: Mapped[str] = mapped_column(String(255), nullable=False)
 	active: Mapped[bool] = mapped_column(Boolean, nullable=False)
+	avatar_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
 	functional_team: Mapped[FunctionalTeam] = mapped_column(SAEnum(FunctionalTeam, name="auth_functional_team"), nullable=False)
 
 	roles: Mapped[list["RoleModel"]] = relationship(secondary=user_roles, back_populates="users", lazy="selectin")

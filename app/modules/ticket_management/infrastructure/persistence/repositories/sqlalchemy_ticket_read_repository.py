@@ -1,20 +1,25 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime, time
 from uuid import UUID
 
-from sqlalchemy import Select, and_, or_, select
+from sqlalchemy import Select, String, and_, cast, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
 from app.modules.ticket_management.application.interfaces.ticket_read_repository import TicketReadRepository
+from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
+from app.modules.ticket_management.domain.enums.status import Status
 from app.modules.ticket_management.infrastructure.persistence import mapper
 from app.modules.ticket_management.infrastructure.persistence.models.attachment_model import AttachmentModel
 from app.modules.ticket_management.infrastructure.persistence.models.comment_model import CommentModel
 from app.modules.ticket_management.infrastructure.persistence.models.ticket_model import TicketModel
+
+COMPLETED_STATUSES = (Status.CLOSED, Status.TRANSFERRED)
 
 
 class SqlAlchemyTicketReadRepository(TicketReadRepository):
@@ -43,6 +48,11 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 
 	async def search_tickets(self, query: SearchTicketsQuery) -> list[TicketSummaryDTO]:
 		stmt = self._build_search_query(query)
+		result = await self.session.scalars(stmt)
+		return [mapper.ticket_model_to_summary_dto(ticket_model) for ticket_model in result.all()]
+
+	async def list_history_for_export(self, query: ExportTicketHistoryQuery) -> list[TicketSummaryDTO]:
+		stmt = self._build_export_query(query)
 		result = await self.session.scalars(stmt)
 		return [mapper.ticket_model_to_summary_dto(ticket_model) for ticket_model in result.all()]
 
@@ -79,6 +89,20 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 		pattern = f"%{query.term}%"
 		stmt = stmt.where(or_(TicketModel.title.ilike(pattern), TicketModel.description.ilike(pattern)))
 		return stmt.order_by(TicketModel.created_at.desc(), TicketModel.updated_at.desc()).limit(query.limit).offset(query.offset)
+
+	def _build_export_query(self, query: ExportTicketHistoryQuery) -> Select[tuple[TicketModel]]:
+		stmt = select(TicketModel)
+		stmt = self._apply_common_filters(stmt, query.application, None, None, query.assignee_id, None, query.category, None, False, query.allowed_applications)
+		statuses = (query.status,) if query.status is not None else COMPLETED_STATUSES
+		stmt = stmt.where(TicketModel.status.in_(statuses))
+		if query.search.strip():
+			pattern = f"%{query.search.strip()}%"
+			stmt = stmt.where(or_(TicketModel.title.ilike(pattern), cast(TicketModel.id, String).ilike(pattern)))
+		if query.date_from is not None:
+			stmt = stmt.where(TicketModel.updated_at >= datetime.combine(query.date_from, time.min, tzinfo=UTC))
+		if query.date_to is not None:
+			stmt = stmt.where(TicketModel.updated_at <= datetime.combine(query.date_to, time.max, tzinfo=UTC))
+		return stmt.order_by(TicketModel.updated_at.desc())
 
 	def _apply_common_filters(self, stmt: Select[tuple[TicketModel]], application, status, priority, assignee_id, functional_team, category, operational_highlight, include_archived: bool, allowed_applications=None) -> Select[tuple[TicketModel]]:
 		conditions = []

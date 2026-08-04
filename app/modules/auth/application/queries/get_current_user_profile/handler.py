@@ -28,6 +28,7 @@ class GetCurrentUserProfileHandler:
 			auth_provider_user_id=user.auth_provider_user_id,
 			email=user.email,
 			display_name=user.display_name,
+			avatar_url=user.avatar_url,
 			functional_team=user.functional_team,
 			application_assignments=user.application_assignments,
 			roles=roles,

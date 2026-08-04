@@ -7,11 +7,11 @@ type UserSummary = components["schemas"]["UserSummaryResponse"]
 // Replace with a real services/api/users.ts call once it exists — consumers only depend on
 // UserSummaryResponse[], so swapping the source is a one-line change.
 const mockUsers: UserSummary[] = [
-  { id: "00000000-0000-0000-0000-000000000001", display_name: "Camille Martin" },
-  { id: "00000000-0000-0000-0000-000000000002", display_name: "Yanis Belkacem" },
-  { id: "00000000-0000-0000-0000-000000000003", display_name: "Sarah Nasri" },
-  { id: "00000000-0000-0000-0000-000000000004", display_name: "Karim Haddad" },
-  { id: "00000000-0000-0000-0000-000000000005", display_name: "Julie Perrot" },
+  { id: "00000000-0000-0000-0000-000000000001", display_name: "Camille Martin", avatar_url: null },
+  { id: "00000000-0000-0000-0000-000000000002", display_name: "Yanis Belkacem", avatar_url: null },
+  { id: "00000000-0000-0000-0000-000000000003", display_name: "Sarah Nasri", avatar_url: null },
+  { id: "00000000-0000-0000-0000-000000000004", display_name: "Karim Haddad", avatar_url: null },
+  { id: "00000000-0000-0000-0000-000000000005", display_name: "Julie Perrot", avatar_url: null },
 ]
 
 const currentUserId = "00000000-0000-0000-0000-000000000001"

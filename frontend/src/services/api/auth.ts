@@ -28,6 +28,7 @@ interface CurrentUser {
   authProviderUserId: string;
   email: string;
   displayName: string;
+  avatarUrl: string | null;
   functionalTeam: components["schemas"]["FunctionalTeam"];
   applicationAssignments: CurrentUserApplicationAssignment[];
   roles: CurrentUserRole[];
@@ -40,6 +41,7 @@ function toCurrentUser(response: MeResponse): CurrentUser {
     authProviderUserId: response.auth_provider_user_id,
     email: response.email,
     displayName: response.display_name,
+    avatarUrl: response.avatar_url,
     functionalTeam: response.functional_team,
     applicationAssignments: response.application_assignments.map((assignment) => ({
       application: assignment.application,

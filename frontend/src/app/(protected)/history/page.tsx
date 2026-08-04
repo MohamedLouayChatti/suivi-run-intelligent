@@ -11,6 +11,7 @@ import { defaultHistoryFilters, createDefaultHistoryFilters, type HistoryFilters
 import { useUserDirectory } from "@/hooks/use-user-directory"
 import { RequirePermission, useCurrentUser } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
+import { exportTicketHistory } from "@/services/api/tickets"
 
 export default function HistoryPage() {
   const { tickets, isLoading } = useHistoryList()
@@ -20,6 +21,22 @@ export default function HistoryPage() {
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
 
   const [filters, setFilters] = useState<HistoryFilters>(defaultHistoryFilters)
+  const [isExporting, setIsExporting] = useState(false)
+
+  async function handleExport() {
+    setIsExporting(true)
+    try {
+      const blob = await exportTicketHistory(filters)
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = "historique_tickets.csv"
+      link.click()
+      URL.revokeObjectURL(url)
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   // Filters default to the user's primary application once GET /auth/me resolves, applied
   // exactly once so it never overrides a filter the user has since changed.
@@ -37,7 +54,7 @@ export default function HistoryPage() {
 
   return (
     <RequirePermission permission="ticket.read">
-      <HistoryHeader />
+      <HistoryHeader onExport={handleExport} isExporting={isExporting} />
       <PageBody className="space-y-6">
         <HistoryFiltersBar
           filters={filters}

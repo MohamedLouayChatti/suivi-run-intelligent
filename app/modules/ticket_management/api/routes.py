@@ -1,4 +1,6 @@
-from datetime import UTC, datetime
+import csv
+import io
+from datetime import UTC, date, datetime
 from typing import Annotated
 from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, File, Query, Response, UploadFile, status
@@ -24,9 +26,12 @@ from app.modules.ticket_management.application.commands.restore_ticket.command i
 from app.modules.ticket_management.application.queries.get_ticket.handler import GetTicketHandler
 from app.modules.ticket_management.application.queries.get_ticket.query import GetTicketQuery
 from app.modules.ticket_management.application.queries.download_attachment.query import DownloadAttachmentQuery
+from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
 from app.modules.ticket_management.domain.enums.application import Application
+from app.modules.ticket_management.domain.enums.category import Category
+from app.modules.ticket_management.domain.enums.status import Status
 from app.shared.security.current_user import CurrentUser, get_current_user
 from app.shared.security.instance_permissions import require_instance_permission
 from app.shared.security.permissions import require_permissions
@@ -47,6 +52,40 @@ async def list_tickets(handler=Depends(dep.get_list_tickets_handler), allowed_ap
 async def search_tickets(term: Annotated[str, Query(min_length=1)], handler=Depends(dep.get_search_tickets_handler), allowed_applications: Annotated[frozenset[Application] | None, Depends(dep.require_ticket_read_scope)] = None, page: int = 1, page_size: int = 50):
 	query = SearchTicketsQuery(term, limit=page_size, offset=(page-1)*page_size, allowed_applications=allowed_applications)
 	return [TicketSummaryResponse.from_dto(x) for x in await handler.handle(query)]
+
+@router.get("/history/export", dependencies=[Depends(require_permissions("ticket.read"))])
+async def export_ticket_history(
+	handler=Depends(dep.get_export_ticket_history_handler),
+	allowed_applications: Annotated[frozenset[Application] | None, Depends(dep.require_ticket_read_scope)] = None,
+	application: Application | None = None,
+	status_: Annotated[Status | None, Query(alias="status")] = None,
+	category: Category | None = None,
+	assignee_id: UUID | None = None,
+	search: str = "",
+	date_from: date | None = None,
+	date_to: date | None = None,
+):
+	query = ExportTicketHistoryQuery(
+		application=application, status=status_, category=category, assignee_id=assignee_id,
+		search=search, date_from=date_from, date_to=date_to, allowed_applications=allowed_applications,
+	)
+	tickets = await handler.handle(query)
+
+	buffer = io.StringIO()
+	writer = csv.writer(buffer)
+	writer.writerow(["ID", "Titre", "Statut", "Assigné à", "Application", "Complété le"])
+	for ticket in tickets:
+		writer.writerow([
+			str(ticket.id), ticket.title, ticket.status.value,
+			ticket.assignee.display_name if ticket.assignee else "",
+			ticket.application.value, ticket.updated_at.date().isoformat(),
+		])
+	content = buffer.getvalue().encode("utf-8-sig")
+	return Response(
+		content=content,
+		media_type="text/csv",
+		headers={"Content-Disposition": 'attachment; filename="historique_tickets.csv"'},
+	)
 
 @router.get("/{ticket_id}", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.read")), Depends(require_instance_permission("ticket", "read", path_param="ticket_id"))])
 async def get_ticket(ticket_id: UUID, handler=Depends(dep.get_get_ticket_handler)):

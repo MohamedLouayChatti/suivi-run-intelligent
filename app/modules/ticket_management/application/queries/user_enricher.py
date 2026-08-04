@@ -22,7 +22,7 @@ class TicketUserEnricher:
 		if user_id is None:
 			return None
 		user = await self.user_repository.get_user(user_id)
-		return None if user is None else UserSummaryDTO(id=user.id, display_name=user.display_name)
+		return None if user is None else UserSummaryDTO(id=user.id, display_name=user.display_name, avatar_url=user.avatar_url)
 
 	async def _load_many(self, user_ids: set[UUID]) -> dict[UUID, UserSummaryDTO | None]:
 		values = await asyncio.gather(*(self._load(user_id) for user_id in user_ids))

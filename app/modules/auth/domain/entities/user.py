@@ -26,6 +26,7 @@ class User:
 	email: str
 	display_name: str
 	active: bool
+	avatar_url: str | None = None
 	functional_team: FunctionalTeam = FunctionalTeam.SUPPORT
 	application_assignments: set[ApplicationAssignment] = field(default_factory=set)
 	role_ids: set[UUID] = field(default_factory=set)
@@ -46,6 +47,7 @@ class User:
 		auth_provider_user_id: AuthProviderUserId,
 		email: str,
 		display_name: str,
+		avatar_url: str | None = None,
 		functional_team: FunctionalTeam = FunctionalTeam.SUPPORT,
 		application_assignments: set[ApplicationAssignment] | None = None,
 	) -> User:
@@ -55,6 +57,7 @@ class User:
 			email=email,
 			display_name=display_name,
 			active=False,
+			avatar_url=avatar_url,
 			functional_team=functional_team,
 			application_assignments=set(application_assignments or ()),
 		)

@@ -12,10 +12,11 @@ from app.modules.ticket_management.application.dto.user_summary_dto import UserS
 class UserSummaryResponse(BaseModel):
 	id: UUID
 	display_name: str
+	avatar_url: str | None
 
 	@classmethod
 	def from_dto(cls, user: UserSummaryDTO | None) -> UserSummaryResponse | None:
-		return None if user is None else cls(id=user.id, display_name=user.display_name)
+		return None if user is None else cls(id=user.id, display_name=user.display_name, avatar_url=user.avatar_url)
 
 
 class AttachmentResponse(BaseModel):

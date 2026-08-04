@@ -122,6 +122,33 @@ async function downloadAttachment(attachmentId: string): Promise<Blob> {
   return data
 }
 
+interface HistoryExportFilters {
+  search: string
+  application: components["schemas"]["Application"] | "all"
+  status: components["schemas"]["Status"] | "all"
+  assigneeId: string | "all"
+  category: components["schemas"]["Category"] | "all"
+  dateFrom: string
+  dateTo: string
+}
+
+/** Exports the History page's currently active filters as a CSV, matching what's on screen. */
+async function exportTicketHistory(filters: HistoryExportFilters): Promise<Blob> {
+  const { data } = await httpClient.get<Blob>("/tickets/history/export", {
+    responseType: "blob",
+    params: {
+      application: filters.application === "all" ? undefined : filters.application,
+      status: filters.status === "all" ? undefined : filters.status,
+      category: filters.category === "all" ? undefined : filters.category,
+      assignee_id: filters.assigneeId === "all" ? undefined : filters.assigneeId,
+      search: filters.search.trim() || undefined,
+      date_from: filters.dateFrom || undefined,
+      date_to: filters.dateTo || undefined,
+    },
+  })
+  return data
+}
+
 export {
   listTickets,
   getTicket,
@@ -141,4 +168,5 @@ export {
   deleteTicketAttachment,
   deleteCommentAttachment,
   downloadAttachment,
+  exportTicketHistory,
 }

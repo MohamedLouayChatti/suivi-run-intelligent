@@ -16,6 +16,7 @@ class CurrentUserProfileDTO:
 	auth_provider_user_id: AuthProviderUserId
 	email: str
 	display_name: str
+	avatar_url: str | None
 	functional_team: FunctionalTeam
 	application_assignments: frozenset[ApplicationAssignment] = field(default_factory=frozenset)
 	roles: list[RoleDTO] = field(default_factory=list)

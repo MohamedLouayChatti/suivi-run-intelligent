@@ -348,6 +348,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tickets/history/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Ticket History */
+        get: operations["export_ticket_history_tickets_history_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tickets/{ticket_id}": {
         parameters: {
             query?: never;
@@ -741,6 +758,8 @@ export interface components {
             email: string;
             /** Display Name */
             display_name: string;
+            /** Avatar Url */
+            avatar_url: string | null;
             functional_team: components["schemas"]["FunctionalTeam"];
             /** Application Assignments */
             application_assignments: components["schemas"]["ApplicationAssignmentSchema"][];
@@ -997,6 +1016,8 @@ export interface components {
             display_name: string;
             /** Active */
             active: boolean;
+            /** Avatar Url */
+            avatar_url: string | null;
             /** Role Ids */
             role_ids: string[];
             /** Direct Permission Ids */
@@ -1016,6 +1037,8 @@ export interface components {
             id: string;
             /** Display Name */
             display_name: string;
+            /** Avatar Url */
+            avatar_url: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -1773,6 +1796,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TicketSummaryResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_ticket_history_tickets_history_export_get: {
+        parameters: {
+            query?: {
+                application?: components["schemas"]["Application"] | null;
+                status?: components["schemas"]["Status"] | null;
+                category?: components["schemas"]["Category"] | null;
+                assignee_id?: string | null;
+                search?: string;
+                date_from?: string | null;
+                date_to?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

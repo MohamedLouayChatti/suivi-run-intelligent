@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Download, Paperclip, X } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -88,6 +88,7 @@ function CommentsSection({
               return (
                 <li key={c.id} className="flex gap-3">
                   <Avatar size="sm">
+                    <AvatarImage src={c.author?.avatar_url ?? undefined} alt={c.author?.display_name ?? ""} />
                     <AvatarFallback>{initials(c.author?.display_name ?? "?")}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1 rounded-lg bg-muted/50 px-3 py-2">
@@ -142,6 +143,7 @@ function CommentsSection({
         {canComment && (
           <div className="flex gap-3 border-t border-border pt-4">
             <Avatar size="sm">
+              <AvatarImage src={currentUser?.avatarUrl ?? undefined} alt={currentUser?.displayName ?? ""} />
               <AvatarFallback>{initials(currentUser?.displayName ?? "")}</AvatarFallback>
             </Avatar>
             <div className="flex-1 space-y-2">

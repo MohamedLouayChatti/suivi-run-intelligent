@@ -5,7 +5,7 @@ import type { components } from "@/types/api"
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
 type Priority = components["schemas"]["Priority"]
 type TransferDestination = components["schemas"]["TransferDestination"]
-type UserSummary = components["schemas"]["UserSummaryResponse"]
+type UserSummary = components["schemas"]["UserDirectoryResponse"]
 
 interface TicketHeaderProps {
   ticket: TicketDetail

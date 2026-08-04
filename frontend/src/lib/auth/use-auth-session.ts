@@ -11,6 +11,8 @@ interface AuthSession {
   isSignedIn: boolean;
   userId: string | null;
   email: string | null;
+  imageUrl: string | null;
+  setProfileImage: (file: File) => Promise<void>;
 }
 
 function useAuthSession(): AuthSession {
@@ -22,6 +24,11 @@ function useAuthSession(): AuthSession {
     isSignedIn: isSignedIn ?? false,
     userId: userId ?? null,
     email: user?.primaryEmailAddress?.emailAddress ?? null,
+    imageUrl: user?.imageUrl ?? null,
+    setProfileImage: async (file: File) => {
+      if (!user) return;
+      await user.setProfileImage({ file });
+    },
   };
 }
 

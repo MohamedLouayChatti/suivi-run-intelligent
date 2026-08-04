@@ -24,6 +24,7 @@ class CreateUserHandler:
 			auth_provider_user_id=command.auth_provider_user_id,
 			email=command.email,
 			display_name=command.display_name,
+			avatar_url=command.avatar_url,
 			functional_team=command.functional_team,
 			application_assignments=set(command.application_assignments),
 		)

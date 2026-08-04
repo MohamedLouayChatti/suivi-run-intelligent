@@ -6,7 +6,7 @@ import { Search, MoreHorizontal } from "lucide-react"
 import { SectionCard } from "@/components/app/page"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Table,
@@ -107,6 +107,7 @@ function UsersTable({ users, onChangeRole, onToggleActive, onSavePermissions }: 
                 <TableCell>
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar className="shrink-0">
+                      <AvatarImage src={u.avatar_url ?? undefined} alt={u.display_name} />
                       <AvatarFallback>{initials(u.display_name)}</AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">

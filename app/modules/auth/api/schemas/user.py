@@ -62,6 +62,7 @@ class UserResponse(BaseModel):
 	email: str
 	display_name: str
 	active: bool
+	avatar_url: str | None
 	role_ids: set[UUID]
 	direct_permission_ids: set[UUID]
 	revoked_permission_ids: set[UUID]
@@ -76,6 +77,7 @@ class UserResponse(BaseModel):
 			email=user.email,
 			display_name=user.display_name,
 			active=user.active,
+			avatar_url=user.avatar_url,
 			role_ids=user.role_ids,
 			direct_permission_ids=user.direct_permission_ids,
 			revoked_permission_ids=user.revoked_permission_ids,

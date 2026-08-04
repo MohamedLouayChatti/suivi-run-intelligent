@@ -16,6 +16,7 @@ class MeResponse(BaseModel):
 	auth_provider_user_id: str
 	email: str
 	display_name: str
+	avatar_url: str | None
 	functional_team: FunctionalTeam
 	application_assignments: list[ApplicationAssignmentSchema]
 	roles: list[RoleResponse]
@@ -28,6 +29,7 @@ class MeResponse(BaseModel):
 			auth_provider_user_id=profile.auth_provider_user_id.value,
 			email=profile.email,
 			display_name=profile.display_name,
+			avatar_url=profile.avatar_url,
 			functional_team=profile.functional_team,
 			application_assignments=[
 				ApplicationAssignmentSchema(application=x.application, assignment_type=x.assignment_type)

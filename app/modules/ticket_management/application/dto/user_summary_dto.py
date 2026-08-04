@@ -10,3 +10,4 @@ class UserSummaryDTO:
 
 	id: UUID
 	display_name: str
+	avatar_url: str | None = None

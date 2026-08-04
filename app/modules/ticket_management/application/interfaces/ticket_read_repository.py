@@ -5,6 +5,7 @@ from uuid import UUID
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
+from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
 
@@ -20,6 +21,10 @@ class TicketReadRepository(ABC):
 
 	@abstractmethod
 	async def search_tickets(self, query: SearchTicketsQuery) -> list[TicketSummaryDTO]:
+		raise NotImplementedError
+
+	@abstractmethod
+	async def list_history_for_export(self, query: ExportTicketHistoryQuery) -> list[TicketSummaryDTO]:
 		raise NotImplementedError
 
 	@abstractmethod

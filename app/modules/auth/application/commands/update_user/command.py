@@ -12,5 +12,6 @@ class UpdateUserCommand:
 	user_id: UUID
 	email: str | None = None
 	display_name: str | None = None
+	avatar_url: str | None = None
 	functional_team: FunctionalTeam | None = None
 	application_assignments: frozenset[ApplicationAssignment] | None = None

@@ -1,11 +1,10 @@
 import Link from "next/link";
-import { Bell, ChevronDown, LogOut, Search, User } from "lucide-react";
+import { Bell, ChevronDown, LogOut, User } from "lucide-react";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +18,7 @@ interface SiteHeaderProps {
   userName?: string;
   userRole?: string;
   userInitials?: string;
+  userAvatarUrl?: string;
   hasNotifications?: boolean;
   onLogout?: () => void;
 }
@@ -27,27 +27,15 @@ export function SiteHeader({
   userName = "Compte",
   userRole,
   userInitials = "CO",
+  userAvatarUrl,
   hasNotifications = true,
   onLogout,
 }: SiteHeaderProps) {
   return (
-    <header className="grid h-14 shrink-0 grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-border px-4">
+    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border px-4">
       <div className="flex items-center gap-3">
         <SidebarTrigger />
         <Separator orientation="vertical" className="h-6" />
-      </div>
-
-      <div className="flex justify-center">
-        <div className="relative w-full max-w-sm">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher des tickets, incidents, connaissances..."
-            className="pl-8 pr-16"
-          />
-          <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-            Ctrl K
-          </kbd>
-        </div>
       </div>
 
       <div className="flex items-center gap-1">
@@ -62,6 +50,7 @@ export function SiteHeader({
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="ml-1 gap-2 px-1.5">
               <Avatar size="sm">
+                <AvatarImage src={userAvatarUrl} alt={userName} />
                 <AvatarFallback>{userInitials}</AvatarFallback>
               </Avatar>
               <span className="text-sm font-medium">{userName}</span>

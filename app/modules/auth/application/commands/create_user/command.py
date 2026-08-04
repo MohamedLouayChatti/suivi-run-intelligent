@@ -14,5 +14,6 @@ class CreateUserCommand:
 	auth_provider_user_id: AuthProviderUserId
 	email: str
 	display_name: str
+	avatar_url: str | None = None
 	functional_team: FunctionalTeam = FunctionalTeam.SUPPORT
 	application_assignments: frozenset[ApplicationAssignment] = frozenset()

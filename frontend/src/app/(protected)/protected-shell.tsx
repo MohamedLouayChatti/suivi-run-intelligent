@@ -34,6 +34,7 @@ function ProtectedShell({ children }: { children: React.ReactNode }) {
             userName={displayName}
             userRole={user?.roles[0]?.name ?? ""}
             userInitials={initials(displayName)}
+            userAvatarUrl={user?.avatarUrl ?? undefined}
             onLogout={logout}
           />
           <div className="flex flex-1 flex-col bg-surface">{children}</div>

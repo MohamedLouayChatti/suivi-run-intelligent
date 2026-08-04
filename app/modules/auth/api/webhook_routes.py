@@ -59,6 +59,11 @@ def _display_name(data: dict[str, Any]) -> str:
 	return name or data.get("username") or _provider_user_id(data)
 
 
+def _image_url(data: dict[str, Any]) -> str | None:
+	value = data.get("image_url")
+	return value if isinstance(value, str) and value else None
+
+
 async def _local_user_id(
 	payload: Annotated[dict[str, Any], Depends(get_verified_webhook_payload)],
 	repository: Annotated[UserReadRepository, Depends(get_user_read_repository)],
@@ -78,11 +83,11 @@ async def receive_webhook(
 	data = _data(payload)
 	provider_id = _provider_user_id(data)
 	if event_type == "user.created":
-		result = await create_handler.handle(CreateUserCommand(user_id=uuid4(), auth_provider_user_id=AuthProviderUserId(provider_id), email=_email(data), display_name=_display_name(data)))
+		result = await create_handler.handle(CreateUserCommand(user_id=uuid4(), auth_provider_user_id=AuthProviderUserId(provider_id), email=_email(data), display_name=_display_name(data), avatar_url=_image_url(data)))
 	elif event_type == "user.updated":
 		if local_user_id is None:
 			raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local user was not found.")
-		result = await update_handler.handle(UpdateUserCommand(user_id=local_user_id, email=_email(data), display_name=_display_name(data)))
+		result = await update_handler.handle(UpdateUserCommand(user_id=local_user_id, email=_email(data), display_name=_display_name(data), avatar_url=_image_url(data)))
 	else:
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported webhook event.")
 	return UserResponse.from_dto(result)
