@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useTicketDetail } from "@/features/tickets/details/use-ticket-detail"
 import { getSimilarIncidents } from "@/features/tickets/details/mock-similar-incidents"
 import { useUsersList } from "@/hooks/use-users-list"
-import { useCurrentUser } from "@/lib/auth"
+import { RequirePermission, usePermissions } from "@/lib/auth"
 import { TicketHeader } from "@/features/tickets/details/ticket-header"
 import { DescriptionCard } from "@/features/tickets/details/description-card"
 import { CommentsSection } from "@/features/tickets/details/comments-section"
@@ -36,7 +36,7 @@ function TicketDetailView({ id }: { id: string }) {
     onAddComment,
   } = useTicketDetail(id)
   const { users } = useUsersList()
-  const { data: currentUser } = useCurrentUser()
+  const { user: currentUser, hasPermission, isTicketAssignee, isAdmin } = usePermissions()
 
   if (isLoading) {
     return (
@@ -59,12 +59,20 @@ function TicketDetailView({ id }: { id: string }) {
   }
 
   const similarIncidents = getSimilarIncidents(ticket.id)
+  const assigneeOrAdmin = isTicketAssignee(ticket) || isAdmin
 
   return (
-    <>
+    <RequirePermission permission="ticket.read">
       <TicketHeader
         ticket={ticket}
         users={users}
+        canStart={hasPermission("ticket.change_status") && isTicketAssignee(ticket)}
+        canResolve={hasPermission("ticket.change_status") && isTicketAssignee(ticket)}
+        canTransfer={hasPermission("ticket.transfer_application") && isTicketAssignee(ticket)}
+        canReassign={hasPermission("ticket.assign") && assigneeOrAdmin}
+        canChangePriority={hasPermission("ticket.change_priority") && assigneeOrAdmin}
+        canArchive={hasPermission("ticket.archive") && assigneeOrAdmin}
+        canRestore={hasPermission("ticket.restore") && assigneeOrAdmin}
         onStart={onStart}
         onResolve={() => {
           const notes = window.prompt("Notes de résolution")
@@ -94,6 +102,6 @@ function TicketDetailView({ id }: { id: string }) {
           </div>
         </div>
       </PageBody>
-    </>
+    </RequirePermission>
   )
 }

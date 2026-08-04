@@ -20,6 +20,13 @@ type UserSummary = components["schemas"]["UserSummaryResponse"]
 interface TicketActionsProps {
   ticket: TicketDetail
   users: UserSummary[]
+  canStart: boolean
+  canResolve: boolean
+  canTransfer: boolean
+  canReassign: boolean
+  canChangePriority: boolean
+  canArchive: boolean
+  canRestore: boolean
   onStart: () => void
   onResolve: () => void
   onArchive: () => void
@@ -32,6 +39,13 @@ interface TicketActionsProps {
 function TicketActions({
   ticket,
   users,
+  canStart,
+  canResolve,
+  canTransfer,
+  canReassign,
+  canChangePriority,
+  canArchive,
+  canRestore,
   onStart,
   onResolve,
   onArchive,
@@ -44,71 +58,79 @@ function TicketActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {ticket.status === "OPEN" && (
+      {ticket.status === "OPEN" && canStart && (
         <Button size="sm" onClick={onStart}>
           Démarrer
         </Button>
       )}
-      {ticket.status === "IN_PROGRESS" && (
+      {ticket.status === "IN_PROGRESS" && canResolve && (
         <Button size="sm" onClick={onResolve}>
           Résoudre
         </Button>
       )}
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="outline">
-            <ArrowRightLeft className="size-4" /> Transférer
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {transferDestinationOptions.map((dest) => (
-            <DropdownMenuItem key={dest} onSelect={() => onTransfer(dest)}>
-              {dest}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="outline">
-            <UserRoundCog className="size-4" /> Réaffecter
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {users.map((u) => (
-            <DropdownMenuItem key={u.id} onSelect={() => onReassign(u.id)}>
-              {u.display_name}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="outline">
-            <SignalHigh className="size-4" /> Priorité
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {priorityOptions.map((p) => (
-            <DropdownMenuItem key={p} onSelect={() => onChangePriority(p)}>
-              {p}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {isArchived ? (
-        <Button size="sm" variant="ghost" onClick={onRestore}>
-          <ArchiveRestore className="size-4" /> Restaurer
-        </Button>
-      ) : (
-        <Button size="sm" variant="ghost" onClick={onArchive}>
-          <Archive className="size-4" /> Archiver
-        </Button>
+      {canTransfer && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="outline">
+              <ArrowRightLeft className="size-4" /> Transférer
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {transferDestinationOptions.map((dest) => (
+              <DropdownMenuItem key={dest} onSelect={() => onTransfer(dest)}>
+                {dest}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       )}
+
+      {canReassign && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="outline">
+              <UserRoundCog className="size-4" /> Réaffecter
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {users.map((u) => (
+              <DropdownMenuItem key={u.id} onSelect={() => onReassign(u.id)}>
+                {u.display_name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      {canChangePriority && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="outline">
+              <SignalHigh className="size-4" /> Priorité
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {priorityOptions.map((p) => (
+              <DropdownMenuItem key={p} onSelect={() => onChangePriority(p)}>
+                {p}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      {isArchived
+        ? canRestore && (
+            <Button size="sm" variant="ghost" onClick={onRestore}>
+              <ArchiveRestore className="size-4" /> Restaurer
+            </Button>
+          )
+        : canArchive && (
+            <Button size="sm" variant="ghost" onClick={onArchive}>
+              <Archive className="size-4" /> Archiver
+            </Button>
+          )}
     </div>
   )
 }

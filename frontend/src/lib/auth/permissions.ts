@@ -39,11 +39,16 @@ function canActOnApplication(user: CurrentUser | undefined, application: Applica
   return user !== undefined && getAccessibleApplications(user).includes(application);
 }
 
+/** The backend's hard `require_admin` role gate — see `services/api/auth.ts`'s `isAdmin`. */
+function isAdmin(user: CurrentUser | undefined): boolean {
+  return user !== undefined && isAdminUser(user);
+}
+
 export {
   hasPermission,
   isTicketAssignee,
   isCommentAuthor,
   isAttachmentUploader,
   canActOnApplication,
-  isAdminUser as isAdmin,
+  isAdmin,
 };

@@ -9,7 +9,7 @@ import { HistoryTable } from "@/features/history/history-table"
 import { useHistoryList } from "@/features/history/use-history-list"
 import { defaultHistoryFilters, createDefaultHistoryFilters, type HistoryFilters } from "@/features/history/filter-history"
 import { useUsersList } from "@/hooks/use-users-list"
-import { useCurrentUser } from "@/lib/auth"
+import { RequirePermission, useCurrentUser } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication, isAdmin } from "@/services/api/auth"
 
 export default function HistoryPage() {
@@ -37,7 +37,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <>
+    <RequirePermission permission="ticket.read">
       <HistoryHeader />
       <PageBody className="space-y-6">
         <HistoryFiltersBar
@@ -50,6 +50,6 @@ export default function HistoryPage() {
         />
         <HistoryTable tickets={tickets} filters={filters} isLoading={isLoading} />
       </PageBody>
-    </>
+    </RequirePermission>
   )
 }

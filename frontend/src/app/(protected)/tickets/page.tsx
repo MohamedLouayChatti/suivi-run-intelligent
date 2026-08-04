@@ -11,13 +11,15 @@ import { CreateTicketDrawer } from "@/features/tickets/create-ticket/create-tick
 import { useTicketsList } from "@/features/tickets/use-tickets-list"
 import { defaultTicketFilters, createDefaultTicketFilters, type TicketFilters } from "@/features/tickets/filter-tickets"
 import { useUsersList } from "@/hooks/use-users-list"
-import { useCurrentUser } from "@/lib/auth"
+import { RequirePermission, useCurrentUser, usePermissions } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication, isAdmin } from "@/services/api/auth"
 
 export default function TicketsPage() {
   const { tickets, isLoading, addTicket } = useTicketsList()
   const { data: currentUser } = useCurrentUser()
+  const { hasPermission } = usePermissions()
   const admin = currentUser ? isAdmin(currentUser) : false
+  const canCreate = hasPermission("ticket.create")
   const { users } = useUsersList({ enabled: admin })
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
@@ -40,8 +42,8 @@ export default function TicketsPage() {
   }
 
   return (
-    <>
-      <TicketsHeader onCreateClick={() => setDrawerOpen(true)} />
+    <RequirePermission permission="ticket.read">
+      <TicketsHeader canCreate={canCreate} onCreateClick={() => setDrawerOpen(true)} />
       <PageBody className="space-y-6">
         <TicketsFilters
           filters={filters}
@@ -64,7 +66,9 @@ export default function TicketsPage() {
           currentUserId={currentUser?.id ?? ""}
         />
       </PageBody>
-      <CreateTicketDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onCreated={addTicket} />
-    </>
+      {canCreate && (
+        <CreateTicketDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onCreated={addTicket} />
+      )}
+    </RequirePermission>
   )
 }

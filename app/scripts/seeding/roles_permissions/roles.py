@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from app.modules.auth.domain.constants import DEFAULT_ROLE_NAME
 from app.scripts.seeding.roles_permissions.permissions import PERMISSIONS_BY_NAME
 
 
@@ -34,7 +35,7 @@ SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 		),
 	),
 	RoleDefinition(
-		"Lecteur", 
+		DEFAULT_ROLE_NAME,
 		(
 			"user.read",
 			"role.read",

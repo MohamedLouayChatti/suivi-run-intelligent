@@ -4,10 +4,11 @@ import { PageHeader } from "@/components/app/page"
 import { Button } from "@/components/ui/button"
 
 interface TicketsHeaderProps {
+  canCreate: boolean
   onCreateClick: () => void
 }
 
-function TicketsHeader({ onCreateClick }: TicketsHeaderProps) {
+function TicketsHeader({ canCreate, onCreateClick }: TicketsHeaderProps) {
   return (
     <PageHeader
       title="Tickets"
@@ -17,9 +18,11 @@ function TicketsHeader({ onCreateClick }: TicketsHeaderProps) {
           <Button variant="outline" size="sm">
             <Download className="size-4" /> Exporter
           </Button>
-          <Button size="sm" onClick={onCreateClick}>
-            <Plus className="size-4" /> Créer un ticket
-          </Button>
+          {canCreate && (
+            <Button size="sm" onClick={onCreateClick}>
+              <Plus className="size-4" /> Créer un ticket
+            </Button>
+          )}
         </>
       }
     />

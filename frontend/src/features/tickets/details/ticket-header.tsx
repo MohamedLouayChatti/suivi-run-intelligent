@@ -10,6 +10,13 @@ type UserSummary = components["schemas"]["UserSummaryResponse"]
 interface TicketHeaderProps {
   ticket: TicketDetail
   users: UserSummary[]
+  canStart: boolean
+  canResolve: boolean
+  canTransfer: boolean
+  canReassign: boolean
+  canChangePriority: boolean
+  canArchive: boolean
+  canRestore: boolean
   onStart: () => void
   onResolve: () => void
   onArchive: () => void

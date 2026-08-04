@@ -3,13 +3,14 @@
 import { PageHeader, PageBody } from "@/components/app/page"
 import { UsersTable } from "@/features/users/users-table"
 import { useUsersAdmin } from "@/features/users/use-users-admin"
+import { RequirePermission } from "@/lib/auth"
 
 export default function UsersPage() {
   const { users, toggleActive, changeRole, savePermissions } = useUsersAdmin()
   const activeCount = users.filter((u) => u.active).length
 
   return (
-    <>
+    <RequirePermission admin>
       <PageHeader
         title="Utilisateurs"
         description={`${activeCount} actifs sur ${users.length} comptes`}
@@ -29,6 +30,6 @@ export default function UsersPage() {
           onSavePermissions={savePermissions}
         />
       </PageBody>
-    </>
+    </RequirePermission>
   )
 }

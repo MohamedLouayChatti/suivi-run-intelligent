@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useCurrentUser } from "@/lib/auth"
+import { usePermissions } from "@/lib/auth"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
@@ -37,7 +37,8 @@ interface CommentsSectionProps {
 
 function CommentsSection({ ticket, isLoading, onAddComment }: CommentsSectionProps) {
   const [draft, setDraft] = useState("")
-  const { data: currentUser } = useCurrentUser()
+  const { user: currentUser, hasPermission, isAdmin, canActOnApplication } = usePermissions()
+  const canComment = hasPermission("comment.create") && (canActOnApplication(ticket.application) || isAdmin)
 
   function handleSubmit() {
     if (!draft.trim()) return
@@ -78,24 +79,26 @@ function CommentsSection({ ticket, isLoading, onAddComment }: CommentsSectionPro
           </ul>
         )}
 
-        <div className="flex gap-3 border-t border-border pt-4">
-          <Avatar size="sm">
-            <AvatarFallback>{initials(currentUser?.displayName ?? "")}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1 space-y-2">
-            <Textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="Ajouter un commentaire…"
-              rows={2}
-            />
-            <div className="flex justify-end">
-              <Button size="sm" onClick={handleSubmit} disabled={!draft.trim()}>
-                Publier
-              </Button>
+        {canComment && (
+          <div className="flex gap-3 border-t border-border pt-4">
+            <Avatar size="sm">
+              <AvatarFallback>{initials(currentUser?.displayName ?? "")}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 space-y-2">
+              <Textarea
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Ajouter un commentaire…"
+                rows={2}
+              />
+              <div className="flex justify-end">
+                <Button size="sm" onClick={handleSubmit} disabled={!draft.trim()}>
+                  Publier
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </SectionCard>
   )

@@ -30,10 +30,23 @@ import {
   primaryNavGroupLabel,
   primaryNavItems,
   settingsNavItem,
+  type NavItem,
 } from "@/components/layout/nav-config";
+import { usePermissions } from "@/lib/auth";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { hasPermission, isAdmin } = usePermissions();
+
+  function isVisible(item: NavItem): boolean {
+    if (!item.requires) return true;
+    if (item.requires.adminOnly && !isAdmin) return false;
+    if (item.requires.permission && !hasPermission(item.requires.permission)) return false;
+    return true;
+  }
+
+  const visiblePrimaryNavItems = primaryNavItems.filter(isVisible);
+  const visibleAdministrationNavItems = administrationNavItems.filter(isVisible);
 
   return (
     <Sidebar collapsible="icon">
@@ -60,7 +73,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {primaryNavItems.map((item) => (
+              {visiblePrimaryNavItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
@@ -78,39 +91,41 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <Collapsible defaultOpen className="group/collapsible">
-            <SidebarGroupLabel asChild className="uppercase tracking-wide">
-              <CollapsibleTrigger className="flex w-full items-center">
-                {administrationNavGroupLabel}
-                <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu className="gap-1">
-                  <SidebarMenuItem>
-                    <SidebarMenuSub className="gap-1">
-                      {administrationNavItems.map((item) => (
-                        <SidebarMenuSubItem key={item.href}>
-                          <SidebarMenuSubButton
-                            asChild
-                            isActive={pathname.startsWith(item.href)}
-                          >
-                            <Link href={item.href}>
-                              <item.icon />
-                              <span>{item.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </SidebarGroup>
+        {visibleAdministrationNavItems.length > 0 && (
+          <SidebarGroup>
+            <Collapsible defaultOpen className="group/collapsible">
+              <SidebarGroupLabel asChild className="uppercase tracking-wide">
+                <CollapsibleTrigger className="flex w-full items-center">
+                  {administrationNavGroupLabel}
+                  <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu className="gap-1">
+                    <SidebarMenuItem>
+                      <SidebarMenuSub className="gap-1">
+                        {visibleAdministrationNavItems.map((item) => (
+                          <SidebarMenuSubItem key={item.href}>
+                            <SidebarMenuSubButton
+                              asChild
+                              isActive={pathname.startsWith(item.href)}
+                            >
+                              <Link href={item.href}>
+                                <item.icon />
+                                <span>{item.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        )}
 
         <SidebarGroup className="mt-2 border-t border-sidebar-border pt-3">
           <SidebarGroupContent>

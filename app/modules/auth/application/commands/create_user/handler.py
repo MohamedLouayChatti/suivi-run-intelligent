@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import logging
+
 from app.modules.auth.application.commands.create_user.command import CreateUserCommand
 from app.modules.auth.application.dto.user_dto import UserDTO
 from app.modules.auth.application.interfaces.unit_of_work import UnitOfWork
+from app.modules.auth.domain.constants import DEFAULT_ROLE_NAME
 from app.modules.auth.domain.entities.user import User
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.shared.events.event_publisher import EventPublisher
+
+logger = logging.getLogger(__name__)
 
 
 class CreateUserHandler:
@@ -22,6 +27,13 @@ class CreateUserHandler:
 			functional_team=command.functional_team,
 			application_assignments=set(command.application_assignments),
 		)
+
+		default_role = await self.uow.roles.get_by_name(DEFAULT_ROLE_NAME)
+		if default_role is None:
+			logger.warning("Default role %r not found; created user %s with no role.", DEFAULT_ROLE_NAME, user.id)
+		else:
+			user.assign_role(default_role.id)
+
 		await self.uow.users.add(user)
 		try:
 			await self.uow.commit()
