@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
           <Input
             id="email"
             type="email"
-            placeholder="nom@sofrecom.io"
+            placeholder="nom@sofrecom.com"
             autoComplete="email"
             required
             value={email}
