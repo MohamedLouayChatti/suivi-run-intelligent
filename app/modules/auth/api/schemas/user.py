@@ -34,6 +34,28 @@ class UserUpdateRequest(BaseModel):
 	application_assignments: list[ApplicationAssignmentSchema] | None = None
 
 
+class UserDirectoryResponse(BaseModel):
+	"""Lightweight, non-admin-gated user projection: id/display_name/active/team/apps only.
+	Used to populate reassign pickers and assignee filters without exposing email or
+	role/permission ids the way the admin-only UserResponse does."""
+
+	id: UUID
+	display_name: str
+	active: bool
+	functional_team: FunctionalTeam
+	application_assignments: list[ApplicationAssignmentSchema]
+
+	@classmethod
+	def from_dto(cls, user: UserDTO) -> UserDirectoryResponse:
+		return cls(
+			id=user.id,
+			display_name=user.display_name,
+			active=user.active,
+			functional_team=user.functional_team,
+			application_assignments=[ApplicationAssignmentSchema(application=x.application, assignment_type=x.assignment_type) for x in user.application_assignments],
+		)
+
+
 class UserResponse(BaseModel):
 	id: UUID
 	auth_provider_user_id: str

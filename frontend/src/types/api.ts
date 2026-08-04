@@ -38,6 +38,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/users/directory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List User Directory */
+        get: operations["list_user_directory_auth_users_directory_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/users/{user_id}": {
         parameters: {
             query?: never;
@@ -889,6 +906,26 @@ export interface components {
         TransferRequest: {
             transferred_to: components["schemas"]["TransferDestination"];
         };
+        /**
+         * UserDirectoryResponse
+         * @description Lightweight, non-admin-gated user projection: id/display_name/active/team/apps only.
+         *     Used to populate reassign pickers and assignee filters without exposing email or
+         *     role/permission ids the way the admin-only UserResponse does.
+         */
+        UserDirectoryResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Display Name */
+            display_name: string;
+            /** Active */
+            active: boolean;
+            functional_team: components["schemas"]["FunctionalTeam"];
+            /** Application Assignments */
+            application_assignments: components["schemas"]["ApplicationAssignmentSchema"][];
+        };
         /** UserResponse */
         UserResponse: {
             /**
@@ -995,6 +1032,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_user_directory_auth_users_directory_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserDirectoryResponse"][];
                 };
             };
             /** @description Validation Error */

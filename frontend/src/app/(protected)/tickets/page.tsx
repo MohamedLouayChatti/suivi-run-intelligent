@@ -10,17 +10,16 @@ import { TeamActiveTicketsTable } from "@/features/tickets/team-active-tickets-t
 import { CreateTicketDrawer } from "@/features/tickets/create-ticket/create-ticket-drawer"
 import { useTicketsList } from "@/features/tickets/use-tickets-list"
 import { defaultTicketFilters, createDefaultTicketFilters, type TicketFilters } from "@/features/tickets/filter-tickets"
-import { useUsersList } from "@/hooks/use-users-list"
+import { useUserDirectory } from "@/hooks/use-user-directory"
 import { RequirePermission, useCurrentUser, usePermissions } from "@/lib/auth"
-import { getAccessibleApplications, getPrimaryApplication, isAdmin } from "@/services/api/auth"
+import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 
 export default function TicketsPage() {
   const { tickets, isLoading, addTicket } = useTicketsList()
   const { data: currentUser } = useCurrentUser()
   const { hasPermission } = usePermissions()
-  const admin = currentUser ? isAdmin(currentUser) : false
   const canCreate = hasPermission("ticket.create")
-  const { users } = useUsersList({ enabled: admin })
+  const { users } = useUserDirectory()
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
 
@@ -51,7 +50,6 @@ export default function TicketsPage() {
           onReset={() => setFilters(primaryApplication ? createDefaultTicketFilters(primaryApplication) : defaultTicketFilters)}
           assignees={users}
           accessibleApplications={accessibleApplications}
-          showAssigneeFilter={admin}
         />
         <MyActiveTicketsTable
           tickets={tickets}

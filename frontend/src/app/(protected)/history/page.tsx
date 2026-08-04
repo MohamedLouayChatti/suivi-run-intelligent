@@ -8,15 +8,14 @@ import { HistoryFiltersBar } from "@/features/history/history-filters"
 import { HistoryTable } from "@/features/history/history-table"
 import { useHistoryList } from "@/features/history/use-history-list"
 import { defaultHistoryFilters, createDefaultHistoryFilters, type HistoryFilters } from "@/features/history/filter-history"
-import { useUsersList } from "@/hooks/use-users-list"
+import { useUserDirectory } from "@/hooks/use-user-directory"
 import { RequirePermission, useCurrentUser } from "@/lib/auth"
-import { getAccessibleApplications, getPrimaryApplication, isAdmin } from "@/services/api/auth"
+import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 
 export default function HistoryPage() {
   const { tickets, isLoading } = useHistoryList()
   const { data: currentUser } = useCurrentUser()
-  const admin = currentUser ? isAdmin(currentUser) : false
-  const { users } = useUsersList({ enabled: admin })
+  const { users } = useUserDirectory()
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
 
@@ -46,7 +45,6 @@ export default function HistoryPage() {
           onReset={() => setFilters(primaryApplication ? createDefaultHistoryFilters(primaryApplication) : defaultHistoryFilters)}
           assignees={users}
           accessibleApplications={accessibleApplications}
-          showAssigneeFilter={admin}
         />
         <HistoryTable tickets={tickets} filters={filters} isLoading={isLoading} />
       </PageBody>

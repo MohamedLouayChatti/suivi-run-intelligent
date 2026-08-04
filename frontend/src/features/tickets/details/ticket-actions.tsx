@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Archive, ArchiveRestore, ArrowRightLeft, Lock, RotateCcw, SignalHigh, UserRoundCog } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -10,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { priorityOptions, transferDestinationOptions } from "@/features/tickets/constants"
+import { ResolveTicketDialog } from "@/features/tickets/details/resolve-ticket-dialog"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
@@ -30,7 +32,7 @@ interface TicketActionsProps {
   canArchive: boolean
   canRestore: boolean
   onStart: () => void
-  onResolve: () => void
+  onResolve: (resolutionNotes: string) => void
   onResume: () => void
   onClose: () => void
   onArchive: () => void
@@ -63,6 +65,7 @@ function TicketActions({
   onTransfer,
 }: TicketActionsProps) {
   const isArchived = ticket.archived_at !== null
+  const [resolveOpen, setResolveOpen] = useState(false)
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -72,9 +75,12 @@ function TicketActions({
         </Button>
       )}
       {canResolve && (
-        <Button size="sm" onClick={onResolve}>
-          Résoudre
-        </Button>
+        <>
+          <Button size="sm" onClick={() => setResolveOpen(true)}>
+            Résoudre
+          </Button>
+          <ResolveTicketDialog open={resolveOpen} onOpenChange={setResolveOpen} onConfirm={onResolve} />
+        </>
       )}
       {canResume && (
         <Button size="sm" onClick={onResume}>

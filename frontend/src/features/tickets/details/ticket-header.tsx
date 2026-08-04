@@ -20,7 +20,7 @@ interface TicketHeaderProps {
   canArchive: boolean
   canRestore: boolean
   onStart: () => void
-  onResolve: () => void
+  onResolve: (resolutionNotes: string) => void
   onResume: () => void
   onClose: () => void
   onArchive: () => void

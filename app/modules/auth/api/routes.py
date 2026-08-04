@@ -16,7 +16,7 @@ from app.modules.auth.api.dependencies import (
 	get_user_direct_permissions_handler, get_user_handler, get_user_roles_handler,
 	get_user_revoked_permissions_handler,
 )
-from app.modules.auth.api.schemas import MeResponse, PermissionResponse, RoleCreateRequest, RoleResponse, UserCreateRequest, UserResponse, UserUpdateRequest
+from app.modules.auth.api.schemas import MeResponse, PermissionResponse, RoleCreateRequest, RoleResponse, UserCreateRequest, UserDirectoryResponse, UserResponse, UserUpdateRequest
 from app.modules.auth.application.commands.activate_user.handler import ActivateUserHandler
 from app.modules.auth.application.commands.assign_role.handler import AssignRoleHandler
 from app.modules.auth.application.commands.create_role.handler import CreateRoleHandler
@@ -80,6 +80,11 @@ async def get_me(
 @router.get("/users", response_model=list[UserResponse], dependencies=[Depends(require_permissions("user.read")), Depends(require_admin())])
 async def list_users(handler: Annotated[ListUsersHandler, Depends(get_list_users_handler)], page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 100) -> list[UserResponse]:
 	return [UserResponse.from_dto(user) for user in await handler.handle(ListUsersQuery(limit=page_size, offset=(page - 1) * page_size))]
+
+
+@router.get("/users/directory", response_model=list[UserDirectoryResponse], dependencies=[Depends(require_permissions("user.read"))])
+async def list_user_directory(handler: Annotated[ListUsersHandler, Depends(get_list_users_handler)], page: Annotated[int, Query(ge=1)] = 1, page_size: Annotated[int, Query(ge=1, le=100)] = 100) -> list[UserDirectoryResponse]:
+	return [UserDirectoryResponse.from_dto(user) for user in await handler.handle(ListUsersQuery(limit=page_size, offset=(page - 1) * page_size))]
 
 
 @router.get("/users/{user_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read", path_param="user_id"))])

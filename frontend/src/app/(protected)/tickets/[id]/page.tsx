@@ -6,7 +6,7 @@ import { PageBody } from "@/components/app/page"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useTicketDetail } from "@/features/tickets/details/use-ticket-detail"
 import { getSimilarIncidents } from "@/features/tickets/details/mock-similar-incidents"
-import { useUsersList } from "@/hooks/use-users-list"
+import { useUserDirectory } from "@/hooks/use-user-directory"
 import { RequirePermission, usePermissions } from "@/lib/auth"
 import { TicketHeader } from "@/features/tickets/details/ticket-header"
 import { DescriptionCard } from "@/features/tickets/details/description-card"
@@ -37,7 +37,7 @@ function TicketDetailView({ id }: { id: string }) {
     onTransfer,
     onAddComment,
   } = useTicketDetail(id)
-  const { users } = useUsersList()
+  const { users } = useUserDirectory()
   const { user: currentUser, hasPermission, isTicketAssignee, isAdmin } = usePermissions()
 
   if (isLoading) {
@@ -62,6 +62,17 @@ function TicketDetailView({ id }: { id: string }) {
 
   const similarIncidents = getSimilarIncidents(ticket.id)
 
+  // Mirrors ReassignTicketHandler's own checks (app/modules/ticket_management/application/
+  // commands/reassign_ticket/handler.py) — the backend rejects a reassignment target whose
+  // functional_team or application_assignments don't match the ticket, so the picker only
+  // offers candidates that would actually be accepted.
+  const reassignCandidates = users.filter(
+    (u) =>
+      u.active &&
+      u.functional_team === ticket.functional_team &&
+      u.application_assignments.some((a) => a.application === ticket.application)
+  )
+
   // Mirrors Ticket._transition_to's allowed map and the explicit checks in resume()/close()
   // (app/modules/ticket_management/domain/entities/ticket.py) — every status-changing action
   // also requires the ticket to be unarchived, since all of them go through _ensure_mutable.
@@ -74,7 +85,7 @@ function TicketDetailView({ id }: { id: string }) {
     <RequirePermission permission="ticket.read">
       <TicketHeader
         ticket={ticket}
-        users={users}
+        users={reassignCandidates}
         canStart={canChangeStatus && ticket.status === "OPEN"}
         canResolve={canChangeStatus && ticket.status === "IN_PROGRESS"}
         canResume={canChangeStatus && isResolvedOrTransferred}
@@ -92,10 +103,7 @@ function TicketDetailView({ id }: { id: string }) {
         canArchive={hasPermission("ticket.archive") && assigneeOrAdmin}
         canRestore={hasPermission("ticket.restore") && assigneeOrAdmin}
         onStart={onStart}
-        onResolve={() => {
-          const notes = window.prompt("Notes de résolution")
-          if (notes) onResolve(notes)
-        }}
+        onResolve={onResolve}
         onResume={onResume}
         onClose={onClose}
         onArchive={onArchive}

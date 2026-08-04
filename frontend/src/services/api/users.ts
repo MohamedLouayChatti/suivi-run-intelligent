@@ -3,12 +3,23 @@ import type { components } from "@/types/api"
 import { httpClient } from "./client"
 
 type UserResponse = components["schemas"]["UserResponse"]
+type UserDirectoryResponse = components["schemas"]["UserDirectoryResponse"]
 type RoleResponse = components["schemas"]["RoleResponse"]
 type PermissionResponse = components["schemas"]["PermissionResponse"]
 type Application = components["schemas"]["Application"]
 
 async function listUsers(pageSize = 100): Promise<UserResponse[]> {
   const { data } = await httpClient.get<UserResponse[]>("/auth/users", {
+    params: { page: 1, page_size: pageSize },
+  })
+  return data
+}
+
+/** GET /auth/users/directory — user.read only, no admin gate. Returns id/display_name/
+ * active/functional_team/application_assignments, used to populate reassign pickers and
+ * assignee filters for any user, unlike the admin-only listUsers() above. */
+async function listUserDirectory(pageSize = 100): Promise<UserDirectoryResponse[]> {
+  const { data } = await httpClient.get<UserDirectoryResponse[]>("/auth/users/directory", {
     params: { page: 1, page_size: pageSize },
   })
   return data
@@ -78,6 +89,7 @@ function getBackupApplication(user: UserResponse): Application | null {
 
 export {
   listUsers,
+  listUserDirectory,
   activateUser,
   deactivateUser,
   assignRole,

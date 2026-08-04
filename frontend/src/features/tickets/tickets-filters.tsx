@@ -20,22 +20,20 @@ import {
   categoryOptions,
 } from "@/features/tickets/constants"
 
-type UserSummary = components["schemas"]["UserSummaryResponse"]
+type UserDirectory = components["schemas"]["UserDirectoryResponse"]
 type Application = components["schemas"]["Application"]
 
 interface TicketsFiltersProps {
   filters: TicketFilters
   onChange: (patch: Partial<TicketFilters>) => void
   onReset: () => void
-  assignees: UserSummary[]
+  assignees: UserDirectory[]
   /** The user's own applications (primary, + backup if any) — never the full 4-app list;
    * a user can only ever see tickets from applications they're assigned to. */
   accessibleApplications: Application[]
-  /** Only admins may filter by ingénieur — GET /auth/users 403s for anyone else. */
-  showAssigneeFilter: boolean
 }
 
-function TicketsFilters({ filters, onChange, onReset, assignees, accessibleApplications, showAssigneeFilter }: TicketsFiltersProps) {
+function TicketsFilters({ filters, onChange, onReset, assignees, accessibleApplications }: TicketsFiltersProps) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
       <div className="relative min-w-[220px] flex-1">
@@ -102,24 +100,22 @@ function TicketsFilters({ filters, onChange, onReset, assignees, accessibleAppli
         </SelectContent>
       </Select>
 
-      {showAssigneeFilter && (
-        <Select
-          value={filters.assigneeId}
-          onValueChange={(value) => onChange({ assigneeId: value })}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Ingénieur affecté" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les ingénieurs</SelectItem>
-            {assignees.map((a) => (
-              <SelectItem key={a.id} value={a.id}>
-                {a.display_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+      <Select
+        value={filters.assigneeId}
+        onValueChange={(value) => onChange({ assigneeId: value })}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Ingénieur affecté" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Tous les ingénieurs</SelectItem>
+          {assignees.map((a) => (
+            <SelectItem key={a.id} value={a.id}>
+              {a.display_name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
       <Select
         value={filters.category}

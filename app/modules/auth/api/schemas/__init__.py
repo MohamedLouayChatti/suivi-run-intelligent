@@ -1,7 +1,7 @@
 from app.modules.auth.api.schemas.me import MeResponse
 from app.modules.auth.api.schemas.permission import PermissionResponse
 from app.modules.auth.api.schemas.role import RoleCreateRequest, RoleResponse
-from app.modules.auth.api.schemas.user import UserCreateRequest, UserResponse, UserUpdateRequest
+from app.modules.auth.api.schemas.user import UserCreateRequest, UserDirectoryResponse, UserResponse, UserUpdateRequest
 
 __all__ = [
 	"MeResponse",
@@ -9,6 +9,7 @@ __all__ = [
 	"RoleCreateRequest",
 	"RoleResponse",
 	"UserCreateRequest",
+	"UserDirectoryResponse",
 	"UserResponse",
 	"UserUpdateRequest",
 ]
