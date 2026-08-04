@@ -15,6 +15,10 @@ import {
   archiveTicket,
   restoreTicket,
   addComment,
+  addTicketAttachment,
+  addCommentAttachment,
+  deleteTicketAttachment,
+  deleteCommentAttachment,
 } from "@/services/api/tickets"
 import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
 
@@ -60,8 +64,28 @@ function useTicketDetail(id: string) {
   const archive = useMutation({ mutationFn: () => archiveTicket(id), onSuccess: afterMutation })
   const restore = useMutation({ mutationFn: () => restoreTicket(id), onSuccess: afterMutation })
   const addTicketComment = useMutation({
-    mutationFn: ({ authorId, content }: { authorId: string; content: string }) =>
-      addComment(id, authorId, content),
+    mutationFn: async ({ authorId, content, files }: { authorId: string; content: string; files: File[] }) => {
+      const result = await addComment(id, authorId, content)
+      const newComment = result.comments[result.comments.length - 1]
+      let updated = result
+      for (const file of files) {
+        updated = await addCommentAttachment(id, newComment.id, file)
+      }
+      return updated
+    },
+    onSuccess: afterMutation,
+  })
+  const uploadTicketAttachmentMutation = useMutation({
+    mutationFn: (file: File) => addTicketAttachment(id, file),
+    onSuccess: afterMutation,
+  })
+  const deleteTicketAttachmentMutation = useMutation({
+    mutationFn: (attachmentId: string) => deleteTicketAttachment(id, attachmentId),
+    onSuccess: afterMutation,
+  })
+  const deleteCommentAttachmentMutation = useMutation({
+    mutationFn: ({ commentId, attachmentId }: { commentId: string; attachmentId: string }) =>
+      deleteCommentAttachment(id, commentId, attachmentId),
     onSuccess: afterMutation,
   })
 
@@ -78,7 +102,12 @@ function useTicketDetail(id: string) {
     onChangePriority: (priority: Priority) => changePriority.mutate(priority),
     onArchive: () => archive.mutate(),
     onRestore: () => restore.mutate(),
-    onAddComment: (authorId: string, content: string) => addTicketComment.mutate({ authorId, content }),
+    onAddComment: (authorId: string, content: string, files: File[]) =>
+      addTicketComment.mutate({ authorId, content, files }),
+    onUploadTicketAttachment: (file: File) => uploadTicketAttachmentMutation.mutate(file),
+    onDeleteTicketAttachment: (attachmentId: string) => deleteTicketAttachmentMutation.mutate(attachmentId),
+    onDeleteCommentAttachment: (commentId: string, attachmentId: string) =>
+      deleteCommentAttachmentMutation.mutate({ commentId, attachmentId }),
   }
 }
 

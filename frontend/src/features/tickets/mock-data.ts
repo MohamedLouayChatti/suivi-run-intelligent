@@ -99,7 +99,6 @@ const mockTickets: TicketDetail[] = [
         id: "at-1",
         filename: "logs-batch-reglement.log",
         content_type: "text/plain",
-        storage_path: "/attachments/logs-batch-reglement.log",
         uploader: me,
         uploaded_at: isoAgo(4),
         deleted_at: null,

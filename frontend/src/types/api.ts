@@ -518,6 +518,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tickets/{ticket_id}/comments/{comment_id}/attachments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add Comment Attachment */
+        post: operations["add_comment_attachment_tickets__ticket_id__comments__comment_id__attachments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tickets/{ticket_id}/archive": {
         parameters: {
             query?: never;
@@ -552,6 +569,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/comments/{comment_id}/attachments/{attachment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Comment Attachment */
+        delete: operations["delete_comment_attachment_comments__comment_id__attachments__attachment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/comments/{comment_id}": {
         parameters: {
             query?: never;
@@ -577,7 +611,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Download Attachment */
+        get: operations["download_attachment_attachments__attachment_id__get"];
         put?: never;
         post?: never;
         /** Delete Attachment */
@@ -606,20 +641,6 @@ export interface components {
          * @enum {string}
          */
         AssignmentType: "PRIMARY" | "BACKUP";
-        /** AttachmentCreateRequest */
-        AttachmentCreateRequest: {
-            /** Filename */
-            filename: string;
-            /** Content Type */
-            content_type: string;
-            /** Storage Path */
-            storage_path: string;
-            /**
-             * Uploaded By
-             * Format: uuid
-             */
-            uploaded_by: string;
-        };
         /** AttachmentResponse */
         AttachmentResponse: {
             /**
@@ -631,8 +652,6 @@ export interface components {
             filename: string;
             /** Content Type */
             content_type: string;
-            /** Storage Path */
-            storage_path: string;
             uploader: components["schemas"]["UserSummaryResponse"] | null;
             /**
              * Uploaded At
@@ -641,6 +660,16 @@ export interface components {
             uploaded_at: string;
             /** Deleted At */
             deleted_at: string | null;
+        };
+        /** Body_add_attachment_tickets__ticket_id__attachments_post */
+        Body_add_attachment_tickets__ticket_id__attachments_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_add_comment_attachment_tickets__ticket_id__comments__comment_id__attachments_post */
+        Body_add_comment_attachment_tickets__ticket_id__comments__comment_id__attachments_post: {
+            /** File */
+            file: string;
         };
         /**
          * Category
@@ -2067,7 +2096,43 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AttachmentCreateRequest"];
+                "multipart/form-data": components["schemas"]["Body_add_attachment_tickets__ticket_id__attachments_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_comment_attachment_tickets__ticket_id__comments__comment_id__attachments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: string;
+                comment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_add_comment_attachment_tickets__ticket_id__comments__comment_id__attachments_post"];
             };
         };
         responses: {
@@ -2153,6 +2218,38 @@ export interface operations {
             };
         };
     };
+    delete_comment_attachment_comments__comment_id__attachments__attachment_id__delete: {
+        parameters: {
+            query: {
+                ticket_id: string;
+            };
+            header?: never;
+            path: {
+                comment_id: string;
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     delete_comment_comments__comment_id__delete: {
         parameters: {
             query: {
@@ -2208,6 +2305,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TicketDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_attachment_attachments__attachment_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                attachment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

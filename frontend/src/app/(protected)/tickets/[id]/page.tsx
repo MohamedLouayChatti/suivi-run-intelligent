@@ -36,6 +36,9 @@ function TicketDetailView({ id }: { id: string }) {
     onChangePriority,
     onTransfer,
     onAddComment,
+    onUploadTicketAttachment,
+    onDeleteTicketAttachment,
+    onDeleteCommentAttachment,
   } = useTicketDetail(id)
   const { users } = useUserDirectory()
   const { user: currentUser, hasPermission, isTicketAssignee, isAdmin } = usePermissions()
@@ -121,9 +124,14 @@ function TicketDetailView({ id }: { id: string }) {
             <CommentsSection
               ticket={ticket}
               isLoading={false}
-              onAddComment={(content) => currentUser && onAddComment(currentUser.id, content)}
+              onAddComment={(content, files) => currentUser && onAddComment(currentUser.id, content, files)}
+              onDeleteCommentAttachment={onDeleteCommentAttachment}
             />
-            <AttachmentsSection ticket={ticket} />
+            <AttachmentsSection
+              ticket={ticket}
+              onUploadAttachment={onUploadTicketAttachment}
+              onDeleteAttachment={onDeleteTicketAttachment}
+            />
             <ActivityTimeline ticket={ticket} />
           </div>
           <div className="space-y-6 xl:sticky xl:top-6">

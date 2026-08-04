@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import type { components } from "@/types/api"
-import { listTickets, createTicket } from "@/services/api/tickets"
+import { listTickets, createTicket, addTicketAttachment } from "@/services/api/tickets"
 
 type TicketCreateRequest = components["schemas"]["TicketCreateRequest"]
 
@@ -21,11 +21,16 @@ function useTicketsList() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ticketsListQueryKey }),
   })
 
+  const uploadAttachmentMutation = useMutation({
+    mutationFn: ({ ticketId, file }: { ticketId: string; file: File }) => addTicketAttachment(ticketId, file),
+  })
+
   return {
     tickets: query.data ?? [],
     isLoading: query.isPending,
     isError: query.isError,
     addTicket: createMutation.mutateAsync,
+    uploadAttachment: (ticketId: string, file: File) => uploadAttachmentMutation.mutateAsync({ ticketId, file }),
   }
 }
 

@@ -1,5 +1,7 @@
 "use client"
 
+import { Paperclip, X } from "lucide-react"
+
 import {
   Sheet,
   SheetContent,
@@ -9,6 +11,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useCreateTicketForm } from "@/features/tickets/create-ticket/use-create-ticket-form"
 import { IncidentFields } from "@/features/tickets/create-ticket/incident-fields"
@@ -26,13 +29,16 @@ interface CreateTicketDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreated: (payload: TicketCreateRequest) => Promise<TicketDetail>
+  onUploadAttachment: (ticketId: string, file: File) => Promise<TicketDetail>
 }
 
-function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawerProps) {
+function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment }: CreateTicketDrawerProps) {
   const { data: currentUser } = useCurrentUser()
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
-  const { values, setField, setApplication, reset, isValid } = useCreateTicketForm(primaryApplication ?? "FCI")
+  const { values, setField, setApplication, addFiles, removeFile, reset, isValid } = useCreateTicketForm(
+    primaryApplication ?? "FCI"
+  )
 
   async function handleSubmit() {
     if (!isValid || !currentUser) return
@@ -56,7 +62,10 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawe
       element: values.element || null,
       vio_app: values.vioApp || null,
     }
-    await onCreated(payload)
+    const created = await onCreated(payload)
+    for (const file of values.files) {
+      await onUploadAttachment(created.id, file)
+    }
     reset()
     onOpenChange(false)
   }
@@ -97,6 +106,36 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated }: CreateTicketDrawe
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">Références</h3>
             <ReferencesFields values={values} setField={setField} />
+          </section>
+          <Separator />
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold text-foreground">Pièces jointes</h3>
+            <Input
+              type="file"
+              multiple
+              onChange={(e) => {
+                if (e.target.files) addFiles(e.target.files)
+                e.target.value = ""
+              }}
+            />
+            {values.files.length > 0 && (
+              <ul className="space-y-2">
+                {values.files.map((file, index) => (
+                  <li
+                    key={`${file.name}-${index}`}
+                    className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm"
+                  >
+                    <span className="flex min-w-0 items-center gap-2">
+                      <Paperclip className="size-4 shrink-0 text-muted-foreground" />
+                      <span className="truncate">{file.name}</span>
+                    </span>
+                    <Button variant="ghost" size="icon" onClick={() => removeFile(index)}>
+                      <X className="size-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </div>
 

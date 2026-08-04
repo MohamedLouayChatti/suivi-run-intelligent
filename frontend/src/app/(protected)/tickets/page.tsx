@@ -15,7 +15,7 @@ import { RequirePermission, useCurrentUser, usePermissions } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 
 export default function TicketsPage() {
-  const { tickets, isLoading, addTicket } = useTicketsList()
+  const { tickets, isLoading, addTicket, uploadAttachment } = useTicketsList()
   const { data: currentUser } = useCurrentUser()
   const { hasPermission } = usePermissions()
   const canCreate = hasPermission("ticket.create")
@@ -65,7 +65,12 @@ export default function TicketsPage() {
         />
       </PageBody>
       {canCreate && (
-        <CreateTicketDrawer open={drawerOpen} onOpenChange={setDrawerOpen} onCreated={addTicket} />
+        <CreateTicketDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          onCreated={addTicket}
+          onUploadAttachment={uploadAttachment}
+        />
       )}
     </RequirePermission>
   )

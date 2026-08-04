@@ -22,6 +22,7 @@ interface CreateTicketFormState {
   requiresJira: boolean
   jiraDeliveryDate: string
   vioApp: TicketCreateRequest["vio_app"] | ""
+  files: File[]
 }
 
 function buildInitialState(defaultApplication: CreateTicketFormState["application"]): CreateTicketFormState {
@@ -41,6 +42,7 @@ function buildInitialState(defaultApplication: CreateTicketFormState["applicatio
     requiresJira: false,
     jiraDeliveryDate: "",
     vioApp: "",
+    files: [],
   }
 }
 
@@ -62,6 +64,14 @@ function useCreateTicketForm(defaultApplication: CreateTicketFormState["applicat
     setValues((prev) => ({ ...prev, application, offer: "", version: "", element: "", vioApp: "" }))
   }
 
+  function addFiles(files: FileList | File[]) {
+    setValues((prev) => ({ ...prev, files: [...prev.files, ...Array.from(files)] }))
+  }
+
+  function removeFile(index: number) {
+    setValues((prev) => ({ ...prev, files: prev.files.filter((_, i) => i !== index) }))
+  }
+
   function reset() {
     setValues(buildInitialState(defaultApplication))
   }
@@ -74,7 +84,7 @@ function useCreateTicketForm(defaultApplication: CreateTicketFormState["applicat
     (values.application !== "AERO" || values.element !== "") &&
     (values.application !== "VIO" || values.vioApp !== "")
 
-  return { values, setField, setApplication, reset, isValid }
+  return { values, setField, setApplication, addFiles, removeFile, reset, isValid }
 }
 
 export { useCreateTicketForm }

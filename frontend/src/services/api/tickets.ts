@@ -90,6 +90,38 @@ async function addComment(ticketId: string, authorId: string, content: string): 
   return data
 }
 
+async function addTicketAttachment(ticketId: string, file: File): Promise<TicketDetail> {
+  const formData = new FormData()
+  formData.append("file", file)
+  const { data } = await httpClient.post<TicketDetail>(`/tickets/${ticketId}/attachments`, formData)
+  return data
+}
+
+async function addCommentAttachment(ticketId: string, commentId: string, file: File): Promise<TicketDetail> {
+  const formData = new FormData()
+  formData.append("file", file)
+  const { data } = await httpClient.post<TicketDetail>(
+    `/tickets/${ticketId}/comments/${commentId}/attachments`,
+    formData,
+  )
+  return data
+}
+
+async function deleteTicketAttachment(ticketId: string, attachmentId: string): Promise<void> {
+  await httpClient.delete(`/attachments/${attachmentId}`, { params: { ticket_id: ticketId } })
+}
+
+async function deleteCommentAttachment(ticketId: string, commentId: string, attachmentId: string): Promise<void> {
+  await httpClient.delete(`/comments/${commentId}/attachments/${attachmentId}`, {
+    params: { ticket_id: ticketId },
+  })
+}
+
+async function downloadAttachment(attachmentId: string): Promise<Blob> {
+  const { data } = await httpClient.get<Blob>(`/attachments/${attachmentId}`, { responseType: "blob" })
+  return data
+}
+
 export {
   listTickets,
   getTicket,
@@ -104,4 +136,9 @@ export {
   archiveTicket,
   restoreTicket,
   addComment,
+  addTicketAttachment,
+  addCommentAttachment,
+  deleteTicketAttachment,
+  deleteCommentAttachment,
+  downloadAttachment,
 }
