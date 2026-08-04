@@ -14,10 +14,11 @@ class RoleDefinition:
 SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 	RoleDefinition("Admin", tuple(PERMISSIONS_BY_NAME)),
 	RoleDefinition(
-		"Support Engineer",
+		"Ingénieur Support",
 		(
 			"user.read",
 			"role.read",
+			"ticket.create",
 			"ticket.read",
 			"ticket.assign",
 			"ticket.change_priority",
@@ -32,7 +33,20 @@ SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 			"attachment.delete",
 		),
 	),
-	RoleDefinition("Support Engineer Supervisor", ()),
+	RoleDefinition(
+		"Lecteur", 
+		(
+			"user.read",
+			"role.read",
+			"permission.read",
+			"ticket.read",
+			"comment.create",
+			"comment.update",
+			"comment.delete",
+			"attachment.create",
+			"attachment.delete",
+		)
+	),
 )
 
 SEEDED_ROLE_NAMES = frozenset(role.name for role in SEEDED_ROLE_DEFINITIONS)

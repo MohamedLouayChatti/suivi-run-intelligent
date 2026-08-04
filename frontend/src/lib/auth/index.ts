@@ -11,3 +11,5 @@ export type { AuthSession } from "./use-auth-session";
 export { useCurrentUser, currentUserQueryKey } from "./use-current-user";
 export { AuthGate } from "./auth-gate";
 export { useLogout } from "./use-logout";
+export { usePermissions } from "./use-permissions";
+export { RequirePermission } from "./require-permission";
