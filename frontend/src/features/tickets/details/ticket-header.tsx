@@ -12,6 +12,8 @@ interface TicketHeaderProps {
   users: UserSummary[]
   canStart: boolean
   canResolve: boolean
+  canResume: boolean
+  canClose: boolean
   canTransfer: boolean
   canReassign: boolean
   canChangePriority: boolean
@@ -19,6 +21,8 @@ interface TicketHeaderProps {
   canRestore: boolean
   onStart: () => void
   onResolve: () => void
+  onResume: () => void
+  onClose: () => void
   onArchive: () => void
   onRestore: () => void
   onReassign: (assigneeId: string) => void

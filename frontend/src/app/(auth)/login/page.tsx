@@ -90,13 +90,6 @@ export default function LoginPage() {
             onChange={(event) => setPassword(event.target.value)}
           />
         </div>
-        <label className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Checkbox
-            checked={keepSignedIn}
-            onCheckedChange={(checked) => setKeepSignedIn(checked === true)}
-          />
-          Rester connecté sur cet appareil
-        </label>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 

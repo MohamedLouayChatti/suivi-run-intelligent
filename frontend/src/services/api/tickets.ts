@@ -43,6 +43,16 @@ async function resolveTicket(ticketId: string, resolutionNotes: string): Promise
   return data
 }
 
+async function closeTicket(ticketId: string): Promise<TicketDetail> {
+  const { data } = await httpClient.post<TicketDetail>(`/tickets/${ticketId}/close`)
+  return data
+}
+
+async function resumeTicket(ticketId: string): Promise<TicketDetail> {
+  const { data } = await httpClient.post<TicketDetail>(`/tickets/${ticketId}/resume`)
+  return data
+}
+
 async function transferTicket(ticketId: string, destination: TransferDestination): Promise<TicketDetail> {
   const { data } = await httpClient.post<TicketDetail>(`/tickets/${ticketId}/transfer`, {
     transferred_to: destination,
@@ -86,6 +96,8 @@ export {
   createTicket,
   startTicket,
   resolveTicket,
+  closeTicket,
+  resumeTicket,
   transferTicket,
   reassignTicket,
   changeTicketPriority,

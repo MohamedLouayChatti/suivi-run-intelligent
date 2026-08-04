@@ -28,6 +28,8 @@ function TicketDetailView({ id }: { id: string }) {
     notFound,
     onStart,
     onResolve,
+    onClose,
+    onResume,
     onArchive,
     onRestore,
     onReassign,
@@ -59,18 +61,34 @@ function TicketDetailView({ id }: { id: string }) {
   }
 
   const similarIncidents = getSimilarIncidents(ticket.id)
+
+  // Mirrors Ticket._transition_to's allowed map and the explicit checks in resume()/close()
+  // (app/modules/ticket_management/domain/entities/ticket.py) — every status-changing action
+  // also requires the ticket to be unarchived, since all of them go through _ensure_mutable.
   const assigneeOrAdmin = isTicketAssignee(ticket) || isAdmin
+  const mutable = ticket.archived_at === null
+  const canChangeStatus = mutable && hasPermission("ticket.change_status") && isTicketAssignee(ticket)
+  const isResolvedOrTransferred = ticket.status === "RESOLVED" || ticket.status === "TRANSFERRED"
 
   return (
     <RequirePermission permission="ticket.read">
       <TicketHeader
         ticket={ticket}
         users={users}
-        canStart={hasPermission("ticket.change_status") && isTicketAssignee(ticket)}
-        canResolve={hasPermission("ticket.change_status") && isTicketAssignee(ticket)}
-        canTransfer={hasPermission("ticket.transfer_application") && isTicketAssignee(ticket)}
-        canReassign={hasPermission("ticket.assign") && assigneeOrAdmin}
-        canChangePriority={hasPermission("ticket.change_priority") && assigneeOrAdmin}
+        canStart={canChangeStatus && ticket.status === "OPEN"}
+        canResolve={canChangeStatus && ticket.status === "IN_PROGRESS"}
+        canResume={canChangeStatus && isResolvedOrTransferred}
+        canClose={canChangeStatus && isResolvedOrTransferred}
+        canTransfer={
+          mutable &&
+          hasPermission("ticket.transfer_application") &&
+          isTicketAssignee(ticket) &&
+          ticket.status === "IN_PROGRESS"
+        }
+        canReassign={mutable && ticket.status !== "CLOSED" && hasPermission("ticket.assign") && assigneeOrAdmin}
+        canChangePriority={
+          mutable && ticket.status !== "CLOSED" && hasPermission("ticket.change_priority") && assigneeOrAdmin
+        }
         canArchive={hasPermission("ticket.archive") && assigneeOrAdmin}
         canRestore={hasPermission("ticket.restore") && assigneeOrAdmin}
         onStart={onStart}
@@ -78,6 +96,8 @@ function TicketDetailView({ id }: { id: string }) {
           const notes = window.prompt("Notes de résolution")
           if (notes) onResolve(notes)
         }}
+        onResume={onResume}
+        onClose={onClose}
         onArchive={onArchive}
         onRestore={onRestore}
         onReassign={onReassign}

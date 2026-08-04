@@ -1,6 +1,6 @@
 "use client"
 
-import { Archive, ArchiveRestore, ArrowRightLeft, SignalHigh, UserRoundCog } from "lucide-react"
+import { Archive, ArchiveRestore, ArrowRightLeft, Lock, RotateCcw, SignalHigh, UserRoundCog } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -22,6 +22,8 @@ interface TicketActionsProps {
   users: UserSummary[]
   canStart: boolean
   canResolve: boolean
+  canResume: boolean
+  canClose: boolean
   canTransfer: boolean
   canReassign: boolean
   canChangePriority: boolean
@@ -29,6 +31,8 @@ interface TicketActionsProps {
   canRestore: boolean
   onStart: () => void
   onResolve: () => void
+  onResume: () => void
+  onClose: () => void
   onArchive: () => void
   onRestore: () => void
   onReassign: (assigneeId: string) => void
@@ -41,6 +45,8 @@ function TicketActions({
   users,
   canStart,
   canResolve,
+  canResume,
+  canClose,
   canTransfer,
   canReassign,
   canChangePriority,
@@ -48,6 +54,8 @@ function TicketActions({
   canRestore,
   onStart,
   onResolve,
+  onResume,
+  onClose,
   onArchive,
   onRestore,
   onReassign,
@@ -58,14 +66,24 @@ function TicketActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {ticket.status === "OPEN" && canStart && (
+      {canStart && (
         <Button size="sm" onClick={onStart}>
           Démarrer
         </Button>
       )}
-      {ticket.status === "IN_PROGRESS" && canResolve && (
+      {canResolve && (
         <Button size="sm" onClick={onResolve}>
           Résoudre
+        </Button>
+      )}
+      {canResume && (
+        <Button size="sm" onClick={onResume}>
+          <RotateCcw className="size-4" /> Reprendre
+        </Button>
+      )}
+      {canClose && (
+        <Button size="sm" variant="outline" onClick={onClose}>
+          <Lock className="size-4" /> Fermer
         </Button>
       )}
 

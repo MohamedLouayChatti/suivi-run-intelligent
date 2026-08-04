@@ -7,6 +7,8 @@ import {
   getTicket,
   startTicket,
   resolveTicket,
+  closeTicket,
+  resumeTicket,
   transferTicket,
   reassignTicket,
   changeTicketPriority,
@@ -41,6 +43,8 @@ function useTicketDetail(id: string) {
     mutationFn: (resolutionNotes: string) => resolveTicket(id, resolutionNotes),
     onSuccess: afterMutation,
   })
+  const close = useMutation({ mutationFn: () => closeTicket(id), onSuccess: afterMutation })
+  const resume = useMutation({ mutationFn: () => resumeTicket(id), onSuccess: afterMutation })
   const transfer = useMutation({
     mutationFn: (destination: TransferDestination) => transferTicket(id, destination),
     onSuccess: afterMutation,
@@ -67,6 +71,8 @@ function useTicketDetail(id: string) {
     notFound: query.isError,
     onStart: () => start.mutate(),
     onResolve: (resolutionNotes: string) => resolve.mutate(resolutionNotes),
+    onClose: () => close.mutate(),
+    onResume: () => resume.mutate(),
     onTransfer: (destination: TransferDestination) => transfer.mutate(destination),
     onReassign: (assigneeId: string) => reassign.mutate(assigneeId),
     onChangePriority: (priority: Priority) => changePriority.mutate(priority),
