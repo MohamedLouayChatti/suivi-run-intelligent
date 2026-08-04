@@ -10,31 +10,55 @@ import {
 import { applicationOptions } from "@/features/tickets/constants"
 import { timeRangeOptions, timeRangeLabels } from "@/features/analytics/constants"
 import type { AnalyticsFilters } from "@/features/analytics/filter-analytics"
+import type { components } from "@/types/api"
+
+type Application = components["schemas"]["Application"]
 
 interface AnalyticsFilterControlsProps {
   filters: AnalyticsFilters
   onChange: (patch: Partial<AnalyticsFilters>) => void
+  /** Hard admin-role gate — only admins may see cross-application ("Toutes les applications")
+   * analytics; everyone else is scoped to their own assignments. */
+  isAdmin: boolean
+  /** The user's own applications (primary, + backup if any) — ignored for admins, who choose
+   * from every application instead. */
+  accessibleApplications: Application[]
 }
 
-// Rendered inside the page header's actions slot — later becomes permission-aware
-// (application choices narrowed to the authenticated user's assignments).
-function AnalyticsFilterControls({ filters, onChange }: AnalyticsFilterControlsProps) {
+// Rendered inside the page header's actions slot.
+function AnalyticsFilterControls({
+  filters,
+  onChange,
+  isAdmin,
+  accessibleApplications,
+}: AnalyticsFilterControlsProps) {
   return (
     <>
       <Select
         value={filters.application}
         onValueChange={(value) => onChange({ application: value as AnalyticsFilters["application"] })}
+        disabled={!isAdmin && accessibleApplications.length < 2}
       >
         <SelectTrigger className="w-[170px]">
           <SelectValue placeholder="Application" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">Toutes les applications</SelectItem>
-          {applicationOptions.map((app) => (
-            <SelectItem key={app} value={app}>
-              {app}
-            </SelectItem>
-          ))}
+          {isAdmin ? (
+            <>
+              <SelectItem value="all">Toutes les applications</SelectItem>
+              {applicationOptions.map((app) => (
+                <SelectItem key={app} value={app}>
+                  {app}
+                </SelectItem>
+              ))}
+            </>
+          ) : (
+            accessibleApplications.map((app) => (
+              <SelectItem key={app} value={app}>
+                {app}
+              </SelectItem>
+            ))
+          )}
         </SelectContent>
       </Select>
 

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { PageBody, PageHeader } from "@/components/app/page"
 import { AnalyticsFilterControls } from "@/features/analytics/analytics-filters"
@@ -25,9 +25,27 @@ import {
 import { PriorityDistributionChart } from "@/features/analytics/priority-distribution-chart"
 import { StatusDistributionChart } from "@/features/analytics/status-distribution-chart"
 import { TeamOverview } from "@/features/analytics/team/team-overview"
+import { usePermissions } from "@/lib/auth"
+import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 
 export default function AnalyticsPage() {
+  const { user: currentUser, isAdmin } = usePermissions()
+  const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
+  const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
+
   const [filters, setFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters)
+
+  // Non-admins can never filter across every application, so their view defaults to (and never
+  // offers "all", only) their own assignments — admins keep the "all applications" default.
+  // Applied once so it never overrides a filter the user has since changed.
+  const appliedDefaultRef = useRef(false)
+  useEffect(() => {
+    if (appliedDefaultRef.current || !currentUser) return
+    if (!isAdmin && primaryApplication) {
+      setFilters((prev) => ({ ...prev, application: primaryApplication }))
+    }
+    appliedDefaultRef.current = true
+  }, [currentUser, isAdmin, primaryApplication])
 
   function handleFilterChange(patch: Partial<AnalyticsFilters>) {
     setFilters((prev) => ({ ...prev, ...patch }))
@@ -50,7 +68,14 @@ export default function AnalyticsPage() {
       <PageHeader
         title="Analyses"
         description="Performance opérationnelle du support — tickets, résolution, tendances"
-        actions={<AnalyticsFilterControls filters={filters} onChange={handleFilterChange} />}
+        actions={
+          <AnalyticsFilterControls
+            filters={filters}
+            onChange={handleFilterChange}
+            isAdmin={isAdmin}
+            accessibleApplications={accessibleApplications}
+          />
+        }
       />
       <PageBody className="space-y-6">
         <KpiSnapshotCards snapshot={snapshot} />
