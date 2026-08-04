@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Paperclip, X } from "lucide-react"
 
 import {
@@ -39,9 +40,11 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment 
   const { values, setField, setApplication, addFiles, removeFile, reset, isValid } = useCreateTicketForm(
     primaryApplication ?? "FCI"
   )
+  const [error, setError] = useState<string | null>(null)
 
   async function handleSubmit() {
     if (!isValid || !currentUser) return
+    setError(null)
     // The creator is always the assignee and their own functional team, both fixed by the
     // backend/business rules — never user-editable fields on this form.
     const payload: TicketCreateRequest = {
@@ -62,9 +65,16 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment 
       element: values.element || null,
       vio_app: values.vioApp || null,
     }
-    const created = await onCreated(payload)
-    for (const file of values.files) {
-      await onUploadAttachment(created.id, file)
+    try {
+      const created = await onCreated(payload)
+      for (const file of values.files) {
+        await onUploadAttachment(created.id, file)
+      }
+    } catch (err) {
+      // The ticket may already have been created (or partially attached) by the time this
+      // throws — leave the drawer open so the user sees the error instead of losing it.
+      setError(err instanceof Error ? err.message : "Une erreur est survenue.")
+      return
     }
     reset()
     onOpenChange(false)
@@ -73,6 +83,7 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment 
   function handleOpenChange(next: boolean) {
     // Re-seed the form (including the Application default) every time it opens or closes,
     // so a freshly-loaded currentUser is always reflected.
+    setError(null)
     reset()
     onOpenChange(next)
   }
@@ -114,8 +125,9 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment 
               type="file"
               multiple
               onChange={(e) => {
-                if (e.target.files) addFiles(e.target.files)
+                const selected = Array.from(e.target.files ?? [])
                 e.target.value = ""
+                if (selected.length > 0) addFiles(selected)
               }}
             />
             {values.files.length > 0 && (
@@ -139,13 +151,16 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment 
           </section>
         </div>
 
-        <SheetFooter className="flex-row justify-end border-t border-border">
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
-            Annuler
-          </Button>
-          <Button onClick={handleSubmit} disabled={!isValid || !currentUser}>
-            Créer le ticket
-          </Button>
+        <SheetFooter className="border-t border-border">
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => handleOpenChange(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleSubmit} disabled={!isValid || !currentUser}>
+              Créer le ticket
+            </Button>
+          </div>
         </SheetFooter>
       </SheetContent>
     </Sheet>

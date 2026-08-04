@@ -108,6 +108,8 @@ function useTicketDetail(id: string) {
     onDeleteTicketAttachment: (attachmentId: string) => deleteTicketAttachmentMutation.mutate(attachmentId),
     onDeleteCommentAttachment: (commentId: string, attachmentId: string) =>
       deleteCommentAttachmentMutation.mutate({ commentId, attachmentId }),
+    ticketAttachmentError: uploadTicketAttachmentMutation.error?.message ?? deleteTicketAttachmentMutation.error?.message ?? null,
+    commentAttachmentError: addTicketComment.error?.message ?? deleteCommentAttachmentMutation.error?.message ?? null,
   }
 }
 

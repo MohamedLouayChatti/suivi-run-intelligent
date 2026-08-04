@@ -64,8 +64,8 @@ function useCreateTicketForm(defaultApplication: CreateTicketFormState["applicat
     setValues((prev) => ({ ...prev, application, offer: "", version: "", element: "", vioApp: "" }))
   }
 
-  function addFiles(files: FileList | File[]) {
-    setValues((prev) => ({ ...prev, files: [...prev.files, ...Array.from(files)] }))
+  function addFiles(files: File[]) {
+    setValues((prev) => ({ ...prev, files: [...prev.files, ...files] }))
   }
 
   function removeFile(index: number) {

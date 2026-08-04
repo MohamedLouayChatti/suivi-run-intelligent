@@ -39,6 +39,8 @@ function TicketDetailView({ id }: { id: string }) {
     onUploadTicketAttachment,
     onDeleteTicketAttachment,
     onDeleteCommentAttachment,
+    ticketAttachmentError,
+    commentAttachmentError,
   } = useTicketDetail(id)
   const { users } = useUserDirectory()
   const { user: currentUser, hasPermission, isTicketAssignee, isAdmin } = usePermissions()
@@ -126,11 +128,13 @@ function TicketDetailView({ id }: { id: string }) {
               isLoading={false}
               onAddComment={(content, files) => currentUser && onAddComment(currentUser.id, content, files)}
               onDeleteCommentAttachment={onDeleteCommentAttachment}
+              attachmentError={commentAttachmentError}
             />
             <AttachmentsSection
               ticket={ticket}
               onUploadAttachment={onUploadTicketAttachment}
               onDeleteAttachment={onDeleteTicketAttachment}
+              error={ticketAttachmentError}
             />
             <ActivityTimeline ticket={ticket} />
           </div>

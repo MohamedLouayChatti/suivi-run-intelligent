@@ -16,12 +16,16 @@ if (!process.env.NEXT_PUBLIC_API_BASE_URL && process.env.NODE_ENV !== "productio
  * The single Axios instance for the whole app. Feature API modules under
  * src/services/api/* import this instead of configuring HTTP themselves —
  * base URL, JWT attachment, and error normalization all live here, once.
+ *
+ * No default Content-Type header: axios's own transformRequest already sets
+ * `application/json` for plain object bodies. A blanket default here would
+ * make axios see `hasJSONContentType` as true for FormData bodies too, and
+ * JSON-stringify the FormData wrapper instead of sending real multipart
+ * bytes — breaking every file upload silently (server sees a body with no
+ * `file` field and 422s).
  */
 const httpClient = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 httpClient.interceptors.request.use(async (config) => {

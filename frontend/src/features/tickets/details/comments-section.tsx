@@ -48,9 +48,16 @@ interface CommentsSectionProps {
   isLoading: boolean
   onAddComment: (content: string, files: File[]) => void
   onDeleteCommentAttachment: (commentId: string, attachmentId: string) => void
+  attachmentError: string | null
 }
 
-function CommentsSection({ ticket, isLoading, onAddComment, onDeleteCommentAttachment }: CommentsSectionProps) {
+function CommentsSection({
+  ticket,
+  isLoading,
+  onAddComment,
+  onDeleteCommentAttachment,
+  attachmentError,
+}: CommentsSectionProps) {
   const [draft, setDraft] = useState("")
   const [files, setFiles] = useState<File[]>([])
   const { user: currentUser, hasPermission, isAdmin, canActOnApplication, isAttachmentUploader } = usePermissions()
@@ -66,6 +73,7 @@ function CommentsSection({ ticket, isLoading, onAddComment, onDeleteCommentAttac
   return (
     <SectionCard title="Commentaires" description="Échanges autour de ce ticket">
       <div className="space-y-4">
+        {attachmentError && <p className="text-sm text-destructive">{attachmentError}</p>}
         {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-14 w-full" />
@@ -75,51 +83,59 @@ function CommentsSection({ ticket, isLoading, onAddComment, onDeleteCommentAttac
           <p className="text-sm text-muted-foreground">Aucun commentaire pour le moment.</p>
         ) : (
           <ul className="space-y-4">
-            {ticket.comments.map((c) => (
-              <li key={c.id} className="flex gap-3">
-                <Avatar size="sm">
-                  <AvatarFallback>{initials(c.author?.display_name ?? "?")}</AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1 rounded-lg bg-muted/50 px-3 py-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">
-                      {c.author?.display_name ?? "Utilisateur inconnu"}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {dateTimeFormatter.format(new Date(c.created_at))}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-sm whitespace-pre-wrap">{c.content}</p>
-                  {c.attachments.length > 0 && (
-                    <ul className="mt-2 space-y-1">
-                      {c.attachments.map((a) => (
-                        <li key={a.id} className="flex items-center justify-between gap-2 text-xs">
-                          <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
-                            <Paperclip className="size-3.5 shrink-0" />
-                            <span className="truncate">{a.filename}</span>
-                          </span>
-                          <span className="flex shrink-0 items-center gap-1">
-                            <Button variant="ghost" size="icon" className="size-6" onClick={() => handleDownload(a)}>
-                              <Download className="size-3.5" />
-                            </Button>
-                            {isAttachmentUploader(a) && (
+            {ticket.comments.map((c) => {
+              const activeAttachments = c.attachments.filter((a) => a.deleted_at === null)
+              return (
+                <li key={c.id} className="flex gap-3">
+                  <Avatar size="sm">
+                    <AvatarFallback>{initials(c.author?.display_name ?? "?")}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1 rounded-lg bg-muted/50 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium">
+                        {c.author?.display_name ?? "Utilisateur inconnu"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {dateTimeFormatter.format(new Date(c.created_at))}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm whitespace-pre-wrap">{c.content}</p>
+                    {activeAttachments.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {activeAttachments.map((a) => (
+                          <li key={a.id} className="flex items-center justify-between gap-2 text-xs">
+                            <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
+                              <Paperclip className="size-3.5 shrink-0" />
+                              <span className="truncate">{a.filename}</span>
+                            </span>
+                            <span className="flex shrink-0 items-center gap-1">
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="size-6"
-                                onClick={() => onDeleteCommentAttachment(c.id, a.id)}
+                                onClick={() => handleDownload(a)}
                               >
-                                <X className="size-3.5" />
+                                <Download className="size-3.5" />
                               </Button>
-                            )}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </li>
-            ))}
+                              {isAttachmentUploader(a) && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-6"
+                                  onClick={() => onDeleteCommentAttachment(c.id, a.id)}
+                                >
+                                  <X className="size-3.5" />
+                                </Button>
+                              )}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
 
@@ -139,8 +155,9 @@ function CommentsSection({ ticket, isLoading, onAddComment, onDeleteCommentAttac
                 type="file"
                 multiple
                 onChange={(e) => {
-                  if (e.target.files) setFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])])
+                  const selected = Array.from(e.target.files ?? [])
                   e.target.value = ""
+                  if (selected.length > 0) setFiles((prev) => [...prev, ...selected])
                 }}
               />
               {files.length > 0 && (
