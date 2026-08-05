@@ -3,17 +3,19 @@
 import { type FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSignIn } from "@clerk/nextjs/legacy";
+import { useClerk, useSignIn } from "@clerk/nextjs";
 
 import { AuthLayout } from "@/components/app/auth-layout";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PASSWORD_REQUIREMENTS_TEXT, isPasswordValid } from "@/features/auth/password";
-import { getClerkErrorMessage } from "@/features/auth/clerk-error";
+import { clerkErrorMessage } from "@/features/auth/clerk-error";
+import { VerificationCodeStep } from "@/features/auth/verification-code-step";
+import { Button } from "@/components/ui/button";
 
 export default function ForgotPasswordPage() {
-  const { isLoaded, signIn, setActive } = useSignIn();
+  const { signIn } = useSignIn();
+  const { loaded: isClerkLoaded } = useClerk();
   const router = useRouter();
 
   const [step, setStep] = useState<"request" | "reset">("request");
@@ -27,18 +29,23 @@ export default function ForgotPasswordPage() {
 
   async function handleRequestCode(event: FormEvent) {
     event.preventDefault();
-    if (!isLoaded || isSubmitting) return;
+    if (!isClerkLoaded || isSubmitting) return;
 
     setError(null);
     setIsSubmitting(true);
     try {
-      await signIn.create({
-        strategy: "reset_password_email_code",
-        identifier: email,
-      });
+      const { error: createError } = await signIn.create({ identifier: email });
+      if (createError) {
+        setError(clerkErrorMessage(createError));
+        return;
+      }
+
+      const { error: sendError } = await signIn.resetPasswordEmailCode.sendCode();
+      if (sendError) {
+        setError(clerkErrorMessage(sendError));
+        return;
+      }
       setStep("reset");
-    } catch (err) {
-      setError(getClerkErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -46,7 +53,7 @@ export default function ForgotPasswordPage() {
 
   async function handleResetPassword(event: FormEvent) {
     event.preventDefault();
-    if (!isLoaded || isSubmitting) return;
+    if (!isClerkLoaded || isSubmitting) return;
 
     if (!isPasswordValid(password)) {
       setError(PASSWORD_REQUIREMENTS_TEXT);
@@ -56,21 +63,31 @@ export default function ForgotPasswordPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      const result = await signIn.attemptFirstFactor({
-        strategy: "reset_password_email_code",
-        code,
+      const { error: verifyError } = await signIn.resetPasswordEmailCode.verifyCode({ code });
+      if (verifyError) {
+        setError(clerkErrorMessage(verifyError));
+        return;
+      }
+
+      const { error: submitError } = await signIn.resetPasswordEmailCode.submitPassword({
         password,
       });
+      if (submitError) {
+        setError(clerkErrorMessage(submitError));
+        return;
+      }
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+      if (signIn.status === "complete") {
+        const { error: finalizeError } = await signIn.finalize();
+        if (finalizeError) {
+          setError(clerkErrorMessage(finalizeError));
+          return;
+        }
         router.push("/dashboard");
         return;
       }
 
       setError("Réinitialisation incomplète. Veuillez réessayer.");
-    } catch (err) {
-      setError(getClerkErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -82,18 +99,15 @@ export default function ForgotPasswordPage() {
         title="Réinitialiser le mot de passe"
         description={`Entrez le code envoyé à ${email} et choisissez un nouveau mot de passe.`}
       >
-        <form className="space-y-4" onSubmit={handleResetPassword}>
-          <div className="space-y-2">
-            <Label htmlFor="code">Code de vérification</Label>
-            <Input
-              id="code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              required
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-            />
-          </div>
+        <VerificationCodeStep
+          code={code}
+          onCodeChange={setCode}
+          onSubmit={handleResetPassword}
+          isSubmitting={isSubmitting}
+          submitLabel="Réinitialiser le mot de passe"
+          submittingLabel="Réinitialisation..."
+          error={error}
+        >
           <div className="space-y-2">
             <Label htmlFor="password">Nouveau mot de passe</Label>
             <Input
@@ -106,13 +120,7 @@ export default function ForgotPasswordPage() {
             />
             <p className="text-xs text-muted-foreground">{PASSWORD_REQUIREMENTS_TEXT}</p>
           </div>
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
-          <Button type="submit" className="w-full" disabled={!isLoaded || isSubmitting}>
-            {isSubmitting ? "Réinitialisation..." : "Réinitialiser le mot de passe"}
-          </Button>
-        </form>
+        </VerificationCodeStep>
       </AuthLayout>
     );
   }
@@ -138,7 +146,7 @@ export default function ForgotPasswordPage() {
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <Button type="submit" className="w-full" disabled={!isLoaded || isSubmitting}>
+        <Button type="submit" className="w-full" disabled={!isClerkLoaded || isSubmitting}>
           {isSubmitting ? "Envoi en cours..." : "Envoyer le code"}
         </Button>
       </form>

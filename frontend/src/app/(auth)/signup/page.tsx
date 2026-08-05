@@ -3,7 +3,7 @@
 import { type FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSignUp } from "@clerk/nextjs/legacy";
+import { useClerk, useSignUp } from "@clerk/nextjs";
 
 import { AuthLayout } from "@/components/app/auth-layout";
 import { Button } from "@/components/ui/button";
@@ -22,13 +22,15 @@ import {
   functionalTeamOptions,
 } from "@/features/tickets/constants";
 import { PASSWORD_REQUIREMENTS_TEXT, isPasswordValid } from "@/features/auth/password";
-import { getClerkErrorMessage } from "@/features/auth/clerk-error";
+import { clerkErrorMessage } from "@/features/auth/clerk-error";
+import { VerificationCodeStep } from "@/features/auth/verification-code-step";
 
 type Application = (typeof applicationOptions)[number];
 type FunctionalTeam = (typeof functionalTeamOptions)[number];
 
 export default function SignupPage() {
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const { signUp } = useSignUp();
+  const { loaded: isClerkLoaded } = useClerk();
   const router = useRouter();
 
   const [step, setStep] = useState<"form" | "verify">("form");
@@ -44,9 +46,18 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  async function completeSignUp() {
+    const { error: finalizeError } = await signUp.finalize();
+    if (finalizeError) {
+      setError(clerkErrorMessage(finalizeError));
+      return;
+    }
+    router.push("/dashboard");
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!isLoaded || isSubmitting) return;
+    if (!isClerkLoaded || isSubmitting) return;
 
     if (!isPasswordValid(password)) {
       setError(PASSWORD_REQUIREMENTS_TEXT);
@@ -56,7 +67,7 @@ export default function SignupPage() {
     setError(null);
     setIsSubmitting(true);
     try {
-      await signUp.create({
+      const { error: passwordError } = await signUp.password({
         emailAddress: email,
         password,
         firstName,
@@ -66,11 +77,22 @@ export default function SignupPage() {
           functionalTeam,
         },
       });
+      if (passwordError) {
+        setError(clerkErrorMessage(passwordError));
+        return;
+      }
 
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      if (signUp.status === "complete") {
+        await completeSignUp();
+        return;
+      }
+
+      const { error: sendError } = await signUp.verifications.sendEmailCode();
+      if (sendError) {
+        setError(clerkErrorMessage(sendError));
+        return;
+      }
       setStep("verify");
-    } catch (err) {
-      setError(getClerkErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -78,35 +100,33 @@ export default function SignupPage() {
 
   async function handleVerify(event: FormEvent) {
     event.preventDefault();
-    if (!isLoaded || isSubmitting) return;
+    if (!isClerkLoaded || isSubmitting) return;
 
     setError(null);
     setIsSubmitting(true);
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code });
+      const { error: verifyError } = await signUp.verifications.verifyEmailCode({ code });
+      if (verifyError) {
+        setError(clerkErrorMessage(verifyError));
+        return;
+      }
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        router.push("/dashboard");
+      if (signUp.status === "complete") {
+        await completeSignUp();
         return;
       }
 
       setError("Vérification incomplète. Veuillez réessayer.");
-    } catch (err) {
-      setError(getClerkErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
   }
 
   async function handleResendCode() {
-    if (!isLoaded || isSubmitting) return;
+    if (!isClerkLoaded || isSubmitting) return;
     setError(null);
-    try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-    } catch (err) {
-      setError(getClerkErrorMessage(err));
-    }
+    const { error: sendError } = await signUp.verifications.sendEmailCode();
+    if (sendError) setError(clerkErrorMessage(sendError));
   }
 
   if (step === "verify") {
@@ -115,35 +135,27 @@ export default function SignupPage() {
         title="Vérifiez votre e-mail"
         description={`Entrez le code envoyé à ${email}.`}
       >
-        <form className="space-y-4" onSubmit={handleVerify}>
-          <div className="space-y-2">
-            <Label htmlFor="code">Code de vérification</Label>
-            <Input
-              id="code"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              required
-              value={code}
-              onChange={(event) => setCode(event.target.value)}
-            />
-          </div>
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
-          <Button type="submit" className="w-full" disabled={!isLoaded || isSubmitting}>
-            {isSubmitting ? "Vérification..." : "Vérifier"}
-          </Button>
-        </form>
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Vous n&apos;avez rien reçu ?{" "}
-          <button
-            type="button"
-            onClick={handleResendCode}
-            className="font-medium text-primary hover:underline"
-          >
-            Renvoyer le code
-          </button>
-        </p>
+        <VerificationCodeStep
+          code={code}
+          onCodeChange={setCode}
+          onSubmit={handleVerify}
+          isSubmitting={isSubmitting}
+          submitLabel="Vérifier"
+          submittingLabel="Vérification..."
+          error={error}
+          footer={
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              Vous n&apos;avez rien reçu ?{" "}
+              <button
+                type="button"
+                onClick={handleResendCode}
+                className="font-medium text-primary hover:underline"
+              >
+                Renvoyer le code
+              </button>
+            </p>
+          }
+        />
       </AuthLayout>
     );
   }
@@ -241,7 +253,7 @@ export default function SignupPage() {
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <Button type="submit" className="w-full" disabled={!isLoaded || isSubmitting}>
+        <Button type="submit" className="w-full" disabled={!isClerkLoaded || isSubmitting}>
           {isSubmitting ? "Envoi en cours..." : "Soumettre la demande"}
         </Button>
       </form>

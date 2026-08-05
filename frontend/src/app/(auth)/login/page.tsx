@@ -3,7 +3,7 @@
 import { type FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSignIn } from "@clerk/nextjs/legacy";
+import { useClerk, useSignIn } from "@clerk/nextjs";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { AuthLayout } from "@/components/app/auth-layout";
@@ -11,46 +11,165 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getClerkErrorMessage } from "@/features/auth/clerk-error";
+import { clerkErrorMessage } from "@/features/auth/clerk-error";
+import { VerificationCodeStep } from "@/features/auth/verification-code-step";
+
+type SecondFactorStrategy = "email_code" | "phone_code";
+
+interface SecondFactor {
+  strategy: SecondFactorStrategy;
+  safeIdentifier: string;
+}
+
+/**
+ * Picks the second factor Client Trust should use to verify this device: prefers
+ * `email_code` (matches the verification UX already used elsewhere in this flow),
+ * falls back to `phone_code` if that's the only one the Clerk Dashboard config supports.
+ */
+function pickSecondFactor(
+  factors: ReadonlyArray<{ strategy: string; safeIdentifier?: string }>,
+): SecondFactor | null {
+  for (const strategy of ["email_code", "phone_code"] as const) {
+    const factor = factors.find((candidate) => candidate.strategy === strategy);
+    if (factor?.safeIdentifier) return { strategy, safeIdentifier: factor.safeIdentifier };
+  }
+  return null;
+}
 
 export default function LoginPage() {
-  const { isLoaded, signIn, setActive } = useSignIn();
+  const { signIn } = useSignIn();
+  const { loaded: isClerkLoaded } = useClerk();
   const router = useRouter();
   const queryClient = useQueryClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [keepSignedIn, setKeepSignedIn] = useState(false);
+  const [code, setCode] = useState("");
+  const [secondFactor, setSecondFactor] = useState<SecondFactor | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(event: FormEvent) {
+  async function sendSecondFactorCode(strategy: SecondFactorStrategy) {
+    return strategy === "email_code" ? signIn.mfa.sendEmailCode() : signIn.mfa.sendPhoneCode();
+  }
+
+  async function completeSignIn() {
+    const { error: finalizeError } = await signIn.finalize();
+    if (finalizeError) {
+      setError(clerkErrorMessage(finalizeError));
+      return;
+    }
+    // Wipe any state cached under the previous session (e.g. another user who never
+    // clicked "Se déconnecter") so the dashboard never renders stale identity/data.
+    queryClient.clear();
+    router.push("/dashboard");
+  }
+
+  async function handleCredentialsSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!isLoaded || isSubmitting) return;
+    if (!isClerkLoaded || isSubmitting) return;
 
     setError(null);
     setIsSubmitting(true);
     try {
-      const result = await signIn.create({
-        identifier: email,
-        password,
-      });
-
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        // Wipe any state cached under the previous session (e.g. another user who never
-        // clicked "Se déconnecter") so the dashboard never renders stale identity/data.
-        queryClient.clear();
-        router.push("/dashboard");
+      const { error: passwordError } = await signIn.password({ identifier: email, password });
+      if (passwordError) {
+        setError(clerkErrorMessage(passwordError));
         return;
       }
 
-      setError("Connexion incomplète. Veuillez réessayer.");
-    } catch (err) {
-      setError(getClerkErrorMessage(err));
+      switch (signIn.status) {
+        case "complete":
+          await completeSignIn();
+          return;
+        case "needs_client_trust": {
+          const factor = pickSecondFactor(signIn.supportedSecondFactors);
+          if (!factor) {
+            setError(
+              "Vérification supplémentaire requise mais non prise en charge. Contactez un administrateur.",
+            );
+            return;
+          }
+          const { error: sendError } = await sendSecondFactorCode(factor.strategy);
+          if (sendError) {
+            setError(clerkErrorMessage(sendError));
+            return;
+          }
+          setSecondFactor(factor);
+          return;
+        }
+        default:
+          setError("Connexion incomplète. Veuillez réessayer.");
+      }
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleVerifySubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!isClerkLoaded || isSubmitting || !secondFactor) return;
+
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const { error: verifyError } =
+        secondFactor.strategy === "email_code"
+          ? await signIn.mfa.verifyEmailCode({ code })
+          : await signIn.mfa.verifyPhoneCode({ code });
+      if (verifyError) {
+        setError(clerkErrorMessage(verifyError));
+        return;
+      }
+
+      if (signIn.status === "complete") {
+        await completeSignIn();
+        return;
+      }
+
+      setError("Vérification incomplète. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleResendCode() {
+    if (!isClerkLoaded || isSubmitting || !secondFactor) return;
+    setError(null);
+    const { error: sendError } = await sendSecondFactorCode(secondFactor.strategy);
+    if (sendError) setError(clerkErrorMessage(sendError));
+  }
+
+  if (secondFactor) {
+    return (
+      <AuthLayout
+        title="Vérification supplémentaire"
+        description={`Nouvel appareil détecté. Entrez le code envoyé à ${secondFactor.safeIdentifier}.`}
+      >
+        <VerificationCodeStep
+          code={code}
+          onCodeChange={setCode}
+          onSubmit={handleVerifySubmit}
+          isSubmitting={isSubmitting}
+          submitLabel="Vérifier"
+          submittingLabel="Vérification..."
+          error={error}
+          footer={
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              Vous n&apos;avez rien reçu ?{" "}
+              <button
+                type="button"
+                onClick={handleResendCode}
+                className="font-medium text-primary hover:underline"
+              >
+                Renvoyer le code
+              </button>
+            </p>
+          }
+        />
+      </AuthLayout>
+    );
   }
 
   return (
@@ -58,7 +177,7 @@ export default function LoginPage() {
       title="Connexion"
       description="Utilisez votre compte professionnel pour accéder à la console."
     >
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleCredentialsSubmit}>
         <div className="space-y-2">
           <Label htmlFor="email">E-mail professionnel</Label>
           <Input
@@ -93,7 +212,7 @@ export default function LoginPage() {
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <Button type="submit" className="w-full" disabled={!isLoaded || isSubmitting}>
+        <Button type="submit" className="w-full" disabled={!isClerkLoaded || isSubmitting}>
           {isSubmitting ? "Connexion en cours..." : "Se connecter"}
         </Button>
       </form>
