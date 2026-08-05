@@ -41,7 +41,7 @@ export const administrationNavGroupLabel = "Administration";
 export const administrationNavItems: NavItem[] = [
   { title: "Utilisateurs", href: "/admin/users", icon: Users, requires: { adminOnly: true } },
   { title: "Rôles", href: "/admin/roles", icon: ShieldCheck, requires: { adminOnly: true } },
-  { title: "Audit", href: "/admin/audit", icon: ScrollText, requires: { adminOnly: true } },
+  { title: "Audit", href: "/admin/audit", icon: ScrollText, requires: { adminOnly: true, permission: "audit.read" } },
 ];
 
 export const settingsNavItem: NavItem = {

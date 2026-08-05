@@ -1,3 +1,3 @@
-from app.modules.audit.api.schemas.audit_entry import AuditEntryResponse, UserSummaryResponse
+from app.modules.audit.api.schemas.audit_entry import AuditActorSummaryResponse, AuditEntryResponse
 
-__all__ = ["AuditEntryResponse", "UserSummaryResponse"]
+__all__ = ["AuditActorSummaryResponse", "AuditEntryResponse"]

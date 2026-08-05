@@ -10,13 +10,17 @@ from app.modules.audit.application.dto.audit_entry_dto import AuditEntryDTO
 from app.modules.audit.application.dto.user_summary_dto import UserSummaryDTO
 
 
-class UserSummaryResponse(BaseModel):
+class AuditActorSummaryResponse(BaseModel):
+	"""Distinct name from Ticket Management's UserSummaryResponse: same shape today, but
+	FastAPI keys OpenAPI components by class __name__ — reusing that name here would make
+	the two silently share one schema entry (harmless only as long as both stay identical)."""
+
 	id: UUID
 	display_name: str
 	avatar_url: str | None
 
 	@classmethod
-	def from_dto(cls, user: UserSummaryDTO | None) -> UserSummaryResponse | None:
+	def from_dto(cls, user: UserSummaryDTO | None) -> AuditActorSummaryResponse | None:
 		return None if user is None else cls(id=user.id, display_name=user.display_name, avatar_url=user.avatar_url)
 
 
@@ -28,7 +32,7 @@ class AuditEntryResponse(BaseModel):
 	action: str
 	resource_type: str | None
 	actor_id: UUID | None
-	actor: UserSummaryResponse | None
+	actor: AuditActorSummaryResponse | None
 	actor_label: str | None
 	payload: dict[str, Any]
 
@@ -42,7 +46,7 @@ class AuditEntryResponse(BaseModel):
 			action=entry.action,
 			resource_type=entry.resource_type,
 			actor_id=entry.actor_id,
-			actor=UserSummaryResponse.from_dto(entry.actor),
+			actor=AuditActorSummaryResponse.from_dto(entry.actor),
 			actor_label=entry.actor_label,
 			payload=entry.payload,
 		)

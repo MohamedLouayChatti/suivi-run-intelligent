@@ -639,6 +639,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Audit Entries */
+        get: operations["list_audit_entries_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/audit/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Audit Entry */
+        get: operations["get_audit_entry_audit__entry_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -677,6 +711,53 @@ export interface components {
             uploaded_at: string;
             /** Deleted At */
             deleted_at: string | null;
+        };
+        /**
+         * AuditActorSummaryResponse
+         * @description Distinct name from Ticket Management's UserSummaryResponse: same shape today, but
+         *     FastAPI keys OpenAPI components by class __name__ — reusing that name here would make
+         *     the two silently share one schema entry (harmless only as long as both stay identical).
+         */
+        AuditActorSummaryResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Display Name */
+            display_name: string;
+            /** Avatar Url */
+            avatar_url: string | null;
+        };
+        /** AuditEntryResponse */
+        AuditEntryResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Module */
+            module: string;
+            /** Event Type */
+            event_type: string;
+            /** Action */
+            action: string;
+            /** Resource Type */
+            resource_type: string | null;
+            /** Actor Id */
+            actor_id: string | null;
+            actor: components["schemas"]["AuditActorSummaryResponse"] | null;
+            /** Actor Label */
+            actor_label: string | null;
+            /** Payload */
+            payload: {
+                [key: string]: unknown;
+            };
         };
         /** Body_add_attachment_tickets__ticket_id__attachments_post */
         Body_add_attachment_tickets__ticket_id__attachments_post: {
@@ -2428,6 +2509,75 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_audit_entries_audit_get: {
+        parameters: {
+            query?: {
+                module?: string | null;
+                event_type?: string | null;
+                resource_type?: string | null;
+                actor_id?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEntryResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_audit_entry_audit__entry_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditEntryResponse"];
+                };
             };
             /** @description Validation Error */
             422: {

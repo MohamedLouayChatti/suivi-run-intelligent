@@ -1,13 +1,14 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Search } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
 import { Pagination } from "@/components/app/pagination"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -16,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { mockAuditEvents, type AuditResult } from "@/features/audit/mock-data"
+import { listAuditEntries, type AuditEntry } from "@/services/api/audit"
 
 const PAGE_SIZE = 10
 
@@ -29,28 +30,44 @@ const dateTimeFormatter = new Intl.DateTimeFormat("fr-FR", {
   second: "2-digit",
 })
 
-// Result reuses the app's existing themed success/destructive Badge variants
-// (already desaturated for the palette, no border) instead of raw green/red —
-// same treatment as the boolean flags in ticket-metadata-card.tsx.
-const resultLabels: Record<AuditResult, string> = {
-  SUCCESS: "Succès",
-  DENIED: "Refusé",
+const moduleLabels: Record<string, string> = {
+  ticket_management: "Tickets",
+  auth: "Auth",
+}
+
+/** GET /audit always includes ticket_id/user_id/role_id/... under `<resource_type>_id`
+ * (see AuditMapper) -- this is the one key every payload shape agrees on. */
+function getResourceId(entry: AuditEntry): string | null {
+  if (!entry.resource_type) return null
+  const value = entry.payload[`${entry.resource_type}_id`]
+  return typeof value === "string" ? value : null
+}
+
+function getActorLabel(entry: AuditEntry): string {
+  return entry.actor?.display_name ?? entry.actor_label ?? "—"
 }
 
 function AuditLogTable() {
   const [query, setQuery] = useState("")
-  const [result, setResult] = useState<"all" | AuditResult>("all")
+  const [moduleFilter, setModuleFilter] = useState<"all" | string>("all")
   const [rawPage, setRawPage] = useState(1)
+
+  const { data: entries = [], isLoading } = useQuery({
+    queryKey: ["audit", "list"],
+    queryFn: () => listAuditEntries(),
+  })
+
+  const modules = useMemo(() => [...new Set(entries.map((e) => e.module))].sort(), [entries])
 
   const filtered = useMemo(
     () =>
-      mockAuditEvents.filter(
+      entries.filter(
         (e) =>
-          (result === "all" || e.result === result) &&
+          (moduleFilter === "all" || e.module === moduleFilter) &&
           (query === "" ||
-            (e.actor + e.action + e.target).toLowerCase().includes(query.toLowerCase()))
+            (getActorLabel(e) + e.action + e.resource_type).toLowerCase().includes(query.toLowerCase()))
       ),
-    [query, result]
+    [entries, query, moduleFilter]
   )
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
@@ -68,22 +85,23 @@ function AuditLogTable() {
               setQuery(e.target.value)
               setRawPage(1)
             }}
-            placeholder="Rechercher un acteur, une action ou une cible…"
+            placeholder="Rechercher un acteur, une action ou une ressource…"
             className="pl-9"
           />
         </div>
         <Select
-          value={result}
+          value={moduleFilter}
           onValueChange={(v) => {
-            setResult(v as "all" | AuditResult)
+            setModuleFilter(v)
             setRawPage(1)
           }}
         >
-          <SelectTrigger className="w-[11rem]"><SelectValue placeholder="Résultat" /></SelectTrigger>
+          <SelectTrigger className="w-[11rem]"><SelectValue placeholder="Module" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tous les résultats</SelectItem>
-            <SelectItem value="SUCCESS">Succès</SelectItem>
-            <SelectItem value="DENIED">Refusé</SelectItem>
+            <SelectItem value="all">Tous les modules</SelectItem>
+            {modules.map((m) => (
+              <SelectItem key={m} value={m}>{moduleLabels[m] ?? m}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -93,35 +111,45 @@ function AuditLogTable() {
             <TableHead>Horodatage</TableHead>
             <TableHead>Acteur</TableHead>
             <TableHead>Action</TableHead>
-            <TableHead>Cible</TableHead>
-            <TableHead>Origine</TableHead>
-            <TableHead>Résultat</TableHead>
+            <TableHead>Module</TableHead>
+            <TableHead>Ressource</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.length === 0 ? (
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={i} className="hover:bg-transparent">
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <TableCell key={j}>
+                    <Skeleton className="h-4 w-full max-w-24" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : rows.length === 0 ? (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="py-8 text-center whitespace-normal text-sm text-muted-foreground">
+              <TableCell colSpan={5} className="py-8 text-center whitespace-normal text-sm text-muted-foreground">
                 Aucun événement ne correspond à ces critères.
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((e) => (
-              <TableRow key={e.id} className="hover:bg-transparent">
-                <TableCell className="font-mono text-xs text-muted-foreground tabular">
-                  {dateTimeFormatter.format(new Date(e.timestamp))}
-                </TableCell>
-                <TableCell className="font-medium">{e.actor}</TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">{e.action}</TableCell>
-                <TableCell>{e.target}</TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">{e.origin}</TableCell>
-                <TableCell>
-                  <Badge variant={e.result === "SUCCESS" ? "success" : "destructive"}>
-                    {resultLabels[e.result]}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))
+            rows.map((e) => {
+              const resourceId = getResourceId(e)
+              return (
+                <TableRow key={e.id} className="hover:bg-transparent">
+                  <TableCell className="font-mono text-xs text-muted-foreground tabular">
+                    {dateTimeFormatter.format(new Date(e.occurred_at))}
+                  </TableCell>
+                  <TableCell className="font-medium">{getActorLabel(e)}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">{e.action}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{moduleLabels[e.module] ?? e.module}</TableCell>
+                  <TableCell className="font-mono text-xs text-muted-foreground">
+                    {e.resource_type ?? "—"}
+                    {resourceId ? ` · ${resourceId.slice(0, 8)}` : ""}
+                  </TableCell>
+                </TableRow>
+              )
+            })
           )}
         </TableBody>
       </Table>

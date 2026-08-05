@@ -7,7 +7,7 @@ import { RequirePermission } from "@/lib/auth"
 
 export default function AuditPage() {
   return (
-    <RequirePermission admin>
+    <RequirePermission admin permission="audit.read">
       <PageHeader
         title="Audit"
         description="Registre immuable des événements métier et administratifs"
