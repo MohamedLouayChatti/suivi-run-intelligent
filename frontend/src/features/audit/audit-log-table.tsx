@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/table"
 import { listAuditEntries, type AuditEntry } from "@/services/api/audit"
 
+import { auditListQueryKey } from "./query-keys"
+
 const PAGE_SIZE = 10
 
 const dateTimeFormatter = new Intl.DateTimeFormat("fr-FR", {
@@ -53,7 +55,7 @@ function AuditLogTable() {
   const [rawPage, setRawPage] = useState(1)
 
   const { data: entries = [], isLoading } = useQuery({
-    queryKey: ["audit", "list"],
+    queryKey: auditListQueryKey,
     queryFn: () => listAuditEntries(),
   })
 
