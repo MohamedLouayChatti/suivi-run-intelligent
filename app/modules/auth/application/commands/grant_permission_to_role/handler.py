@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from app.modules.auth.application.commands.grant_permission_to_role.command import GrantPermissionToRoleCommand
 from app.modules.auth.application.dto.role_dto import RoleDTO
 from app.modules.auth.application.exceptions import PermissionNotFound, RoleNotFound
@@ -27,5 +29,5 @@ class GrantPermissionToRoleHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(RolePermissionGranted(role_id=role.id, permission_id=permission.id, actor_id=command.actor_id))
+		await self.event_publisher.publish(RolePermissionGranted(role_id=role.id, permission_id=permission.id, occurred_at=datetime.now(UTC), actor_id=command.actor_id))
 		return RoleDTO.from_role(role)

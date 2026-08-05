@@ -35,7 +35,7 @@ class DeleteCommentAttachmentHandler:
 			AttachmentDeleted(
 				ticket_id=ticket.id,
 				attachment_id=command.attachment_id,
-				deleted_at=command.deleted_at,
+				occurred_at=command.deleted_at,
 				actor_id=command.actor_id,
 			)
 		)

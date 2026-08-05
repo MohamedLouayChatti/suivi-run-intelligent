@@ -30,7 +30,7 @@ class ChangePriorityHandler:
 				ticket_id=ticket.id,
 				old_priority=old_priority,
 				new_priority=command.priority,
-				changed_at=command.changed_at,
+				occurred_at=command.changed_at,
 				actor_id=command.actor_id,
 			)
 		)

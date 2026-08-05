@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import UTC, datetime
 
 from app.modules.auth.application.commands.create_user.command import CreateUserCommand
 from app.modules.auth.application.dto.user_dto import UserDTO
@@ -49,6 +50,7 @@ class CreateUserHandler:
 				display_name=user.display_name,
 				functional_team=user.functional_team,
 				application_assignments=frozenset(user.application_assignments),
+				occurred_at=datetime.now(UTC),
 				actor_id=command.actor_id,
 			)
 		)

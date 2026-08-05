@@ -45,6 +45,8 @@ class AddTicketAttachmentHandler:
 				attachment_id=attachment.id,
 				uploaded_by=attachment.uploaded_by,
 				uploaded_at=command.uploaded_at,
+				occurred_at=command.uploaded_at,
+				actor_id=attachment.uploaded_by,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

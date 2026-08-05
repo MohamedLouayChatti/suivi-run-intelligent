@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 from uuid import UUID
 
 from app.modules.ticket_management.domain.enums.priority import Priority
@@ -17,8 +16,6 @@ class TicketCreated(DomainEvent):
 	description: str
 	status: Status
 	priority: Priority
-	created_at: datetime
 	assignee_id: UUID
 	category: Category
 	functional_team: FunctionalTeam
-	actor_id: UUID

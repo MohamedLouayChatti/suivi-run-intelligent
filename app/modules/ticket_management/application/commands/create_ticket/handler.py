@@ -48,10 +48,10 @@ class CreateTicketHandler:
 				description=ticket.description,
 				status=ticket.status,
 				priority=ticket.priority,
-				created_at=ticket.created_at,
 				assignee_id=ticket.assignee_id,
 				category=ticket.category,
 				functional_team=ticket.functional_team,
+				occurred_at=ticket.created_at,
 				actor_id=command.actor_id,
 			)
 		)

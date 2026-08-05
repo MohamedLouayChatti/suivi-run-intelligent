@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -38,6 +37,10 @@ class AuditMapper:
 
 	Adding a new event type means adding one `_mappings` entry and one small
 	translation method below -- nothing else in the audit module changes.
+
+	occurred_at/actor_id are read uniformly from the DomainEvent envelope (see
+	app/shared/events/event.py) for every event type here -- no more per-event-type
+	timestamp-field-name or actor special-casing.
 	"""
 
 	def __init__(self) -> None:
@@ -72,15 +75,15 @@ class AuditMapper:
 			return None
 		return mapping(event)
 
-	def _entry(self, *, occurred_at, module: str, event_type: str, action: str, resource_type: str | None, actor_id, payload: dict[str, Any]) -> AuditEntry:
+	def _entry(self, event: DomainEvent, *, module: str, event_type: str, action: str, resource_type: str | None, payload: dict[str, Any]) -> AuditEntry:
 		return AuditEntry.create(
 			id=uuid4(),
-			occurred_at=occurred_at,
+			occurred_at=event.occurred_at,
 			module=module,
 			event_type=event_type,
 			action=action,
 			resource_type=resource_type,
-			actor_id=actor_id,
+			actor_id=event.actor_id,
 			payload=payload,
 		)
 
@@ -88,8 +91,8 @@ class AuditMapper:
 
 	def _ticket_created(self, event: TicketCreated) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.created_at, module="ticket_management", event_type="TicketCreated",
-			action="ticket.created", resource_type="ticket", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="TicketCreated",
+			action="ticket.created", resource_type="ticket",
 			payload={
 				"ticket_id": str(event.ticket_id), "title": event.title, "status": event.status.value,
 				"priority": event.priority.value, "assignee_id": str(event.assignee_id),
@@ -99,78 +102,78 @@ class AuditMapper:
 
 	def _ticket_status_changed(self, event: TicketStatusChanged) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.changed_at, module="ticket_management", event_type="TicketStatusChanged",
-			action="ticket.status_changed", resource_type="ticket", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="TicketStatusChanged",
+			action="ticket.status_changed", resource_type="ticket",
 			payload={"ticket_id": str(event.ticket_id), "old_status": event.old_status.value, "new_status": event.new_status.value},
 		)
 
 	def _ticket_reassigned(self, event: TicketReassigned) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.reassigned_at, module="ticket_management", event_type="TicketReassigned",
-			action="ticket.reassigned", resource_type="ticket", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="TicketReassigned",
+			action="ticket.reassigned", resource_type="ticket",
 			payload={"ticket_id": str(event.ticket_id), "assignee_id": str(event.assignee_id)},
 		)
 
 	def _priority_changed(self, event: PriorityChanged) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.changed_at, module="ticket_management", event_type="PriorityChanged",
-			action="ticket.priority_changed", resource_type="ticket", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="PriorityChanged",
+			action="ticket.priority_changed", resource_type="ticket",
 			payload={"ticket_id": str(event.ticket_id), "old_priority": event.old_priority.value, "new_priority": event.new_priority.value},
 		)
 
 	def _ticket_transferred(self, event: TicketTransferred) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.transferred_at, module="ticket_management", event_type="TicketTransferred",
-			action="ticket.transferred", resource_type="ticket", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="TicketTransferred",
+			action="ticket.transferred", resource_type="ticket",
 			payload={"ticket_id": str(event.ticket_id), "transferred_to": event.transferred_to.value},
 		)
 
 	def _comment_added(self, event: CommentAdded) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.created_at, module="ticket_management", event_type="CommentAdded",
-			action="comment.added", resource_type="comment", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="CommentAdded",
+			action="comment.added", resource_type="comment",
 			payload={"ticket_id": str(event.ticket_id), "comment_id": str(event.comment_id), "author_id": str(event.author_id)},
 		)
 
 	def _comment_edited(self, event: CommentEdited) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.edited_at, module="ticket_management", event_type="CommentEdited",
-			action="comment.edited", resource_type="comment", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="CommentEdited",
+			action="comment.edited", resource_type="comment",
 			payload={"ticket_id": str(event.ticket_id), "comment_id": str(event.comment_id)},
 		)
 
 	def _comment_deleted(self, event: CommentDeleted) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.deleted_at, module="ticket_management", event_type="CommentDeleted",
-			action="comment.deleted", resource_type="comment", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="CommentDeleted",
+			action="comment.deleted", resource_type="comment",
 			payload={"ticket_id": str(event.ticket_id), "comment_id": str(event.comment_id)},
 		)
 
 	def _attachment_added(self, event: AttachmentAdded) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.uploaded_at, module="ticket_management", event_type="AttachmentAdded",
-			action="attachment.added", resource_type="attachment", actor_id=event.uploaded_by,
+			event, module="ticket_management", event_type="AttachmentAdded",
+			action="attachment.added", resource_type="attachment",
 			payload={"ticket_id": str(event.ticket_id), "attachment_id": str(event.attachment_id)},
 		)
 
 	def _attachment_deleted(self, event: AttachmentDeleted) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.deleted_at, module="ticket_management", event_type="AttachmentDeleted",
-			action="attachment.deleted", resource_type="attachment", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="AttachmentDeleted",
+			action="attachment.deleted", resource_type="attachment",
 			payload={"ticket_id": str(event.ticket_id), "attachment_id": str(event.attachment_id)},
 		)
 
 	def _ticket_archived(self, event: TicketArchived) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.archived_at, module="ticket_management", event_type="TicketArchived",
-			action="ticket.archived", resource_type="ticket", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="TicketArchived",
+			action="ticket.archived", resource_type="ticket",
 			payload={"ticket_id": str(event.ticket_id)},
 		)
 
 	def _ticket_restored(self, event: TicketRestored) -> AuditEntry:
 		return self._entry(
-			occurred_at=event.restored_at, module="ticket_management", event_type="TicketRestored",
-			action="ticket.restored", resource_type="ticket", actor_id=event.actor_id,
+			event, module="ticket_management", event_type="TicketRestored",
+			action="ticket.restored", resource_type="ticket",
 			payload={"ticket_id": str(event.ticket_id)},
 		)
 
@@ -178,8 +181,8 @@ class AuditMapper:
 
 	def _user_created(self, event: UserCreated) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="UserCreated",
-			action="user.created", resource_type="user", actor_id=event.actor_id,
+			event, module="auth", event_type="UserCreated",
+			action="user.created", resource_type="user",
 			payload={
 				"user_id": str(event.user_id), "auth_provider_user_id": event.auth_provider_user_id.value,
 				"email": event.email, "display_name": event.display_name, "functional_team": event.functional_team.value,
@@ -188,63 +191,63 @@ class AuditMapper:
 
 	def _user_updated(self, event: UserUpdated) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="UserUpdated",
-			action="user.updated", resource_type="user", actor_id=event.actor_id,
+			event, module="auth", event_type="UserUpdated",
+			action="user.updated", resource_type="user",
 			payload={"user_id": str(event.user_id)},
 		)
 
 	def _user_activated(self, event: UserActivated) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="UserActivated",
-			action="user.activated", resource_type="user", actor_id=event.actor_id,
+			event, module="auth", event_type="UserActivated",
+			action="user.activated", resource_type="user",
 			payload={"user_id": str(event.user_id)},
 		)
 
 	def _user_deactivated(self, event: UserDeactivated) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="UserDeactivated",
-			action="user.deactivated", resource_type="user", actor_id=event.actor_id,
+			event, module="auth", event_type="UserDeactivated",
+			action="user.deactivated", resource_type="user",
 			payload={"user_id": str(event.user_id)},
 		)
 
 	def _role_assigned_to_user(self, event: RoleAssignedToUser) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="RoleAssignedToUser",
-			action="user.role_assigned", resource_type="user", actor_id=event.actor_id,
+			event, module="auth", event_type="RoleAssignedToUser",
+			action="user.role_assigned", resource_type="user",
 			payload={"user_id": str(event.user_id), "role_id": str(event.role_id)},
 		)
 
 	def _role_revoked_from_user(self, event: RoleRevokedFromUser) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="RoleRevokedFromUser",
-			action="user.role_revoked", resource_type="user", actor_id=event.actor_id,
+			event, module="auth", event_type="RoleRevokedFromUser",
+			action="user.role_revoked", resource_type="user",
 			payload={"user_id": str(event.user_id), "role_id": str(event.role_id)},
 		)
 
 	def _permission_granted_to_user(self, event: PermissionGrantedToUser) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="PermissionGrantedToUser",
-			action="user.permission_granted", resource_type="user", actor_id=event.actor_id,
+			event, module="auth", event_type="PermissionGrantedToUser",
+			action="user.permission_granted", resource_type="user",
 			payload={"user_id": str(event.user_id), "permission_id": str(event.permission_id)},
 		)
 
 	def _permission_revoked_from_user(self, event: PermissionRevokedFromUser) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="PermissionRevokedFromUser",
-			action="user.permission_revoked", resource_type="user", actor_id=event.actor_id,
+			event, module="auth", event_type="PermissionRevokedFromUser",
+			action="user.permission_revoked", resource_type="user",
 			payload={"user_id": str(event.user_id), "permission_id": str(event.permission_id)},
 		)
 
 	def _role_permission_granted(self, event: RolePermissionGranted) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="RolePermissionGranted",
-			action="role.permission_granted", resource_type="role", actor_id=event.actor_id,
+			event, module="auth", event_type="RolePermissionGranted",
+			action="role.permission_granted", resource_type="role",
 			payload={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
 		)
 
 	def _role_permission_revoked(self, event: RolePermissionRevoked) -> AuditEntry:
 		return self._entry(
-			occurred_at=datetime.now(UTC), module="auth", event_type="RolePermissionRevoked",
-			action="role.permission_revoked", resource_type="role", actor_id=event.actor_id,
+			event, module="auth", event_type="RolePermissionRevoked",
+			action="role.permission_revoked", resource_type="role",
 			payload={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
 		)

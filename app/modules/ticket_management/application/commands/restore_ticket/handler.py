@@ -27,7 +27,7 @@ class RestoreTicketHandler:
 		await self.event_publisher.publish(
 			TicketRestored(
 				ticket_id=ticket.id,
-				restored_at=command.restored_at,
+				occurred_at=command.restored_at,
 				actor_id=command.actor_id,
 			)
 		)

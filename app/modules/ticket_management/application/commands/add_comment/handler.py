@@ -36,7 +36,7 @@ class AddCommentHandler:
 				ticket_id=ticket.id,
 				comment_id=comment.id,
 				author_id=comment.author_id,
-				created_at=command.created_at,
+				occurred_at=command.created_at,
 				actor_id=command.actor_id,
 			)
 		)

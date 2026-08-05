@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from app.modules.auth.application.commands.grant_permission_to_user.command import GrantPermissionToUserCommand
 from app.modules.auth.application.dto.user_dto import UserDTO
 from app.modules.auth.application.exceptions import PermissionNotFound, RoleNotFound, UserNotFound
@@ -36,5 +38,5 @@ class GrantPermissionToUserHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(PermissionGrantedToUser(user_id=user.id, permission_id=permission.id, actor_id=command.actor_id))
+		await self.event_publisher.publish(PermissionGrantedToUser(user_id=user.id, permission_id=permission.id, occurred_at=datetime.now(UTC), actor_id=command.actor_id))
 		return UserDTO.from_user(user)

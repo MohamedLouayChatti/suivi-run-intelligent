@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from app.modules.auth.application.commands.assign_role.command import AssignRoleCommand
 from app.modules.auth.application.dto.user_dto import UserDTO
 from app.modules.auth.application.exceptions import RoleNotFound, UserNotFound
@@ -27,5 +29,5 @@ class AssignRoleHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(RoleAssignedToUser(user_id=user.id, role_id=role.id, actor_id=command.actor_id))
+		await self.event_publisher.publish(RoleAssignedToUser(user_id=user.id, role_id=role.id, occurred_at=datetime.now(UTC), actor_id=command.actor_id))
 		return UserDTO.from_user(user)

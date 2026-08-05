@@ -13,5 +13,5 @@ class StartProgressHandler:
 		old = ticket.status; ticket.start_progress(command.started_at); await self.uow.tickets.save(ticket)
 		try: await self.uow.commit()
 		except Exception: await self.uow.rollback(); raise
-		await self.event_publisher.publish(TicketStatusChanged(ticket.id, old, ticket.status, command.started_at, command.actor_id))
+		await self.event_publisher.publish(TicketStatusChanged(ticket.id, old, ticket.status, occurred_at=command.started_at, actor_id=command.actor_id))
 		return TicketDetailDTO.from_ticket(ticket)

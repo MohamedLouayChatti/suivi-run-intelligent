@@ -27,7 +27,7 @@ class ArchiveTicketHandler:
 		await self.event_publisher.publish(
 			TicketArchived(
 				ticket_id=ticket.id,
-				archived_at=command.archived_at,
+				occurred_at=command.archived_at,
 				actor_id=command.actor_id,
 			)
 		)

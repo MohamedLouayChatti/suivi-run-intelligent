@@ -13,5 +13,5 @@ class TransferTicketHandler:
 		ticket.transfer(command.transferred_to, command.transferred_at); await self.uow.tickets.save(ticket)
 		try: await self.uow.commit()
 		except Exception: await self.uow.rollback(); raise
-		await self.event_publisher.publish(TicketTransferred(ticket.id, ticket.transferred_to, command.transferred_at, command.actor_id))
+		await self.event_publisher.publish(TicketTransferred(ticket.id, ticket.transferred_to, occurred_at=command.transferred_at, actor_id=command.actor_id))
 		return TicketDetailDTO.from_ticket(ticket)

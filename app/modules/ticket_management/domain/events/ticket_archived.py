@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 from uuid import UUID
 
 from app.shared.events.event import DomainEvent
@@ -9,5 +8,3 @@ from app.shared.events.event import DomainEvent
 @dataclass(frozen=True)
 class TicketArchived(DomainEvent):
 	ticket_id: UUID
-	archived_at: datetime
-	actor_id: UUID

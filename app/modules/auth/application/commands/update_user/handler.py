@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from app.modules.auth.application.commands.update_user.command import UpdateUserCommand
 from app.modules.auth.application.dto.user_dto import UserDTO
 from app.modules.auth.application.exceptions import UserNotFound
@@ -34,5 +36,5 @@ class UpdateUserHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(UserUpdated(user_id=user.id, actor_id=command.actor_id))
+		await self.event_publisher.publish(UserUpdated(user_id=user.id, occurred_at=datetime.now(UTC), actor_id=command.actor_id))
 		return UserDTO.from_user(user)

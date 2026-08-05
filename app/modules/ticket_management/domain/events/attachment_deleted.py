@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
 from uuid import UUID
 
 from app.shared.events.event import DomainEvent
@@ -11,5 +10,3 @@ from app.shared.events.event import DomainEvent
 class AttachmentDeleted(DomainEvent):
 	ticket_id: UUID
 	attachment_id: UUID
-	deleted_at: datetime
-	actor_id: UUID
