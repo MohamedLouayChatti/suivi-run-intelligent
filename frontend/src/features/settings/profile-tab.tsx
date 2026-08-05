@@ -21,6 +21,7 @@ interface ProfileTabProps {
   onPrenomChange: (value: string) => void
   onNomChange: (value: string) => void
   justSaved: boolean
+  saveError: string | null
   onSave: () => void
 }
 
@@ -28,7 +29,7 @@ function initials(prenom: string, nom: string): string {
   return `${prenom[0] ?? ""}${nom[0] ?? ""}`.toUpperCase()
 }
 
-function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved, onSave }: ProfileTabProps) {
+function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved, saveError, onSave }: ProfileTabProps) {
   const primaryApplication = getPrimaryApplication(user)
   const backupApplication = getBackupApplication(user)
   const { imageUrl: clerkImageUrl, setProfileImage } = useAuthSession()
@@ -70,6 +71,7 @@ function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved,
           {justSaved && (
             <span className="text-xs text-muted-foreground">Modifications enregistrées</span>
           )}
+          {saveError && <span className="text-xs text-destructive">{saveError}</span>}
           <Button size="sm" onClick={onSave}>
             Enregistrer les modifications
           </Button>

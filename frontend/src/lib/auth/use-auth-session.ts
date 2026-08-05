@@ -13,6 +13,7 @@ interface AuthSession {
   email: string | null;
   imageUrl: string | null;
   setProfileImage: (file: File) => Promise<void>;
+  setProfileName: (firstName: string, lastName: string) => Promise<void>;
 }
 
 function useAuthSession(): AuthSession {
@@ -28,6 +29,10 @@ function useAuthSession(): AuthSession {
     setProfileImage: async (file: File) => {
       if (!user) return;
       await user.setProfileImage({ file });
+    },
+    setProfileName: async (firstName: string, lastName: string) => {
+      if (!user) return;
+      await user.update({ firstName, lastName });
     },
   };
 }
