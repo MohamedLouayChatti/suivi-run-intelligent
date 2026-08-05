@@ -40,6 +40,7 @@ class ReassignTicketHandler:
 				ticket_id=ticket.id,
 				assignee_id=command.assignee_id,
 				reassigned_at=command.reassigned_at,
+				actor_id=command.actor_id,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

@@ -12,3 +12,4 @@ class CommentDeleted(DomainEvent):
 	ticket_id: UUID
 	comment_id: UUID
 	deleted_at: datetime
+	actor_id: UUID

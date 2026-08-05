@@ -6,3 +6,4 @@ from uuid import UUID
 class StartProgressCommand:
 	ticket_id: UUID
 	started_at: datetime
+	actor_id: UUID

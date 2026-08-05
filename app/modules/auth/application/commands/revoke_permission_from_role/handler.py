@@ -27,5 +27,5 @@ class RevokePermissionFromRoleHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(RolePermissionRevoked(role_id=role.id, permission_id=permission.id))
+		await self.event_publisher.publish(RolePermissionRevoked(role_id=role.id, permission_id=permission.id, actor_id=command.actor_id))
 		return RoleDTO.from_role(role)

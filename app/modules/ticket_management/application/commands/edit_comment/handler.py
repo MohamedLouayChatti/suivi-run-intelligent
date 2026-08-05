@@ -33,6 +33,7 @@ class EditCommentHandler:
 				ticket_id=ticket.id,
 				comment_id=command.comment_id,
 				edited_at=command.edited_at,
+				actor_id=command.actor_id,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

@@ -15,3 +15,4 @@ class UpdateUserCommand:
 	avatar_url: str | None = None
 	functional_team: FunctionalTeam | None = None
 	application_assignments: frozenset[ApplicationAssignment] | None = None
+	actor_id: UUID | None = None

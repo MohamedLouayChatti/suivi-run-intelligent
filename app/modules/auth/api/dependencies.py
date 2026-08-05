@@ -112,7 +112,7 @@ def _command_handler(handler_type, uow, publisher=None, authorization_service=No
 
 
 def get_create_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> CreateUserHandler: return _command_handler(CreateUserHandler, uow, publisher)
-def get_update_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)]) -> UpdateUserHandler: return _command_handler(UpdateUserHandler, uow)
+def get_update_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> UpdateUserHandler: return _command_handler(UpdateUserHandler, uow, publisher)
 def get_deactivate_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> DeactivateUserHandler: return _command_handler(DeactivateUserHandler, uow, publisher)
 def get_activate_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> ActivateUserHandler: return _command_handler(ActivateUserHandler, uow, publisher)
 def get_create_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)]) -> CreateRoleHandler: return _command_handler(CreateRoleHandler, uow)

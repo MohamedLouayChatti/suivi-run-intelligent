@@ -10,3 +10,4 @@ from app.shared.events.event import DomainEvent
 class TicketArchived(DomainEvent):
 	ticket_id: UUID
 	archived_at: datetime
+	actor_id: UUID

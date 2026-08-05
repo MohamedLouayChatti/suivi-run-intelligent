@@ -10,3 +10,4 @@ from app.shared.events.event import DomainEvent
 class TicketRestored(DomainEvent):
 	ticket_id: UUID
 	restored_at: datetime
+	actor_id: UUID

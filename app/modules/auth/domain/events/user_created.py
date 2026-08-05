@@ -17,3 +17,4 @@ class UserCreated(DomainEvent):
 	display_name: str
 	functional_team: FunctionalTeam = FunctionalTeam.SUPPORT
 	application_assignments: frozenset[ApplicationAssignment] = frozenset()
+	actor_id: UUID | None = None

@@ -28,6 +28,7 @@ class RestoreTicketHandler:
 			TicketRestored(
 				ticket_id=ticket.id,
 				restored_at=command.restored_at,
+				actor_id=command.actor_id,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

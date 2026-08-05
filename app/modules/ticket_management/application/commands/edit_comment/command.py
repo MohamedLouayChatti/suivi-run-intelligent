@@ -11,3 +11,4 @@ class EditCommentCommand:
 	comment_id: UUID
 	content: str
 	edited_at: datetime
+	actor_id: UUID

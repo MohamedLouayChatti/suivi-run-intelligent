@@ -41,7 +41,7 @@ now = lambda: datetime.now(UTC)
 
 @router.post("", response_model=TicketDetailResponse, status_code=201, dependencies=[Depends(require_permissions("ticket.create"))])
 async def create_ticket(payload: Annotated[TicketCreateRequest, Depends(dep.require_ticket_creation_authorized)], current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_create_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(CreateTicketCommand(ticket_id=uuid4(), created_at=now(), assignee_id=current_user.id, **payload.model_dump())))
+	return TicketDetailResponse.from_dto(await handler.handle(CreateTicketCommand(ticket_id=uuid4(), created_at=now(), assignee_id=current_user.id, actor_id=current_user.id, **payload.model_dump())))
 
 @router.get("", response_model=list[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
 async def list_tickets(handler=Depends(dep.get_list_tickets_handler), allowed_applications: Annotated[frozenset[Application] | None, Depends(dep.require_ticket_read_scope)] = None, page: int = 1, page_size: int = 100):
@@ -92,40 +92,40 @@ async def get_ticket(ticket_id: UUID, handler=Depends(dep.get_get_ticket_handler
 	return TicketDetailResponse.from_dto(await handler.handle(GetTicketQuery(ticket_id)))
 
 @router.post("/{ticket_id}/start", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status")), Depends(require_instance_permission("ticket", "start", path_param="ticket_id"))])
-async def start_progress(ticket_id: UUID, handler=Depends(dep.get_start_progress_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(StartProgressCommand(ticket_id, now())))
+async def start_progress(ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_start_progress_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(StartProgressCommand(ticket_id, now(), current_user.id)))
 
 @router.post("/{ticket_id}/resolve", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status")), Depends(require_instance_permission("ticket", "resolve", path_param="ticket_id"))])
-async def resolve_ticket(ticket_id: UUID, payload: ResolveRequest, handler=Depends(dep.get_resolve_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(ResolveTicketCommand(ticket_id, payload.resolution_notes, now())))
+async def resolve_ticket(ticket_id: UUID, payload: ResolveRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_resolve_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ResolveTicketCommand(ticket_id, payload.resolution_notes, now(), current_user.id)))
 
 @router.post("/{ticket_id}/close", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status")), Depends(require_instance_permission("ticket", "close", path_param="ticket_id"))])
-async def close_ticket(ticket_id: UUID, handler=Depends(dep.get_close_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(CloseTicketCommand(ticket_id, now())))
+async def close_ticket(ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_close_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(CloseTicketCommand(ticket_id, now(), current_user.id)))
 
 @router.post("/{ticket_id}/resume", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_status")), Depends(require_instance_permission("ticket", "resume", path_param="ticket_id"))])
-async def resume_ticket(ticket_id: UUID, handler=Depends(dep.get_resume_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(ResumeTicketCommand(ticket_id, now())))
+async def resume_ticket(ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_resume_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ResumeTicketCommand(ticket_id, now(), current_user.id)))
 
 @router.post("/{ticket_id}/transfer", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.transfer_application")), Depends(require_instance_permission("ticket", "transfer", path_param="ticket_id"))])
-async def transfer(ticket_id: UUID, payload: TransferRequest, handler=Depends(dep.get_transfer_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(TransferTicketCommand(ticket_id, payload.transferred_to, now())))
+async def transfer(ticket_id: UUID, payload: TransferRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_transfer_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(TransferTicketCommand(ticket_id, payload.transferred_to, now(), current_user.id)))
 
 @router.patch("/{ticket_id}/assignee", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.assign")), Depends(require_instance_permission("ticket", "reassign", path_param="ticket_id"))])
-async def reassign(ticket_id: UUID, payload: ReassignRequest, handler=Depends(dep.get_reassign_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(ReassignTicketCommand(ticket_id, payload.assignee_id, now())))
+async def reassign(ticket_id: UUID, payload: ReassignRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_reassign_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ReassignTicketCommand(ticket_id, payload.assignee_id, now(), current_user.id)))
 
 @router.patch("/{ticket_id}/priority", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_priority")), Depends(require_instance_permission("ticket", "change_priority", path_param="ticket_id"))])
-async def change_priority(ticket_id: UUID, payload: PriorityUpdateRequest, handler=Depends(dep.get_change_priority_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(ChangePriorityCommand(ticket_id, payload.priority, now())))
+async def change_priority(ticket_id: UUID, payload: PriorityUpdateRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_change_priority_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ChangePriorityCommand(ticket_id, payload.priority, now(), current_user.id)))
 
 # Nested resource routers remain public module routes.
 comments_router = APIRouter(prefix="/comments", tags=["comments"])
 attachments_router = APIRouter(prefix="/attachments", tags=["attachments"])
 
 @router.post("/{ticket_id}/comments", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("comment.create")), Depends(require_instance_permission("comment", "create", path_param="ticket_id"))])
-async def add_comment(ticket_id: UUID, payload: CommentCreateRequest, handler=Depends(dep.get_add_comment_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(AddCommentCommand(ticket_id=ticket_id, comment_id=uuid4(), created_at=now(), **payload.model_dump())))
+async def add_comment(ticket_id: UUID, payload: CommentCreateRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_add_comment_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(AddCommentCommand(ticket_id=ticket_id, comment_id=uuid4(), created_at=now(), actor_id=current_user.id, **payload.model_dump())))
 
 @router.post("/{ticket_id}/attachments", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("attachment.create")), Depends(require_instance_permission("attachment", "create", path_param="ticket_id"))])
 async def add_attachment(ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], file: Annotated[UploadFile, File()], handler=Depends(dep.get_add_ticket_attachment_handler)):
@@ -157,25 +157,25 @@ async def add_comment_attachment(ticket_id: UUID, comment_id: UUID, current_user
 	return TicketDetailResponse.from_dto(await handler.handle(command))
 
 @comments_router.delete("/{comment_id}/attachments/{attachment_id}", status_code=204, dependencies=[Depends(require_permissions("attachment.delete")), Depends(require_instance_permission("attachment", "delete", path_param="attachment_id"))])
-async def delete_comment_attachment(comment_id: UUID, attachment_id: UUID, ticket_id: UUID, handler=Depends(dep.get_delete_comment_attachment_handler)):
-	await handler.handle(DeleteCommentAttachmentCommand(ticket_id, comment_id, attachment_id, now()))
+async def delete_comment_attachment(comment_id: UUID, attachment_id: UUID, ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_delete_comment_attachment_handler)):
+	await handler.handle(DeleteCommentAttachmentCommand(ticket_id, comment_id, attachment_id, now(), current_user.id))
 	return Response(status_code=204)
 
 @router.post("/{ticket_id}/archive", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.archive")), Depends(require_instance_permission("ticket", "archive", path_param="ticket_id"))])
-async def archive(ticket_id: UUID, handler=Depends(dep.get_archive_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(ArchiveTicketCommand(ticket_id, now())))
+async def archive(ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_archive_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(ArchiveTicketCommand(ticket_id, now(), current_user.id)))
 
 @router.post("/{ticket_id}/restore", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.restore")), Depends(require_instance_permission("ticket", "restore", path_param="ticket_id"))])
-async def restore(ticket_id: UUID, handler=Depends(dep.get_restore_ticket_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(RestoreTicketCommand(ticket_id, now())))
+async def restore(ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_restore_ticket_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(RestoreTicketCommand(ticket_id, now(), current_user.id)))
 
 @comments_router.patch("/{comment_id}", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("comment.update")), Depends(require_instance_permission("comment", "update", path_param="comment_id"))])
-async def edit_comment(comment_id: UUID, ticket_id: UUID, payload: CommentUpdateRequest, handler=Depends(dep.get_edit_comment_handler)):
-	return TicketDetailResponse.from_dto(await handler.handle(EditCommentCommand(ticket_id, comment_id, payload.content, now())))
+async def edit_comment(comment_id: UUID, ticket_id: UUID, payload: CommentUpdateRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_edit_comment_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(EditCommentCommand(ticket_id, comment_id, payload.content, now(), current_user.id)))
 
 @comments_router.delete("/{comment_id}", status_code=204, dependencies=[Depends(require_permissions("comment.delete")), Depends(require_instance_permission("comment", "delete", path_param="comment_id"))])
-async def delete_comment(comment_id: UUID, ticket_id: UUID, handler=Depends(dep.get_delete_comment_handler)):
-	await handler.handle(DeleteCommentCommand(ticket_id, comment_id, now()))
+async def delete_comment(comment_id: UUID, ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_delete_comment_handler)):
+	await handler.handle(DeleteCommentCommand(ticket_id, comment_id, now(), current_user.id))
 	return Response(status_code=204)
 
 @attachments_router.get("/{attachment_id}", dependencies=[Depends(require_permissions("attachment.read")), Depends(require_instance_permission("attachment", "read", path_param="attachment_id"))])
@@ -188,6 +188,6 @@ async def download_attachment(attachment_id: UUID, handler=Depends(dep.get_downl
 	)
 
 @attachments_router.delete("/{attachment_id}", status_code=204, dependencies=[Depends(require_permissions("attachment.delete")), Depends(require_instance_permission("attachment", "delete", path_param="attachment_id"))])
-async def delete_attachment(attachment_id: UUID, ticket_id: UUID, handler=Depends(dep.get_delete_ticket_attachment_handler)):
-	await handler.handle(DeleteTicketAttachmentCommand(ticket_id, attachment_id, now()))
+async def delete_attachment(attachment_id: UUID, ticket_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_delete_ticket_attachment_handler)):
+	await handler.handle(DeleteTicketAttachmentCommand(ticket_id, attachment_id, now(), current_user.id))
 	return Response(status_code=204)

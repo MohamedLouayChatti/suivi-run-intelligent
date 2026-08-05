@@ -6,3 +6,4 @@ from uuid import UUID
 class CloseTicketCommand:
 	ticket_id: UUID
 	closed_at: datetime
+	actor_id: UUID

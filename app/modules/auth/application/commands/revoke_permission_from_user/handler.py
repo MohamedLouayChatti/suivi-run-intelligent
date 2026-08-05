@@ -36,5 +36,5 @@ class RevokePermissionFromUserHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(PermissionRevokedFromUser(user_id=user.id, permission_id=permission.id))
+		await self.event_publisher.publish(PermissionRevokedFromUser(user_id=user.id, permission_id=permission.id, actor_id=command.actor_id))
 		return UserDTO.from_user(user)

@@ -25,6 +25,7 @@ class CreateTicketCommand:
 	assignee_id: UUID
 	category: Category
 	functional_team: FunctionalTeam
+	actor_id: UUID
 	genergy_id: str | None = None
 	oceane_id: str | None = None
 	jira_id: str | None = None

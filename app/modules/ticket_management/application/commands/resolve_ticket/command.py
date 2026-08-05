@@ -7,3 +7,4 @@ class ResolveTicketCommand:
 	ticket_id: UUID
 	resolution_notes: str
 	resolved_at: datetime
+	actor_id: UUID

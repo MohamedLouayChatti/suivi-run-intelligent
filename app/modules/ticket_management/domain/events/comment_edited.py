@@ -12,3 +12,4 @@ class CommentEdited(DomainEvent):
 	ticket_id: UUID
 	comment_id: UUID
 	edited_at: datetime
+	actor_id: UUID

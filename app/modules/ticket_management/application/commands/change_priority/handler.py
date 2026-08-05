@@ -31,6 +31,7 @@ class ChangePriorityHandler:
 				old_priority=old_priority,
 				new_priority=command.priority,
 				changed_at=command.changed_at,
+				actor_id=command.actor_id,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

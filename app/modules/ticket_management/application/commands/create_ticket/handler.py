@@ -52,6 +52,7 @@ class CreateTicketHandler:
 				assignee_id=ticket.assignee_id,
 				category=ticket.category,
 				functional_team=ticket.functional_team,
+				actor_id=command.actor_id,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

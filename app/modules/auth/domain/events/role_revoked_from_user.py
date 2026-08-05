@@ -10,3 +10,4 @@ from app.shared.events.event import DomainEvent
 class RoleRevokedFromUser(DomainEvent):
 	user_id: UUID
 	role_id: UUID
+	actor_id: UUID

@@ -7,3 +7,4 @@ from uuid import UUID
 @dataclass(frozen=True)
 class DeactivateUserCommand:
 	user_id: UUID
+	actor_id: UUID

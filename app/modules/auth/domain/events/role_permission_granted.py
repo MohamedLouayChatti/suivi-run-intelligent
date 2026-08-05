@@ -10,3 +10,4 @@ from app.shared.events.event import DomainEvent
 class RolePermissionGranted(DomainEvent):
 	role_id: UUID
 	permission_id: UUID
+	actor_id: UUID

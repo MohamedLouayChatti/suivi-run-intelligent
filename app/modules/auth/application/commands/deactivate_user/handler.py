@@ -24,5 +24,5 @@ class DeactivateUserHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(UserDeactivated(user_id=user.id))
+		await self.event_publisher.publish(UserDeactivated(user_id=user.id, actor_id=command.actor_id))
 		return UserDTO.from_user(user)

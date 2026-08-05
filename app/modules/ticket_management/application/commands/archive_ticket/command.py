@@ -9,3 +9,4 @@ from uuid import UUID
 class ArchiveTicketCommand:
 	ticket_id: UUID
 	archived_at: datetime
+	actor_id: UUID

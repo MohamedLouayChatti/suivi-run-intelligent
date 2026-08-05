@@ -13,3 +13,4 @@ class CommentAdded(DomainEvent):
 	comment_id: UUID
 	author_id: UUID
 	created_at: datetime
+	actor_id: UUID

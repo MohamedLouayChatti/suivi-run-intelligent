@@ -37,6 +37,7 @@ class AddCommentHandler:
 				comment_id=comment.id,
 				author_id=comment.author_id,
 				created_at=command.created_at,
+				actor_id=command.actor_id,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

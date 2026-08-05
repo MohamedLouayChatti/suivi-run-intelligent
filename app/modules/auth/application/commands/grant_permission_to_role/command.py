@@ -8,3 +8,4 @@ from uuid import UUID
 class GrantPermissionToRoleCommand:
 	role_id: UUID
 	permission_id: UUID
+	actor_id: UUID

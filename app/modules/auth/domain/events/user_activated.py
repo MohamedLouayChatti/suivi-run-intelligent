@@ -9,3 +9,4 @@ from app.shared.events.event import DomainEvent
 @dataclass(frozen=True)
 class UserActivated(DomainEvent):
 	user_id: UUID
+	actor_id: UUID

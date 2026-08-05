@@ -11,3 +11,4 @@ class DeleteCommentAttachmentCommand:
 	comment_id: UUID
 	attachment_id: UUID
 	deleted_at: datetime
+	actor_id: UUID

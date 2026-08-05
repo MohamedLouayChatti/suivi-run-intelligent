@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import status
 
+from app.modules.audit.application.exceptions import AuditEntryNotFound
 from app.modules.ticket_management.application.exceptions import (
     AssigneeNotAuthorized,
     AssigneeNotFound,
@@ -50,6 +51,7 @@ EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     ApplicationCommentNotFound: status.HTTP_404_NOT_FOUND,
     AttachmentTooLarge: status.HTTP_413_CONTENT_TOO_LARGE,
     UnsupportedAttachmentType: status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+    AuditEntryNotFound: status.HTTP_404_NOT_FOUND,
 }
 
 

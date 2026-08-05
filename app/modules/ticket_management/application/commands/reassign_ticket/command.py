@@ -10,3 +10,4 @@ class ReassignTicketCommand:
 	ticket_id: UUID
 	assignee_id: UUID
 	reassigned_at: datetime
+	actor_id: UUID

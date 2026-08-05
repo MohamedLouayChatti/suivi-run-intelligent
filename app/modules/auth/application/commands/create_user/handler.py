@@ -49,6 +49,7 @@ class CreateUserHandler:
 				display_name=user.display_name,
 				functional_team=user.functional_team,
 				application_assignments=frozenset(user.application_assignments),
+				actor_id=command.actor_id,
 			)
 		)
 		return UserDTO.from_user(user)

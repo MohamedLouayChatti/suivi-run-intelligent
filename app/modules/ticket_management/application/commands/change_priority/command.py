@@ -12,3 +12,4 @@ class ChangePriorityCommand:
 	ticket_id: UUID
 	priority: Priority
 	changed_at: datetime
+	actor_id: UUID

@@ -21,3 +21,4 @@ class TicketCreated(DomainEvent):
 	assignee_id: UUID
 	category: Category
 	functional_team: FunctionalTeam
+	actor_id: UUID

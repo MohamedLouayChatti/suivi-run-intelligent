@@ -27,5 +27,5 @@ class AssignRoleHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(RoleAssignedToUser(user_id=user.id, role_id=role.id))
+		await self.event_publisher.publish(RoleAssignedToUser(user_id=user.id, role_id=role.id, actor_id=command.actor_id))
 		return UserDTO.from_user(user)

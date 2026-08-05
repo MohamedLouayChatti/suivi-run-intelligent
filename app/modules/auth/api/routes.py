@@ -93,13 +93,13 @@ async def get_user(user_id: UUID, handler: Annotated[GetUserHandler, Depends(get
 
 
 @router.post("/users/{user_id}/activate", response_model=UserResponse, dependencies=[Depends(require_permissions("user.activate")), Depends(require_admin())])
-async def activate_user(user_id: UUID, handler: Annotated[ActivateUserHandler, Depends(get_activate_user_handler)]) -> UserResponse:
-	return UserResponse.from_dto(await handler.handle(ActivateUserCommand(user_id=user_id)))
+async def activate_user(user_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[ActivateUserHandler, Depends(get_activate_user_handler)]) -> UserResponse:
+	return UserResponse.from_dto(await handler.handle(ActivateUserCommand(user_id=user_id, actor_id=current_user.id)))
 
 
 @router.post("/users/{user_id}/deactivate", response_model=UserResponse, dependencies=[Depends(require_permissions("user.deactivate")), Depends(require_admin())])
-async def deactivate_user(user_id: UUID, handler: Annotated[DeactivateUserHandler, Depends(get_deactivate_user_handler)]) -> UserResponse:
-	return UserResponse.from_dto(await handler.handle(DeactivateUserCommand(user_id=user_id)))
+async def deactivate_user(user_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[DeactivateUserHandler, Depends(get_deactivate_user_handler)]) -> UserResponse:
+	return UserResponse.from_dto(await handler.handle(DeactivateUserCommand(user_id=user_id, actor_id=current_user.id)))
 
 
 @router.get("/users/{user_id}/roles", response_model=list[RoleResponse], dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read_roles", path_param="user_id"))])
@@ -118,23 +118,23 @@ async def get_user_revoked_permissions(user_id: UUID, handler: Annotated[GetUser
 
 
 @router.post("/users/{user_id}/roles/{role_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("role.assign")), Depends(require_admin())])
-async def assign_role(user_id: UUID, role_id: UUID, handler: Annotated[AssignRoleHandler, Depends(get_assign_role_handler)]) -> UserResponse:
-	return UserResponse.from_dto(await handler.handle(AssignRoleCommand(user_id=user_id, role_id=role_id)))
+async def assign_role(user_id: UUID, role_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[AssignRoleHandler, Depends(get_assign_role_handler)]) -> UserResponse:
+	return UserResponse.from_dto(await handler.handle(AssignRoleCommand(user_id=user_id, role_id=role_id, actor_id=current_user.id)))
 
 
 @router.delete("/users/{user_id}/roles/{role_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("role.revoke")), Depends(require_admin())])
-async def revoke_role(user_id: UUID, role_id: UUID, handler: Annotated[RevokeRoleHandler, Depends(get_revoke_role_handler)]) -> UserResponse:
-	return UserResponse.from_dto(await handler.handle(RevokeRoleCommand(user_id=user_id, role_id=role_id)))
+async def revoke_role(user_id: UUID, role_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[RevokeRoleHandler, Depends(get_revoke_role_handler)]) -> UserResponse:
+	return UserResponse.from_dto(await handler.handle(RevokeRoleCommand(user_id=user_id, role_id=role_id, actor_id=current_user.id)))
 
 
 @router.post("/users/{user_id}/permissions/{permission_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("permission.grant_to_user")), Depends(require_admin())])
-async def grant_permission_to_user(user_id: UUID, permission_id: UUID, handler: Annotated[GrantPermissionToUserHandler, Depends(get_grant_permission_to_user_handler)]) -> UserResponse:
-	return UserResponse.from_dto(await handler.handle(GrantPermissionToUserCommand(user_id=user_id, permission_id=permission_id)))
+async def grant_permission_to_user(user_id: UUID, permission_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[GrantPermissionToUserHandler, Depends(get_grant_permission_to_user_handler)]) -> UserResponse:
+	return UserResponse.from_dto(await handler.handle(GrantPermissionToUserCommand(user_id=user_id, permission_id=permission_id, actor_id=current_user.id)))
 
 
 @router.delete("/users/{user_id}/permissions/{permission_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("permission.revoke_from_user")), Depends(require_admin())])
-async def revoke_permission_from_user(user_id: UUID, permission_id: UUID, handler: Annotated[RevokePermissionFromUserHandler, Depends(get_revoke_permission_from_user_handler)]) -> UserResponse:
-	return UserResponse.from_dto(await handler.handle(RevokePermissionFromUserCommand(user_id=user_id, permission_id=permission_id)))
+async def revoke_permission_from_user(user_id: UUID, permission_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[RevokePermissionFromUserHandler, Depends(get_revoke_permission_from_user_handler)]) -> UserResponse:
+	return UserResponse.from_dto(await handler.handle(RevokePermissionFromUserCommand(user_id=user_id, permission_id=permission_id, actor_id=current_user.id)))
 
 
 @router.get("/roles", response_model=list[RoleResponse], dependencies=[Depends(require_permissions("role.read")), Depends(require_admin())])
@@ -153,13 +153,13 @@ async def get_role_permissions(role_id: UUID, handler: Annotated[GetRolePermissi
 
 
 @router.post("/roles/{role_id}/permissions/{permission_id}", response_model=RoleResponse, dependencies=[Depends(require_permissions("permission.grant_to_role")), Depends(require_admin())])
-async def grant_permission_to_role(role_id: UUID, permission_id: UUID, handler: Annotated[GrantPermissionToRoleHandler, Depends(get_grant_permission_to_role_handler)]) -> RoleResponse:
-	return RoleResponse.from_dto(await handler.handle(GrantPermissionToRoleCommand(role_id=role_id, permission_id=permission_id)))
+async def grant_permission_to_role(role_id: UUID, permission_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[GrantPermissionToRoleHandler, Depends(get_grant_permission_to_role_handler)]) -> RoleResponse:
+	return RoleResponse.from_dto(await handler.handle(GrantPermissionToRoleCommand(role_id=role_id, permission_id=permission_id, actor_id=current_user.id)))
 
 
 @router.delete("/roles/{role_id}/permissions/{permission_id}", response_model=RoleResponse, dependencies=[Depends(require_permissions("permission.revoke_from_role")), Depends(require_admin())])
-async def revoke_permission_from_role(role_id: UUID, permission_id: UUID, handler: Annotated[RevokePermissionFromRoleHandler, Depends(get_revoke_permission_from_role_handler)]) -> RoleResponse:
-	return RoleResponse.from_dto(await handler.handle(RevokePermissionFromRoleCommand(role_id=role_id, permission_id=permission_id)))
+async def revoke_permission_from_role(role_id: UUID, permission_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[RevokePermissionFromRoleHandler, Depends(get_revoke_permission_from_role_handler)]) -> RoleResponse:
+	return RoleResponse.from_dto(await handler.handle(RevokePermissionFromRoleCommand(role_id=role_id, permission_id=permission_id, actor_id=current_user.id)))
 
 
 @router.get("/permissions", response_model=list[PermissionResponse], dependencies=[Depends(require_permissions("permission.read")), Depends(require_admin())])

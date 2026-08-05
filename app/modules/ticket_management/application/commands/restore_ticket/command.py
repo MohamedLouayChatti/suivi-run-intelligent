@@ -9,3 +9,4 @@ from uuid import UUID
 class RestoreTicketCommand:
 	ticket_id: UUID
 	restored_at: datetime
+	actor_id: UUID

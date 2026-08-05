@@ -6,3 +6,4 @@ from uuid import UUID
 class ResumeTicketCommand:
 	ticket_id: UUID
 	resumed_at: datetime
+	actor_id: UUID

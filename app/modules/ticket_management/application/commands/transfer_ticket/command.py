@@ -8,3 +8,4 @@ class TransferTicketCommand:
 	ticket_id: UUID
 	transferred_to: TransferDestination
 	transferred_at: datetime
+	actor_id: UUID

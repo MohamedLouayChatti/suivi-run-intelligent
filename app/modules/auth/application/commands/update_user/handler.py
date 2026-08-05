@@ -4,11 +4,14 @@ from app.modules.auth.application.commands.update_user.command import UpdateUser
 from app.modules.auth.application.dto.user_dto import UserDTO
 from app.modules.auth.application.exceptions import UserNotFound
 from app.modules.auth.application.interfaces.unit_of_work import UnitOfWork
+from app.modules.auth.domain.events.user_updated import UserUpdated
+from app.shared.events.event_publisher import EventPublisher
 
 
 class UpdateUserHandler:
-	def __init__(self, uow: UnitOfWork) -> None:
+	def __init__(self, uow: UnitOfWork, event_publisher: EventPublisher) -> None:
 		self.uow = uow
+		self.event_publisher = event_publisher
 
 	async def handle(self, command: UpdateUserCommand) -> UserDTO:
 		user = await self.uow.users.get_by_id(command.user_id)
@@ -31,4 +34,5 @@ class UpdateUserHandler:
 		except Exception:
 			await self.uow.rollback()
 			raise
+		await self.event_publisher.publish(UserUpdated(user_id=user.id, actor_id=command.actor_id))
 		return UserDTO.from_user(user)

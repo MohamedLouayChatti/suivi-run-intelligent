@@ -38,6 +38,7 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("attachment.create", "Add an attachment."),
 	PermissionDefinition("attachment.delete", "Delete an attachment."),
 	PermissionDefinition("attachment.read", "Download an attachment."),
+	PermissionDefinition("audit.read", "Read audit log entries."),
 )
 
 PERMISSIONS_BY_NAME = {permission.name: permission for permission in PERMISSION_CATALOG}

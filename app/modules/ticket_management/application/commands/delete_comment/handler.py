@@ -33,6 +33,7 @@ class DeleteCommentHandler:
 				ticket_id=ticket.id,
 				comment_id=command.comment_id,
 				deleted_at=command.deleted_at,
+				actor_id=command.actor_id,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

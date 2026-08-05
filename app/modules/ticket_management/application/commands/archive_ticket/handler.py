@@ -28,6 +28,7 @@ class ArchiveTicketHandler:
 			TicketArchived(
 				ticket_id=ticket.id,
 				archived_at=command.archived_at,
+				actor_id=command.actor_id,
 			)
 		)
 		return TicketDetailDTO.from_ticket(ticket)

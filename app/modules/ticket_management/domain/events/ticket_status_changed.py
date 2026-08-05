@@ -13,3 +13,4 @@ class TicketStatusChanged(DomainEvent):
 	old_status: Status
 	new_status: Status
 	changed_at: datetime
+	actor_id: UUID

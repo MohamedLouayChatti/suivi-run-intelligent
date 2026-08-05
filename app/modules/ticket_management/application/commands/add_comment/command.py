@@ -12,3 +12,4 @@ class AddCommentCommand:
 	author_id: UUID
 	content: str
 	created_at: datetime
+	actor_id: UUID
