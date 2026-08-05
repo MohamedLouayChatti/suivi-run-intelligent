@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { clerkErrorMessage } from "@/features/auth/clerk-error";
@@ -200,9 +201,8 @@ export default function LoginPage() {
               Mot de passe oublié ?
             </Link>
           </div>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="current-password"
             required
             value={password}

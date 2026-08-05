@@ -7,6 +7,7 @@ import { useClerk, useSignIn } from "@clerk/nextjs";
 
 import { AuthLayout } from "@/components/app/auth-layout";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { PASSWORD_REQUIREMENTS_TEXT, isPasswordValid } from "@/features/auth/password";
 import { clerkErrorMessage } from "@/features/auth/clerk-error";
@@ -23,6 +24,7 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
 
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,6 +56,11 @@ export default function ForgotPasswordPage() {
   async function handleResetPassword(event: FormEvent) {
     event.preventDefault();
     if (!isClerkLoaded || isSubmitting) return;
+
+    if (password !== passwordConfirmation) {
+      setError("Les mots de passe ne correspondent pas.");
+      return;
+    }
 
     if (!isPasswordValid(password)) {
       setError(PASSWORD_REQUIREMENTS_TEXT);
@@ -110,15 +117,24 @@ export default function ForgotPasswordPage() {
         >
           <div className="space-y-2">
             <Label htmlFor="password">Nouveau mot de passe</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="new-password"
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
             <p className="text-xs text-muted-foreground">{PASSWORD_REQUIREMENTS_TEXT}</p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password-confirmation">Confirmer le mot de passe</Label>
+            <PasswordInput
+              id="password-confirmation"
+              autoComplete="new-password"
+              required
+              value={passwordConfirmation}
+              onChange={(event) => setPasswordConfirmation(event.target.value)}
+            />
           </div>
         </VerificationCodeStep>
       </AuthLayout>

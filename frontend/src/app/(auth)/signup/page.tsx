@@ -8,6 +8,7 @@ import { useClerk, useSignUp } from "@clerk/nextjs";
 import { AuthLayout } from "@/components/app/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -41,6 +42,7 @@ export default function SignupPage() {
   const [application, setApplication] = useState<Application | "">("");
   const [functionalTeam, setFunctionalTeam] = useState<FunctionalTeam | "">("");
   const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [code, setCode] = useState("");
 
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +60,11 @@ export default function SignupPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!isClerkLoaded || isSubmitting) return;
+
+    if (password !== passwordConfirmation) {
+      setError("Les mots de passe ne correspondent pas.");
+      return;
+    }
 
     if (!isPasswordValid(password)) {
       setError(PASSWORD_REQUIREMENTS_TEXT);
@@ -238,15 +245,24 @@ export default function SignupPage() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Mot de passe</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             autoComplete="new-password"
             required
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
           <p className="text-xs text-muted-foreground">{PASSWORD_REQUIREMENTS_TEXT}</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password-confirmation">Confirmer le mot de passe</Label>
+          <PasswordInput
+            id="password-confirmation"
+            autoComplete="new-password"
+            required
+            value={passwordConfirmation}
+            onChange={(event) => setPasswordConfirmation(event.target.value)}
+          />
         </div>
 
         <div id="clerk-captcha" />
