@@ -40,16 +40,14 @@ interface NotificationItemProps {
 
 function NotificationItem({ notification, onMarkRead, onNavigate }: NotificationItemProps) {
   const router = useRouter()
-  const isUnread = notification.read_at === null
   const action = parseNotificationAction(notification.action)
   const Icon = notificationTypeIcons[notification.type]
 
   function handleRowClick() {
-    if (isUnread) onMarkRead(notification.id)
-    if (action) {
-      router.push(resolveNotificationHref(action))
-      onNavigate()
-    }
+    if (!action) return
+    onMarkRead(notification.id)
+    router.push(resolveNotificationHref(action))
+    onNavigate()
   }
 
   function handleDismiss(e: React.MouseEvent) {
@@ -73,22 +71,12 @@ function NotificationItem({ notification, onMarkRead, onNavigate }: Notification
         action && "cursor-pointer hover:bg-accent focus-visible:bg-accent",
       )}
     >
-      <span
-        className={cn(
-          "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full",
-          isUnread ? "bg-primary/10 text-primary" : "bg-muted-foreground/10 text-muted-foreground",
-        )}
-      >
+      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Icon className="size-4" />
       </span>
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-start gap-1.5">
-          <p className={cn("text-sm", isUnread ? "font-medium text-foreground" : "text-muted-foreground")}>
-            {notification.title}
-          </p>
-          {isUnread && <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" />}
-        </div>
+        <p className="text-sm font-medium text-foreground">{notification.title}</p>
         <p className="text-sm text-muted-foreground">{notification.message}</p>
         <p className="mt-0.5 text-xs text-muted-foreground">{formatRelativeTime(notification.created_at)}</p>
       </div>

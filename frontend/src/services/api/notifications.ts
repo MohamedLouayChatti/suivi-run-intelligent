@@ -6,9 +6,9 @@ type NotificationResponse = components["schemas"]["NotificationResponse"]
 type UnreadCountResponse = components["schemas"]["UnreadCountResponse"]
 type MarkAllReadResponse = components["schemas"]["MarkAllReadResponse"]
 
-async function listNotifications(pageSize = 50): Promise<NotificationResponse[]> {
+async function listNotifications(unreadOnly = false, pageSize = 50): Promise<NotificationResponse[]> {
   const { data } = await httpClient.get<NotificationResponse[]>("/notifications", {
-    params: { page: 1, page_size: pageSize },
+    params: { unread_only: unreadOnly, page: 1, page_size: pageSize },
   })
   return data
 }

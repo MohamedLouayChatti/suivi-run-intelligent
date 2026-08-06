@@ -62,6 +62,10 @@ function CommentsSection({
   const [files, setFiles] = useState<File[]>([])
   const { user: currentUser, hasPermission, isAdmin, canActOnApplication, isAttachmentUploader } = usePermissions()
   const canComment = hasPermission("comment.create") && (canActOnApplication(ticket.application) || isAdmin)
+  // Newest first — the backend returns comments in creation order.
+  const comments = [...ticket.comments].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  )
 
   function handleSubmit() {
     if (!draft.trim()) return
@@ -79,11 +83,11 @@ function CommentsSection({
             <Skeleton className="h-14 w-full" />
             <Skeleton className="h-14 w-full" />
           </div>
-        ) : ticket.comments.length === 0 ? (
+        ) : comments.length === 0 ? (
           <p className="text-sm text-muted-foreground">Aucun commentaire pour le moment.</p>
         ) : (
           <ul className="space-y-4">
-            {ticket.comments.map((c) => {
+            {comments.map((c) => {
               const activeAttachments = c.attachments.filter((a) => a.deleted_at === null)
               return (
                 <li key={c.id} className="flex gap-3">

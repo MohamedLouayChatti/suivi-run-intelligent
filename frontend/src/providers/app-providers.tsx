@@ -1,6 +1,7 @@
 "use client";
 
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/toaster";
 import { QueryProvider } from "@/providers/query-provider";
 import { useTheme } from "@/hooks/use-theme";
 import { AuthTokenBridge, AuthFailureBridge } from "@/lib/auth";
@@ -15,6 +16,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
       <AuthFailureBridge />
       <NotificationsSseBridge />
       <TooltipProvider>{children}</TooltipProvider>
+      <Toaster />
     </QueryProvider>
   );
 }

@@ -16,6 +16,7 @@ from app.modules.notifications.domain.value_objects.notification_action import (
 from app.shared.events.event import DomainEvent
 
 from app.modules.ticket_management.domain.enums.functional_team import FunctionalTeam
+from app.modules.ticket_management.domain.enums.status import Status
 from app.modules.ticket_management.domain.enums.transfer_destination import TransferDestination
 from app.modules.ticket_management.domain.events.attachment_added import AttachmentAdded
 from app.modules.ticket_management.domain.events.attachment_deleted import AttachmentDeleted
@@ -58,6 +59,17 @@ _TRANSFER_DESTINATION_TARGET: dict[TransferDestination, tuple[str, str | None]] 
 	TransferDestination.CONFIG_COLORIS: ("COLORIS", FunctionalTeam.CONFIGURATION.value),
 	TransferDestination.AERO: ("AERO", None),
 	TransferDestination.VIO: ("VIO", None),
+}
+
+# Status.value stays an English constant (it's an API contract value, read by the frontend's
+# own statusConfig to render badges) -- this is a display-only label for notification text,
+# mirroring statusConfig's French labels so the two surfaces never say different things.
+_STATUS_LABELS_FR: dict[Status, str] = {
+	Status.OPEN: "ouvert",
+	Status.IN_PROGRESS: "en cours",
+	Status.TRANSFERRED: "transféré",
+	Status.RESOLVED: "résolu",
+	Status.CLOSED: "clôturé",
 }
 
 
@@ -131,7 +143,7 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [event.assignee_id],
-			title="Ticket reassigned to you", message=f'You were assigned to ticket "{ticket.title}".',
+			title="Ticket réaffecté", message=f'Vous avez été affecté au ticket « {ticket.title} ».',
 			type=NotificationType.TICKET_ASSIGNED, action=OpenTicketAction(event.ticket_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title},
 		)
@@ -142,8 +154,8 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="Ticket priority changed",
-			message=f'Priority for "{ticket.title}" changed from {event.old_priority.value} to {event.new_priority.value}.',
+			title="Priorité du ticket modifiée",
+			message=f'La priorité de « {ticket.title} » est passée de {event.old_priority.value} à {event.new_priority.value}.',
 			type=NotificationType.TICKET_PRIORITY_CHANGED, action=OpenTicketAction(event.ticket_id),
 			metadata={
 				"ticket_id": str(event.ticket_id), "ticket_title": ticket.title,
@@ -155,10 +167,12 @@ class NotificationMapper:
 		ticket = await self._recipients.get_ticket(event.ticket_id)
 		if ticket is None:
 			return []
+		old_label = _STATUS_LABELS_FR[event.old_status]
+		new_label = _STATUS_LABELS_FR[event.new_status]
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="Ticket status changed",
-			message=f'Status for "{ticket.title}" changed from {event.old_status.value} to {event.new_status.value}.',
+			title="Statut du ticket modifié",
+			message=f'Le statut de « {ticket.title} » est passé de {old_label} à {new_label}.',
 			type=NotificationType.TICKET_STATUS_CHANGED, action=OpenTicketAction(event.ticket_id),
 			metadata={
 				"ticket_id": str(event.ticket_id), "ticket_title": ticket.title,
@@ -172,7 +186,7 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="New comment", message=f'A new comment was added to "{ticket.title}".',
+			title="Nouveau commentaire", message=f'Un nouveau commentaire a été ajouté à « {ticket.title} ».',
 			type=NotificationType.COMMENT_ADDED, action=OpenCommentAction(event.ticket_id, event.comment_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title, "comment_id": str(event.comment_id)},
 		)
@@ -183,7 +197,7 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="Comment edited", message=f'A comment on "{ticket.title}" was edited.',
+			title="Commentaire modifié", message=f'Un commentaire sur « {ticket.title} » a été modifié.',
 			type=NotificationType.COMMENT_EDITED, action=OpenCommentAction(event.ticket_id, event.comment_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title, "comment_id": str(event.comment_id)},
 		)
@@ -194,7 +208,7 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="Comment deleted", message=f'A comment on "{ticket.title}" was deleted.',
+			title="Commentaire supprimé", message=f'Un commentaire sur « {ticket.title} » a été supprimé.',
 			type=NotificationType.COMMENT_DELETED, action=OpenTicketAction(event.ticket_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title, "comment_id": str(event.comment_id)},
 		)
@@ -205,7 +219,7 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="New attachment", message=f'A new attachment was added to "{ticket.title}".',
+			title="Nouvelle pièce jointe", message=f'Une nouvelle pièce jointe a été ajoutée à « {ticket.title} ».',
 			type=NotificationType.ATTACHMENT_ADDED, action=OpenTicketAction(event.ticket_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title, "attachment_id": str(event.attachment_id)},
 		)
@@ -216,7 +230,7 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="Attachment deleted", message=f'An attachment on "{ticket.title}" was deleted.',
+			title="Pièce jointe supprimée", message=f'Une pièce jointe de « {ticket.title} » a été supprimée.',
 			type=NotificationType.ATTACHMENT_DELETED, action=OpenTicketAction(event.ticket_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title, "attachment_id": str(event.attachment_id)},
 		)
@@ -227,7 +241,7 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="Ticket archived", message=f'"{ticket.title}" was archived.',
+			title="Ticket archivé", message=f'« {ticket.title} » a été archivé.',
 			type=NotificationType.TICKET_ARCHIVED, action=OpenTicketAction(event.ticket_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title},
 		)
@@ -238,7 +252,7 @@ class NotificationMapper:
 			return []
 		return self._for_recipients(
 			event, [ticket.assignee_id],
-			title="Ticket restored", message=f'"{ticket.title}" was restored.',
+			title="Ticket restauré", message=f'« {ticket.title} » a été restauré.',
 			type=NotificationType.TICKET_RESTORED, action=OpenTicketAction(event.ticket_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title},
 		)
@@ -254,7 +268,7 @@ class NotificationMapper:
 		recipient_ids = await self._recipients.active_user_ids_with_application(application_value, functional_team_value)
 		return self._for_recipients(
 			event, recipient_ids,
-			title="Ticket transferred to your team", message=f'"{ticket.title}" was transferred to {event.transferred_to.value}.',
+			title="Ticket transféré vers votre équipe", message=f'« {ticket.title} » a été transféré vers {event.transferred_to.value}.',
 			type=NotificationType.TICKET_TRANSFERRED, action=OpenTicketAction(event.ticket_id),
 			metadata={"ticket_id": str(event.ticket_id), "ticket_title": ticket.title, "transferred_to": event.transferred_to.value},
 		)
@@ -264,7 +278,7 @@ class NotificationMapper:
 	async def _user_activated(self, event: UserActivated) -> list[Notification]:
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Account activated", message="Your account was activated.",
+			title="Compte activé", message="Votre compte a été activé.",
 			type=NotificationType.ACCOUNT_ACTIVATED, action=None,
 			metadata={"user_id": str(event.user_id)},
 		)
@@ -272,7 +286,7 @@ class NotificationMapper:
 	async def _user_deactivated(self, event: UserDeactivated) -> list[Notification]:
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Account deactivated", message="Your account was deactivated.",
+			title="Compte désactivé", message="Votre compte a été désactivé.",
 			type=NotificationType.ACCOUNT_DEACTIVATED, action=None,
 			metadata={"user_id": str(event.user_id)},
 		)
@@ -280,7 +294,7 @@ class NotificationMapper:
 	async def _role_assigned(self, event: RoleAssignedToUser) -> list[Notification]:
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Role assigned", message=f"You were assigned the role {event.role_id}.",
+			title="Rôle attribué", message=f"Le rôle {event.role_id} vous a été attribué.",
 			type=NotificationType.ROLE_ASSIGNED, action=None,
 			metadata={"user_id": str(event.user_id), "role_id": str(event.role_id)},
 		)
@@ -288,7 +302,7 @@ class NotificationMapper:
 	async def _role_revoked(self, event: RoleRevokedFromUser) -> list[Notification]:
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Role revoked", message=f"The role {event.role_id} was revoked from your account.",
+			title="Rôle retiré", message=f"Le rôle {event.role_id} a été retiré de votre compte.",
 			type=NotificationType.ROLE_REVOKED, action=None,
 			metadata={"user_id": str(event.user_id), "role_id": str(event.role_id)},
 		)
@@ -296,7 +310,7 @@ class NotificationMapper:
 	async def _permission_granted(self, event: PermissionGrantedToUser) -> list[Notification]:
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Permission granted", message=f"You were granted the permission {event.permission_id}.",
+			title="Permission accordée", message=f"La permission {event.permission_id} vous a été accordée.",
 			type=NotificationType.PERMISSION_GRANTED, action=None,
 			metadata={"user_id": str(event.user_id), "permission_id": str(event.permission_id)},
 		)
@@ -304,7 +318,7 @@ class NotificationMapper:
 	async def _permission_revoked(self, event: PermissionRevokedFromUser) -> list[Notification]:
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Permission revoked", message=f"The permission {event.permission_id} was revoked from your account.",
+			title="Permission retirée", message=f"La permission {event.permission_id} a été retirée de votre compte.",
 			type=NotificationType.PERMISSION_REVOKED, action=None,
 			metadata={"user_id": str(event.user_id), "permission_id": str(event.permission_id)},
 		)
@@ -313,7 +327,7 @@ class NotificationMapper:
 		recipient_ids = await self._recipients.active_user_ids_with_role(event.role_id)
 		return self._for_recipients(
 			event, recipient_ids,
-			title="Role permissions changed", message=f"The permission {event.permission_id} was granted to the role {event.role_id}.",
+			title="Permissions du rôle modifiées", message=f"La permission {event.permission_id} a été accordée au rôle {event.role_id}.",
 			type=NotificationType.ROLE_PERMISSION_GRANTED, action=None,
 			metadata={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
 		)
@@ -322,7 +336,7 @@ class NotificationMapper:
 		recipient_ids = await self._recipients.active_user_ids_with_role(event.role_id)
 		return self._for_recipients(
 			event, recipient_ids,
-			title="Role permissions changed", message=f"The permission {event.permission_id} was revoked from the role {event.role_id}.",
+			title="Permissions du rôle modifiées", message=f"La permission {event.permission_id} a été retirée du rôle {event.role_id}.",
 			type=NotificationType.ROLE_PERMISSION_REVOKED, action=None,
 			metadata={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
 		)
@@ -330,7 +344,7 @@ class NotificationMapper:
 	async def _user_created(self, event: UserCreated) -> list[Notification]:
 		welcome = self._for_recipients(
 			event, [event.user_id],
-			title="Welcome", message=f"Welcome, {event.display_name}! Your account has been created.",
+			title="Bienvenue", message=f"Bienvenue, {event.display_name} ! Votre compte a été créé.",
 			type=NotificationType.ACCOUNT_CREATED, action=None,
 			metadata={"user_id": str(event.user_id)},
 		)
@@ -338,7 +352,7 @@ class NotificationMapper:
 		admin_ids = admin_ids - {event.user_id}
 		announcements = self._for_recipients(
 			event, admin_ids,
-			title="New user registered", message=f"{event.display_name} ({event.email}) just joined.",
+			title="Nouvel utilisateur inscrit", message=f"{event.display_name} ({event.email}) vient de rejoindre la plateforme.",
 			type=NotificationType.NEW_USER_REGISTERED, action=OpenUserAction(event.user_id),
 			metadata={"user_id": str(event.user_id), "email": event.email, "display_name": event.display_name},
 		)

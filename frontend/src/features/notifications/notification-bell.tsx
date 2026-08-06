@@ -57,10 +57,10 @@ function NotificationBell() {
           </div>
         ) : notifications.length === 0 ? (
           <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-            Aucune notification pour le moment.
+            Aucune notification non lue.
           </p>
         ) : (
-          <ScrollArea className="h-[420px]">
+          <ScrollArea className="max-h-[420px]">
             <div className="space-y-0.5 p-1.5">
               {notifications.map((notification) => (
                 <NotificationItem
