@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from app.modules.ticket_management import bootstrap as ticket_management_bootstrap
 from app.modules.auth import bootstrap as auth_bootstrap
 from app.modules.audit import bootstrap as audit_bootstrap
+from app.modules.notifications import bootstrap as notifications_bootstrap
 from app.shared.events.event_bus import InMemoryEventBus
 from app.shared.events.subscriptions import SubscriptionRegistry
 from app.shared.security.instance_authorization_registry import InstanceAuthorizationRegistry
@@ -26,9 +27,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 	ticket_management_bootstrap.register_subscriptions(registry)
 	auth_bootstrap.register_subscriptions(registry)
 	audit_bootstrap.register_subscriptions(registry)
+	notifications_bootstrap.register_subscriptions(registry)
 
 	ticket_management_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 	auth_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 	audit_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
+	notifications_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 
 	yield
