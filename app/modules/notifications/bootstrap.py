@@ -3,8 +3,10 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+from app.modules.auth.application.interfaces.permission_read_repository import PermissionReadRepository
 from app.modules.auth.application.interfaces.role_read_repository import RoleReadRepository
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
+from app.modules.auth.infrastructure.persistence.repositories.sqlalchemy_permission_read_repository import SqlAlchemyPermissionReadRepository
 from app.modules.auth.infrastructure.persistence.repositories.sqlalchemy_role_read_repository import SqlAlchemyRoleReadRepository
 from app.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_read_repository import SqlAlchemyUserReadRepository
 from app.modules.notifications.application.interfaces.notification_publisher import NotificationPublisher
@@ -80,6 +82,15 @@ async def _role_read_repository_scope() -> AsyncIterator[RoleReadRepository]:
 
 
 @asynccontextmanager
+async def _permission_read_repository_scope() -> AsyncIterator[PermissionReadRepository]:
+	session = create_session()
+	try:
+		yield SqlAlchemyPermissionReadRepository(session)
+	finally:
+		await session.close()
+
+
+@asynccontextmanager
 async def _notification_read_repository_scope() -> AsyncIterator[SqlAlchemyNotificationReadRepository]:
 	session = create_session()
 	try:
@@ -98,7 +109,10 @@ def register_subscriptions(registry: SubscriptionRegistry) -> None:
 	codebase already reaches into a foreign module's concrete Infrastructure class
 	to construct a session-scoped read repository.
 	"""
-	recipients = RecipientResolver(_ticket_read_repository_scope, _user_read_repository_scope, _role_read_repository_scope)
+	recipients = RecipientResolver(
+		_ticket_read_repository_scope, _user_read_repository_scope,
+		_role_read_repository_scope, _permission_read_repository_scope,
+	)
 	mapper = NotificationMapper(recipients)
 	publisher: NotificationPublisher = SSENotificationPublisher(connection_manager)
 	handler = NotificationEventHandler(SqlAlchemyUnitOfWork, mapper, publisher)

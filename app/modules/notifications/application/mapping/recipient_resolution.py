@@ -4,7 +4,9 @@ from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
 from uuid import UUID
 
+from app.modules.auth.application.dto.permission_dto import PermissionDTO
 from app.modules.auth.application.dto.user_dto import UserDTO
+from app.modules.auth.application.interfaces.permission_read_repository import PermissionReadRepository
 from app.modules.auth.application.interfaces.role_read_repository import RoleReadRepository
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
 from app.modules.auth.application.queries.list_roles.query import ListRolesQuery
@@ -15,6 +17,7 @@ from app.modules.ticket_management.application.interfaces.ticket_read_repository
 TicketReadRepositoryScope = Callable[[], AbstractAsyncContextManager[TicketReadRepository]]
 UserReadRepositoryScope = Callable[[], AbstractAsyncContextManager[UserReadRepository]]
 RoleReadRepositoryScope = Callable[[], AbstractAsyncContextManager[RoleReadRepository]]
+PermissionReadRepositoryScope = Callable[[], AbstractAsyncContextManager[PermissionReadRepository]]
 
 ADMIN_ROLE_NAME = "Admin"
 
@@ -36,14 +39,25 @@ class RecipientResolver:
 		ticket_repository_scope: TicketReadRepositoryScope,
 		user_repository_scope: UserReadRepositoryScope,
 		role_repository_scope: RoleReadRepositoryScope,
+		permission_repository_scope: PermissionReadRepositoryScope,
 	) -> None:
 		self._ticket_repository_scope = ticket_repository_scope
 		self._user_repository_scope = user_repository_scope
 		self._role_repository_scope = role_repository_scope
+		self._permission_repository_scope = permission_repository_scope
 
 	async def get_ticket(self, ticket_id: UUID) -> TicketDetailDTO | None:
 		async with self._ticket_repository_scope() as tickets:
 			return await tickets.get_ticket(ticket_id)
+
+	async def get_role_name(self, role_id: UUID) -> str | None:
+		async with self._role_repository_scope() as roles:
+			role = await roles.get_role(role_id)
+		return role.name if role is not None else None
+
+	async def get_permission(self, permission_id: UUID) -> PermissionDTO | None:
+		async with self._permission_repository_scope() as permissions:
+			return await permissions.get_permission(permission_id)
 
 	async def _all_active_users(self) -> list[UserDTO]:
 		async with self._user_repository_scope() as users:

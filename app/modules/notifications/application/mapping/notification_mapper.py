@@ -135,6 +135,16 @@ class NotificationMapper:
 			if recipient_id != event.actor_id
 		]
 
+	@staticmethod
+	def _lead_in(description: str) -> str:
+		"""A Permission's seeded `description` reads as a standalone sentence (capitalized,
+		e.g. "Changer la priorité d'un ticket.") -- lowercase its first letter so it flows
+		naturally after a fixed lead-in ("Vous pouvez désormais : ...") instead of
+		reconstructing a sentence from the permission's `resource.verb` name, which isn't
+		regular enough to parse (half the catalog uses multi-word verbs like
+		`change_priority` or `grant_to_role`)."""
+		return description[:1].lower() + description[1:] if description else description
+
 	# -- Ticket Management ---------------------------------------------------
 
 	async def _ticket_reassigned(self, event: TicketReassigned) -> list[Notification]:
@@ -292,51 +302,73 @@ class NotificationMapper:
 		)
 
 	async def _role_assigned(self, event: RoleAssignedToUser) -> list[Notification]:
+		role_name = await self._recipients.get_role_name(event.role_id)
+		if role_name is None:
+			return []
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Rôle attribué", message=f"Le rôle {event.role_id} vous a été attribué.",
+			title="Rôle attribué", message=f'Le rôle « {role_name} » vous a été attribué.',
 			type=NotificationType.ROLE_ASSIGNED, action=None,
 			metadata={"user_id": str(event.user_id), "role_id": str(event.role_id)},
 		)
 
 	async def _role_revoked(self, event: RoleRevokedFromUser) -> list[Notification]:
+		role_name = await self._recipients.get_role_name(event.role_id)
+		if role_name is None:
+			return []
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Rôle retiré", message=f"Le rôle {event.role_id} a été retiré de votre compte.",
+			title="Rôle retiré", message=f'Le rôle « {role_name} » a été retiré de votre compte.',
 			type=NotificationType.ROLE_REVOKED, action=None,
 			metadata={"user_id": str(event.user_id), "role_id": str(event.role_id)},
 		)
 
 	async def _permission_granted(self, event: PermissionGrantedToUser) -> list[Notification]:
+		permission = await self._recipients.get_permission(event.permission_id)
+		if permission is None:
+			return []
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Permission accordée", message=f"La permission {event.permission_id} vous a été accordée.",
+			title="Permission accordée", message=f"Vous pouvez désormais : {self._lead_in(permission.description)}",
 			type=NotificationType.PERMISSION_GRANTED, action=None,
 			metadata={"user_id": str(event.user_id), "permission_id": str(event.permission_id)},
 		)
 
 	async def _permission_revoked(self, event: PermissionRevokedFromUser) -> list[Notification]:
+		permission = await self._recipients.get_permission(event.permission_id)
+		if permission is None:
+			return []
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Permission retirée", message=f"La permission {event.permission_id} a été retirée de votre compte.",
+			title="Permission retirée", message=f"Vous ne pouvez plus : {self._lead_in(permission.description)}",
 			type=NotificationType.PERMISSION_REVOKED, action=None,
 			metadata={"user_id": str(event.user_id), "permission_id": str(event.permission_id)},
 		)
 
 	async def _role_permission_granted(self, event: RolePermissionGranted) -> list[Notification]:
 		recipient_ids = await self._recipients.active_user_ids_with_role(event.role_id)
+		role_name = await self._recipients.get_role_name(event.role_id)
+		permission = await self._recipients.get_permission(event.permission_id)
+		if role_name is None or permission is None:
+			return []
 		return self._for_recipients(
 			event, recipient_ids,
-			title="Permissions du rôle modifiées", message=f"La permission {event.permission_id} a été accordée au rôle {event.role_id}.",
+			title="Permissions du rôle modifiées",
+			message=f'Les membres du rôle « {role_name} » peuvent désormais : {self._lead_in(permission.description)}',
 			type=NotificationType.ROLE_PERMISSION_GRANTED, action=None,
 			metadata={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
 		)
 
 	async def _role_permission_revoked(self, event: RolePermissionRevoked) -> list[Notification]:
 		recipient_ids = await self._recipients.active_user_ids_with_role(event.role_id)
+		role_name = await self._recipients.get_role_name(event.role_id)
+		permission = await self._recipients.get_permission(event.permission_id)
+		if role_name is None or permission is None:
+			return []
 		return self._for_recipients(
 			event, recipient_ids,
-			title="Permissions du rôle modifiées", message=f"La permission {event.permission_id} a été retirée du rôle {event.role_id}.",
+			title="Permissions du rôle modifiées",
+			message=f'Les membres du rôle « {role_name} » ne peuvent plus : {self._lead_in(permission.description)}',
 			type=NotificationType.ROLE_PERMISSION_REVOKED, action=None,
 			metadata={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
 		)
