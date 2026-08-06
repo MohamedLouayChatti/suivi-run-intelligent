@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, ChevronDown, LogOut, User } from "lucide-react";
+import { ChevronDown, LogOut, User } from "lucide-react";
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -13,13 +13,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "@/features/notifications/notification-bell";
 
 interface SiteHeaderProps {
   userName?: string;
   userRole?: string;
   userInitials?: string;
   userAvatarUrl?: string;
-  hasNotifications?: boolean;
   onLogout?: () => void;
 }
 
@@ -28,7 +28,6 @@ export function SiteHeader({
   userRole,
   userInitials = "CO",
   userAvatarUrl,
-  hasNotifications = true,
   onLogout,
 }: SiteHeaderProps) {
   return (
@@ -39,12 +38,7 @@ export function SiteHeader({
       </div>
 
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
-          <Bell />
-          {hasNotifications && (
-            <span className="absolute right-2 top-2 size-1.5 rounded-full bg-primary" />
-          )}
-        </Button>
+        <NotificationBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

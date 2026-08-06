@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Search, MoreHorizontal } from "lucide-react"
 
+import { cn } from "@/lib/utils"
 import { SectionCard } from "@/components/app/page"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -43,16 +44,30 @@ function initials(name: string): string {
 
 interface UsersTableProps {
   users: UserResponse[]
+  highlightUserId?: string | null
   onChangeRole: (userId: string, roleId: string) => void
   onToggleActive: (userId: string) => void
   onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void
 }
 
-function UsersTable({ users, onChangeRole, onToggleActive, onSavePermissions }: UsersTableProps) {
+function UsersTable({ users, highlightUserId, onChangeRole, onToggleActive, onSavePermissions }: UsersTableProps) {
   const { roles } = useRolesList()
   const [query, setQuery] = useState("")
   const [roleId, setRoleId] = useState("all")
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [manualSelectedUserId, setManualSelectedUserId] = useState<string | null>(null)
+  const [highlightDismissed, setHighlightDismissed] = useState(false)
+
+  // Deep-linked from a "new user registered" notification (?highlight=<id>) — open that
+  // user's details sheet once the list has loaded far enough to contain them. Derived
+  // (not effect-driven) so it naturally re-evaluates as `users` arrives; `highlightDismissed`
+  // stops it from reopening once the admin has closed the sheet.
+  const isHighlightActive = !highlightDismissed && !!highlightUserId && users.some((u) => u.id === highlightUserId)
+  const selectedUserId = manualSelectedUserId ?? (isHighlightActive ? highlightUserId : null)
+
+  function closeSheet() {
+    setManualSelectedUserId(null)
+    if (isHighlightActive) setHighlightDismissed(true)
+  }
 
   const rows = users.filter(
     (u) =>
@@ -103,7 +118,11 @@ function UsersTable({ users, onChangeRole, onToggleActive, onSavePermissions }: 
             </TableRow>
           ) : (
             rows.map((u) => (
-              <TableRow key={u.id} className="cursor-pointer" onClick={() => setSelectedUserId(u.id)}>
+              <TableRow
+                key={u.id}
+                className={cn("cursor-pointer", isHighlightActive && u.id === highlightUserId && "bg-primary/5")}
+                onClick={() => setManualSelectedUserId(u.id)}
+              >
                 <TableCell>
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar className="shrink-0">
@@ -128,7 +147,7 @@ function UsersTable({ users, onChangeRole, onToggleActive, onSavePermissions }: 
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onSelect={() => setSelectedUserId(u.id)}>
+                      <DropdownMenuItem onSelect={() => setManualSelectedUserId(u.id)}>
                         Voir les détails
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -149,7 +168,7 @@ function UsersTable({ users, onChangeRole, onToggleActive, onSavePermissions }: 
       <UserDetailsSheet
         key={selectedUserId ?? "none"}
         user={selectedUser}
-        onOpenChange={(open) => !open && setSelectedUserId(null)}
+        onOpenChange={(open) => !open && closeSheet()}
         onSaveRole={onChangeRole}
         onSavePermissions={onSavePermissions}
       />

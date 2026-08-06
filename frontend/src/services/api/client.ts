@@ -46,4 +46,4 @@ httpClient.interceptors.response.use(
   },
 );
 
-export { httpClient };
+export { httpClient, API_BASE_URL };
