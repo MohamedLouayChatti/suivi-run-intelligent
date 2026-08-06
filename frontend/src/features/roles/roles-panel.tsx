@@ -26,10 +26,13 @@ type PermissionResponse = components["schemas"]["PermissionResponse"]
 
 // Static presentational copy — RoleResponse only carries id/name/permission_ids, and role
 // management (create/edit) isn't part of this app; roles are seeded, not authored by admins.
+// Keyed by the actual seeded role names (see app/scripts/seeding/roles_permissions/roles.py) —
+// previously kept English placeholder names ("Support Engineer", ...) that never matched the
+// real seeded roles, so two of three roles silently showed no description here.
 const roleDescriptions: Record<string, string> = {
   Admin: "Accès complet à la plateforme, y compris l'administration des utilisateurs, des rôles et des permissions.",
-  "Support Engineer": "Prend en charge la résolution des tickets au quotidien et la contribution aux connaissances.",
-  "Support Engineer Supervisor": "Supervise les files d'attente, réassigne le travail et consulte les analyses opérationnelles.",
+  "Ingénieur Support": "Prend en charge la résolution des tickets au quotidien et la contribution aux connaissances.",
+  Lecteur: "Consulte les tickets et peut y ajouter des commentaires ou des pièces jointes, sans gérer leur cycle de vie.",
 }
 
 function RolesPanel() {

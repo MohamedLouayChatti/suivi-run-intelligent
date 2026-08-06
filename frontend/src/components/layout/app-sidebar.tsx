@@ -51,7 +51,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-14 justify-center border-b border-sidebar-border">
-        <div className="flex items-center gap-2.5 px-2">
+        <Link href="/dashboard" className="flex items-center gap-2.5 px-2">
           <Image
             src="/icon_sofrecom_logo.png"
             alt="Logo Sofrecom"
@@ -63,7 +63,7 @@ export function AppSidebar() {
           <span className="truncate text-[15px] font-semibold tracking-tight group-data-[collapsible=icon]:hidden">
             Suivi Run
           </span>
-        </div>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
