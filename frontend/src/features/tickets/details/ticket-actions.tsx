@@ -8,6 +8,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -146,11 +148,13 @@ function TicketActions({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {priorityOptions.map((p) => (
-              <DropdownMenuItem key={p} onSelect={() => onChangePriority(p)}>
-                {p}
-              </DropdownMenuItem>
-            ))}
+            <DropdownMenuRadioGroup value={ticket.priority}>
+              {priorityOptions.map((p) => (
+                <DropdownMenuRadioItem key={p} value={p} onSelect={() => onChangePriority(p)}>
+                  {p}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
