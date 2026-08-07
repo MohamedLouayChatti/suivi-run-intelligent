@@ -23,9 +23,9 @@ function useRolesAdmin() {
     onSuccess: afterMutation,
   })
 
-  function togglePermission(roleId: string, permissionId: string, currentlyGranted: boolean) {
-    if (currentlyGranted) revoke.mutate({ roleId, permissionId })
-    else grant.mutate({ roleId, permissionId })
+  function togglePermission(roleId: string, permissionId: string, desiredGranted: boolean) {
+    if (desiredGranted) grant.mutate({ roleId, permissionId })
+    else revoke.mutate({ roleId, permissionId })
   }
 
   return { togglePermission }
