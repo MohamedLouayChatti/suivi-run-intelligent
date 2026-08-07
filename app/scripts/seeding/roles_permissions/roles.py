@@ -34,6 +34,7 @@ SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 			"attachment.delete",
 			"attachment.read",
 			"notification.read",
+			"analytics.read",
 		),
 	),
 	RoleDefinition(
@@ -50,6 +51,7 @@ SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 			"attachment.delete",
 			"attachment.read",
 			"notification.read",
+			"analytics.read",
 		)
 	),
 )

@@ -40,6 +40,7 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("attachment.read", "Télécharger une pièce jointe."),
 	PermissionDefinition("audit.read", "Lire les entrées du journal d'audit."),
 	PermissionDefinition("notification.read", "Lire ses propres notifications."),
+	PermissionDefinition("analytics.read", "Lire les indicateurs et statistiques analytiques."),
 )
 
 PERMISSIONS_BY_NAME = {permission.name: permission for permission in PERMISSION_CATALOG}

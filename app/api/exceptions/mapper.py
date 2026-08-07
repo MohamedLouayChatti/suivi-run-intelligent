@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from fastapi import status
 
+from app.modules.analytics.application.exceptions import UnsupportedInsightsApplication
 from app.modules.audit.application.exceptions import AuditEntryNotFound
 from app.modules.notifications.application.exceptions import NotificationNotFound
 from app.modules.ticket_management.application.exceptions import (
@@ -54,6 +55,7 @@ EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     UnsupportedAttachmentType: status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
     AuditEntryNotFound: status.HTTP_404_NOT_FOUND,
     NotificationNotFound: status.HTTP_404_NOT_FOUND,
+    UnsupportedInsightsApplication: status.HTTP_400_BAD_REQUEST,
 }
 
 
