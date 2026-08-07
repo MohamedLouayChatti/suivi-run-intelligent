@@ -16,5 +16,20 @@ async function listAuditEntries(pageSize = 100): Promise<AuditEntry[]> {
   return data
 }
 
-export { listAuditEntries }
+interface AuditExportFilters {
+  module: string | "all"
+}
+
+/** Exports the Audit page's currently active module filter as a CSV, matching what's on screen. */
+async function exportAuditEntries(filters: AuditExportFilters): Promise<Blob> {
+  const { data } = await httpClient.get<Blob>("/audit/export", {
+    responseType: "blob",
+    params: {
+      module: filters.module === "all" ? undefined : filters.module,
+    },
+  })
+  return data
+}
+
+export { listAuditEntries, exportAuditEntries }
 export type { AuditEntry }

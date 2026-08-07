@@ -49,9 +49,13 @@ function getActorLabel(entry: AuditEntry): string {
   return entry.actor?.display_name ?? entry.actor_label ?? "—"
 }
 
-function AuditLogTable() {
+interface AuditLogTableProps {
+  moduleFilter: "all" | string
+  onModuleFilterChange: (value: "all" | string) => void
+}
+
+function AuditLogTable({ moduleFilter, onModuleFilterChange }: AuditLogTableProps) {
   const [query, setQuery] = useState("")
-  const [moduleFilter, setModuleFilter] = useState<"all" | string>("all")
   const [rawPage, setRawPage] = useState(1)
 
   const { data: entries = [], isLoading } = useQuery({
@@ -94,7 +98,7 @@ function AuditLogTable() {
         <Select
           value={moduleFilter}
           onValueChange={(v) => {
-            setModuleFilter(v)
+            onModuleFilterChange(v)
             setRawPage(1)
           }}
         >
