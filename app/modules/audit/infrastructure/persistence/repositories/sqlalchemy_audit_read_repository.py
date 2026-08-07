@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.audit.application.dto.audit_entry_dto import AuditEntryDTO
 from app.modules.audit.application.interfaces.audit_read_repository import AuditReadRepository
+from app.modules.audit.application.queries.export_audit_entries.query import ExportAuditEntriesQuery
 from app.modules.audit.application.queries.list_audit_entries.query import ListAuditEntriesQuery
 from app.modules.audit.infrastructure.persistence import mapper
 from app.modules.audit.infrastructure.persistence.models.audit_entry_model import AuditEntryModel
@@ -45,3 +46,14 @@ class SqlAlchemyAuditReadRepository(AuditReadRepository):
 		if conditions:
 			stmt = stmt.where(and_(*conditions))
 		return stmt.order_by(AuditEntryModel.occurred_at.desc()).limit(query.limit).offset(query.offset)
+
+	async def list_entries_for_export(self, query: ExportAuditEntriesQuery) -> list[AuditEntryDTO]:
+		stmt = self._build_export_query(query)
+		result = await self.session.scalars(stmt)
+		return [mapper.model_to_dto(model) for model in result.all()]
+
+	def _build_export_query(self, query: ExportAuditEntriesQuery) -> Select[tuple[AuditEntryModel]]:
+		stmt = select(AuditEntryModel)
+		if query.module is not None:
+			stmt = stmt.where(AuditEntryModel.module == query.module)
+		return stmt.order_by(AuditEntryModel.occurred_at.desc())
