@@ -12,6 +12,8 @@ from app.modules.analytics.application.queries.get_attention_required.handler im
 from app.modules.analytics.application.queries.get_distributions.handler import GetDistributionsHandler
 from app.modules.analytics.application.queries.get_jira_metrics.handler import GetJiraMetricsHandler
 from app.modules.analytics.application.queries.get_kpi_snapshot.handler import GetKpiSnapshotHandler
+from app.modules.analytics.application.queries.get_my_activity_trend.handler import GetMyActivityTrendHandler
+from app.modules.analytics.application.queries.get_my_kpi_snapshot.handler import GetMyKpiSnapshotHandler
 from app.modules.analytics.application.security.access_scope import accessible_applications
 from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_admin_analytics_read_repository import (
 	SqlAlchemyAdminAnalyticsReadRepository,
@@ -21,6 +23,9 @@ from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_an
 )
 from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_application_insights_read_repository import (
 	SqlAlchemyApplicationInsightsReadRepository,
+)
+from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_personal_analytics_read_repository import (
+	SqlAlchemyPersonalAnalyticsReadRepository,
 )
 from app.modules.auth.api.dependencies import get_user_read_repository
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
@@ -50,6 +55,14 @@ async def get_application_insights_read_repository() -> AsyncIterator[SqlAlchemy
 	session = create_session()
 	try:
 		yield SqlAlchemyApplicationInsightsReadRepository(session)
+	finally:
+		await session.close()
+
+
+async def get_personal_analytics_read_repository() -> AsyncIterator[SqlAlchemyPersonalAnalyticsReadRepository]:
+	session = create_session()
+	try:
+		yield SqlAlchemyPersonalAnalyticsReadRepository(session)
 	finally:
 		await session.close()
 
@@ -112,3 +125,15 @@ def get_admin_overview_handler(
 	user_repository: Annotated[UserReadRepository, Depends(get_user_read_repository)],
 ) -> GetAdminOverviewHandler:
 	return GetAdminOverviewHandler(repository, user_repository)
+
+
+def get_my_kpi_snapshot_handler(
+	repository: Annotated[SqlAlchemyPersonalAnalyticsReadRepository, Depends(get_personal_analytics_read_repository)],
+) -> GetMyKpiSnapshotHandler:
+	return GetMyKpiSnapshotHandler(repository)
+
+
+def get_my_activity_trend_handler(
+	repository: Annotated[SqlAlchemyPersonalAnalyticsReadRepository, Depends(get_personal_analytics_read_repository)],
+) -> GetMyActivityTrendHandler:
+	return GetMyActivityTrendHandler(repository)

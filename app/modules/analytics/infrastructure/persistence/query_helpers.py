@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import TypeVar
+from uuid import UUID
 
 from sqlalchemy import ColumnElement, Select, and_, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.analytics.application.dto.activity_point_dto import ActivityPointDTO
 from app.modules.analytics.application.support.time_range import DateWindow
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.status import Status
@@ -44,6 +48,48 @@ def application_filter(applications: frozenset[Application] | None) -> ColumnEle
 	if applications is None:
 		return None
 	return TicketModel.application.in_(applications)
+
+
+def assignee_filter(assignee_id: UUID) -> ColumnElement[bool]:
+	return TicketModel.assignee_id == assignee_id
+
+
+async def bucketed_activity_trend(
+	session: AsyncSession, *, extra_condition: ColumnElement[bool] | None, bucket_count: int, span_days: int
+) -> list[ActivityPointDTO]:
+	"""Shared bucketing logic behind both the application-scoped and the per-assignee
+	("my activity") activity trends -- same two grouped-count queries (by created_at,
+	by resolved_at), just filtered differently by the caller."""
+	now = datetime.now(UTC)
+	origin = now - timedelta(days=bucket_count * span_days)
+	span_seconds = span_days * 86400
+
+	def bucket_index(column):
+		return func.floor(func.extract("epoch", column - origin) / span_seconds)
+
+	created_stmt = select(bucket_index(TicketModel.created_at).label("bucket"), func.count().label("count")).where(
+		TicketModel.created_at >= origin, TicketModel.created_at <= now, not_archived()
+	)
+	resolved_stmt = select(bucket_index(TicketModel.resolved_at).label("bucket"), func.count().label("count")).where(
+		TicketModel.resolved_at.is_not(None), TicketModel.resolved_at >= origin, TicketModel.resolved_at <= now, not_archived()
+	)
+	if extra_condition is not None:
+		created_stmt = created_stmt.where(extra_condition)
+		resolved_stmt = resolved_stmt.where(extra_condition)
+	created_stmt = created_stmt.group_by("bucket")
+	resolved_stmt = resolved_stmt.group_by("bucket")
+
+	created_by_bucket = {int(r.bucket): r.count for r in (await session.execute(created_stmt)).all()}
+	resolved_by_bucket = {int(r.bucket): r.count for r in (await session.execute(resolved_stmt)).all()}
+
+	return [
+		ActivityPointDTO(
+			bucket_start=origin + timedelta(days=index * span_days),
+			created=created_by_bucket.get(index, 0),
+			resolved=resolved_by_bucket.get(index, 0),
+		)
+		for index in range(bucket_count)
+	]
 
 
 def ever_transferred() -> ColumnElement[bool]:

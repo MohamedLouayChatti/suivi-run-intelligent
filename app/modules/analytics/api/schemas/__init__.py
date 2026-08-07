@@ -5,6 +5,7 @@ from app.modules.analytics.api.schemas.attention_required import AttentionRequir
 from app.modules.analytics.api.schemas.distributions import DistributionsResponse
 from app.modules.analytics.api.schemas.jira_metrics import JiraMetricsResponse
 from app.modules.analytics.api.schemas.kpi_snapshot import KpiSnapshotResponse
+from app.modules.analytics.api.schemas.my_kpi_snapshot import MyKpiSnapshotResponse
 
 __all__ = [
 	"ActivityPointResponse",
@@ -14,4 +15,5 @@ __all__ = [
 	"DistributionsResponse",
 	"JiraMetricsResponse",
 	"KpiSnapshotResponse",
+	"MyKpiSnapshotResponse",
 ]

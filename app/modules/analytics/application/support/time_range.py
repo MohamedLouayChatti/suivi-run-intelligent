@@ -50,12 +50,19 @@ class ComparisonWindow:
 	previous: DateWindow
 
 
-def resolve_window(time_range: TimeRange, *, now: datetime | None = None) -> ComparisonWindow:
+def window_for_days(days: int, *, now: datetime | None = None) -> DateWindow:
+	"""The trailing `days` days up to now -- for windows with no user-facing time-range
+	selector at all (e.g. the Dashboard's fixed "this week" personal KPIs), as opposed to
+	one of the selectable TimeRange members."""
 	end = now or datetime.now(UTC)
+	return DateWindow(end - timedelta(days=days), end)
+
+
+def resolve_window(time_range: TimeRange, *, now: datetime | None = None) -> ComparisonWindow:
 	days = _RANGE_DAYS[time_range]
-	current_start = end - timedelta(days=days)
-	previous_start = current_start - timedelta(days=days)
-	return ComparisonWindow(current=DateWindow(current_start, end), previous=DateWindow(previous_start, current_start))
+	current = window_for_days(days, now=now)
+	previous = window_for_days(days, now=current.start)
+	return ComparisonWindow(current=current, previous=previous)
 
 
 def bucket_scheme(time_range: TimeRange) -> tuple[int, int]:

@@ -13,7 +13,8 @@ from app.modules.analytics.application.dto.kpi_snapshot_dto import KpiTotalsDTO
 from app.modules.analytics.application.interfaces.analytics_read_repository import AnalyticsReadRepository
 from app.modules.analytics.application.support.time_range import DateWindow, TimeRange, bucket_scheme
 from app.modules.analytics.infrastructure.persistence.query_helpers import (
-	ACTIVE_STATUSES, DURATION_HOURS, application_filter, created_in, full_counts, not_archived, resolved_in,
+	ACTIVE_STATUSES, DURATION_HOURS, application_filter, bucketed_activity_trend, created_in, full_counts,
+	not_archived, resolved_in,
 )
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.category import Category
@@ -56,40 +57,9 @@ class SqlAlchemyAnalyticsReadRepository(AnalyticsReadRepository):
 		self, applications: frozenset[Application] | None, time_range: TimeRange
 	) -> list[ActivityPointDTO]:
 		bucket_count, span_days = bucket_scheme(time_range)
-		now = datetime.now(UTC)
-		origin = now - timedelta(days=bucket_count * span_days)
-		span_seconds = span_days * 86400
-		app_cond = application_filter(applications)
-
-		def bucket_index(column):
-			return func.floor(func.extract("epoch", column - origin) / span_seconds)
-
-		created_bucket = bucket_index(TicketModel.created_at)
-		created_stmt = select(created_bucket.label("bucket"), func.count().label("count")).where(
-			TicketModel.created_at >= origin, TicketModel.created_at <= now, not_archived()
+		return await bucketed_activity_trend(
+			self.session, extra_condition=application_filter(applications), bucket_count=bucket_count, span_days=span_days
 		)
-		resolved_bucket = bucket_index(TicketModel.resolved_at)
-		resolved_stmt = select(resolved_bucket.label("bucket"), func.count().label("count")).where(
-			TicketModel.resolved_at.is_not(None), TicketModel.resolved_at >= origin, TicketModel.resolved_at <= now, not_archived()
-		)
-		if app_cond is not None:
-			created_stmt = created_stmt.where(app_cond)
-			resolved_stmt = resolved_stmt.where(app_cond)
-		created_stmt = created_stmt.group_by("bucket")
-		resolved_stmt = resolved_stmt.group_by("bucket")
-
-		created_by_bucket = {int(r.bucket): r.count for r in (await self.session.execute(created_stmt)).all()}
-		resolved_by_bucket = {int(r.bucket): r.count for r in (await self.session.execute(resolved_stmt)).all()}
-
-		points: list[ActivityPointDTO] = []
-		for index in range(bucket_count):
-			bucket_start = origin + timedelta(days=index * span_days)
-			points.append(ActivityPointDTO(
-				bucket_start=bucket_start,
-				created=created_by_bucket.get(index, 0),
-				resolved=resolved_by_bucket.get(index, 0),
-			))
-		return points
 
 	async def get_distributions(self, applications: frozenset[Application] | None, window: DateWindow) -> DistributionsDTO:
 		created_cond = created_in(window)

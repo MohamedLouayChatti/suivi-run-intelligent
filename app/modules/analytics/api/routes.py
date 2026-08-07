@@ -12,6 +12,7 @@ from app.modules.analytics.api.schemas.attention_required import AttentionRequir
 from app.modules.analytics.api.schemas.distributions import DistributionsResponse
 from app.modules.analytics.api.schemas.jira_metrics import JiraMetricsResponse
 from app.modules.analytics.api.schemas.kpi_snapshot import KpiSnapshotResponse
+from app.modules.analytics.api.schemas.my_kpi_snapshot import MyKpiSnapshotResponse
 from app.modules.analytics.application.queries.get_activity_trend.query import GetActivityTrendQuery
 from app.modules.analytics.application.queries.get_admin_overview.query import GetAdminOverviewQuery
 from app.modules.analytics.application.queries.get_application_insights.query import GetApplicationInsightsQuery
@@ -21,9 +22,12 @@ from app.modules.analytics.application.queries.get_attention_required.query impo
 from app.modules.analytics.application.queries.get_distributions.query import GetDistributionsQuery
 from app.modules.analytics.application.queries.get_jira_metrics.query import GetJiraMetricsQuery
 from app.modules.analytics.application.queries.get_kpi_snapshot.query import GetKpiSnapshotQuery
+from app.modules.analytics.application.queries.get_my_activity_trend.query import GetMyActivityTrendQuery
+from app.modules.analytics.application.queries.get_my_kpi_snapshot.query import GetMyKpiSnapshotQuery
 from app.modules.analytics.application.support.filters import effective_applications
 from app.modules.analytics.application.support.time_range import TimeRange
 from app.modules.ticket_management.domain.enums.application import Application
+from app.shared.security.current_user import CurrentUser, get_current_user
 from app.shared.security.permissions import require_admin, require_permissions
 
 router = APIRouter(prefix="/analytics", tags=["analytics"], dependencies=[Depends(require_permissions("analytics.read"))])
@@ -111,3 +115,27 @@ async def get_admin_overview(handler=Depends(dep.get_admin_overview_handler), ti
 	single application -- see AdminOverviewDTO."""
 	query = GetAdminOverviewQuery(time_range=time_range)
 	return AdminOverviewResponse.from_dto(await handler.handle(query))
+
+
+@router.get("/my-kpi-snapshot", response_model=MyKpiSnapshotResponse)
+async def get_my_kpi_snapshot(
+	current_user: Annotated[CurrentUser, Depends(get_current_user)],
+	handler=Depends(dep.get_my_kpi_snapshot_handler),
+):
+	"""Dashboard-only personal KPIs (resolved/created this week, avg resolution time),
+	scoped to the caller as assignee -- never application-scoped, since an assignee's own
+	tickets are visible to them regardless of their current application assignments
+	(same precedent as TicketAccessPolicy's assignee-only operations). No `application`/
+	`time_range` params: this endpoint always answers "my last 7 days"."""
+	return MyKpiSnapshotResponse.from_dto(await handler.handle(GetMyKpiSnapshotQuery(assignee_id=current_user.id)))
+
+
+@router.get("/my-activity-trend", response_model=list[ActivityPointResponse])
+async def get_my_activity_trend(
+	current_user: Annotated[CurrentUser, Depends(get_current_user)],
+	handler=Depends(dep.get_my_activity_trend_handler),
+):
+	"""Dashboard-only: the caller's own created-vs-resolved trend, always the trailing
+	30 days (no time-range selector on that page)."""
+	points = await handler.handle(GetMyActivityTrendQuery(assignee_id=current_user.id))
+	return [ActivityPointResponse.from_dto(point) for point in points]
