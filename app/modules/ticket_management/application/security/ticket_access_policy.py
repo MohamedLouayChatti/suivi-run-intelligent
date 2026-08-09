@@ -17,7 +17,7 @@ from app.shared.security.current_user import CurrentUser
 from app.shared.security.instance_authorization_policy import InstanceAuthorizationPolicy
 
 _ASSIGNEE_ONLY_OPERATIONS = frozenset({"start", "resolve", "close", "resume", "transfer"})
-_ASSIGNEE_OR_ADMIN_OPERATIONS = frozenset({"reassign", "change_priority", "archive", "restore"})
+_ASSIGNEE_OR_ADMIN_OPERATIONS = frozenset({"reassign", "change_priority", "archive", "restore", "update_jira", "update_operational_highlight"})
 
 
 class TicketAccessPolicy(InstanceAuthorizationPolicy):

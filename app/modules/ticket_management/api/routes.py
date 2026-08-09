@@ -14,6 +14,8 @@ from app.modules.ticket_management.application.commands.resume_ticket.command im
 from app.modules.ticket_management.application.commands.transfer_ticket.command import TransferTicketCommand
 from app.modules.ticket_management.application.commands.reassign_ticket.command import ReassignTicketCommand
 from app.modules.ticket_management.application.commands.change_priority.command import ChangePriorityCommand
+from app.modules.ticket_management.application.commands.update_jira_details.command import UpdateJiraDetailsCommand
+from app.modules.ticket_management.application.commands.set_operational_highlight.command import SetOperationalHighlightCommand
 from app.modules.ticket_management.application.commands.add_comment.command import AddCommentCommand
 from app.modules.ticket_management.application.commands.edit_comment.command import EditCommentCommand
 from app.modules.ticket_management.application.commands.delete_comment.command import DeleteCommentCommand
@@ -118,6 +120,14 @@ async def reassign(ticket_id: UUID, payload: ReassignRequest, current_user: Anno
 @router.patch("/{ticket_id}/priority", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.change_priority")), Depends(require_instance_permission("ticket", "change_priority", path_param="ticket_id"))])
 async def change_priority(ticket_id: UUID, payload: PriorityUpdateRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_change_priority_handler)):
 	return TicketDetailResponse.from_dto(await handler.handle(ChangePriorityCommand(ticket_id, payload.priority, now(), current_user.id)))
+
+@router.patch("/{ticket_id}/jira", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.manage_jira")), Depends(require_instance_permission("ticket", "update_jira", path_param="ticket_id"))])
+async def update_jira_details(ticket_id: UUID, payload: JiraDetailsUpdateRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_update_jira_details_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(UpdateJiraDetailsCommand(ticket_id, payload.requires_jira, payload.jira_id, payload.jira_delivery_date, now(), current_user.id)))
+
+@router.patch("/{ticket_id}/operational-highlight", response_model=TicketDetailResponse, dependencies=[Depends(require_permissions("ticket.manage_highlight")), Depends(require_instance_permission("ticket", "update_operational_highlight", path_param="ticket_id"))])
+async def set_operational_highlight(ticket_id: UUID, payload: OperationalHighlightUpdateRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_set_operational_highlight_handler)):
+	return TicketDetailResponse.from_dto(await handler.handle(SetOperationalHighlightCommand(ticket_id, payload.operational_highlight, now(), current_user.id)))
 
 # Nested resource routers remain public module routes.
 comments_router = APIRouter(prefix="/comments", tags=["comments"])

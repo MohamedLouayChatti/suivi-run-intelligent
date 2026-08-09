@@ -77,6 +77,8 @@ get_resolve_ticket_handler = _provider("app.modules.ticket_management.applicatio
 get_close_ticket_handler = _provider("app.modules.ticket_management.application.commands.close_ticket.handler.CloseTicketHandler")
 get_resume_ticket_handler = _provider("app.modules.ticket_management.application.commands.resume_ticket.handler.ResumeTicketHandler")
 get_transfer_ticket_handler = _provider("app.modules.ticket_management.application.commands.transfer_ticket.handler.TransferTicketHandler")
+get_update_jira_details_handler = _provider("app.modules.ticket_management.application.commands.update_jira_details.handler.UpdateJiraDetailsHandler")
+get_set_operational_highlight_handler = _provider("app.modules.ticket_management.application.commands.set_operational_highlight.handler.SetOperationalHighlightHandler")
 
 def get_change_priority_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)]):
 	from app.modules.ticket_management.application.commands.change_priority.handler import ChangePriorityHandler

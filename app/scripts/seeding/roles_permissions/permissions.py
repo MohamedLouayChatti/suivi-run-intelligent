@@ -29,6 +29,8 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("ticket.assign", "Affecter un ticket."),
 	PermissionDefinition("ticket.change_priority", "Changer la priorité d'un ticket."),
 	PermissionDefinition("ticket.change_status", "Changer le statut d'un ticket."),
+	PermissionDefinition("ticket.manage_jira", "Gérer les informations Jira d'un ticket."),
+	PermissionDefinition("ticket.manage_highlight", "Gérer le point d'attention opérationnel d'un ticket."),
 	PermissionDefinition("ticket.transfer_application", "Transférer un ticket vers une autre application."),
 	PermissionDefinition("ticket.archive", "Archiver un ticket."),
 	PermissionDefinition("ticket.restore", "Restaurer un ticket archivé."),

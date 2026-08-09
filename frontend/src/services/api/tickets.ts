@@ -7,6 +7,7 @@ type TicketDetail = components["schemas"]["TicketDetailResponse"]
 type TicketCreateRequest = components["schemas"]["TicketCreateRequest"]
 type Priority = components["schemas"]["Priority"]
 type TransferDestination = components["schemas"]["TransferDestination"]
+type JiraDetailsUpdateRequest = components["schemas"]["JiraDetailsUpdateRequest"]
 
 /**
  * The list endpoint only accepts page/page_size — the richer filter fields on the
@@ -69,6 +70,18 @@ async function reassignTicket(ticketId: string, assigneeId: string): Promise<Tic
 
 async function changeTicketPriority(ticketId: string, priority: Priority): Promise<TicketDetail> {
   const { data } = await httpClient.patch<TicketDetail>(`/tickets/${ticketId}/priority`, { priority })
+  return data
+}
+
+async function updateTicketJira(ticketId: string, payload: JiraDetailsUpdateRequest): Promise<TicketDetail> {
+  const { data } = await httpClient.patch<TicketDetail>(`/tickets/${ticketId}/jira`, payload)
+  return data
+}
+
+async function updateOperationalHighlight(ticketId: string, operationalHighlight: boolean): Promise<TicketDetail> {
+  const { data } = await httpClient.patch<TicketDetail>(`/tickets/${ticketId}/operational-highlight`, {
+    operational_highlight: operationalHighlight,
+  })
   return data
 }
 
@@ -160,6 +173,8 @@ export {
   transferTicket,
   reassignTicket,
   changeTicketPriority,
+  updateTicketJira,
+  updateOperationalHighlight,
   archiveTicket,
   restoreTicket,
   addComment,

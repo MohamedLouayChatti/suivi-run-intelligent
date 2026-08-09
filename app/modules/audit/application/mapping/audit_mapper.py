@@ -12,6 +12,8 @@ from app.modules.ticket_management.domain.events.attachment_deleted import Attac
 from app.modules.ticket_management.domain.events.comment_added import CommentAdded
 from app.modules.ticket_management.domain.events.comment_deleted import CommentDeleted
 from app.modules.ticket_management.domain.events.comment_edited import CommentEdited
+from app.modules.ticket_management.domain.events.jira_details_updated import JiraDetailsUpdated
+from app.modules.ticket_management.domain.events.operational_highlight_changed import OperationalHighlightChanged
 from app.modules.ticket_management.domain.events.priority_changed import PriorityChanged
 from app.modules.ticket_management.domain.events.ticket_archived import TicketArchived
 from app.modules.ticket_management.domain.events.ticket_created import TicketCreated
@@ -57,6 +59,8 @@ class AuditMapper:
 			AttachmentDeleted: self._attachment_deleted,
 			TicketArchived: self._ticket_archived,
 			TicketRestored: self._ticket_restored,
+			JiraDetailsUpdated: self._jira_details_updated,
+			OperationalHighlightChanged: self._operational_highlight_changed,
 			UserCreated: self._user_created,
 			UserUpdated: self._user_updated,
 			UserActivated: self._user_activated,
@@ -175,6 +179,23 @@ class AuditMapper:
 			event, module="ticket_management", event_type="TicketRestored",
 			action="ticket.restored", resource_type="ticket",
 			payload={"ticket_id": str(event.ticket_id)},
+		)
+
+	def _jira_details_updated(self, event: JiraDetailsUpdated) -> AuditEntry:
+		return self._entry(
+			event, module="ticket_management", event_type="JiraDetailsUpdated",
+			action="ticket.jira_details_updated", resource_type="ticket",
+			payload={
+				"ticket_id": str(event.ticket_id), "requires_jira": event.requires_jira,
+				"jira_id": event.jira_id, "jira_delivery_date": event.jira_delivery_date.isoformat() if event.jira_delivery_date else None,
+			},
+		)
+
+	def _operational_highlight_changed(self, event: OperationalHighlightChanged) -> AuditEntry:
+		return self._entry(
+			event, module="ticket_management", event_type="OperationalHighlightChanged",
+			action="ticket.operational_highlight_changed", resource_type="ticket",
+			payload={"ticket_id": str(event.ticket_id), "operational_highlight": event.operational_highlight},
 		)
 
 	# -- Auth ----------------------------------------------------------------

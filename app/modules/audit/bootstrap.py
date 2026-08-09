@@ -11,6 +11,8 @@ from app.modules.ticket_management.domain.events.attachment_deleted import Attac
 from app.modules.ticket_management.domain.events.comment_added import CommentAdded
 from app.modules.ticket_management.domain.events.comment_deleted import CommentDeleted
 from app.modules.ticket_management.domain.events.comment_edited import CommentEdited
+from app.modules.ticket_management.domain.events.jira_details_updated import JiraDetailsUpdated
+from app.modules.ticket_management.domain.events.operational_highlight_changed import OperationalHighlightChanged
 from app.modules.ticket_management.domain.events.priority_changed import PriorityChanged
 from app.modules.ticket_management.domain.events.ticket_archived import TicketArchived
 from app.modules.ticket_management.domain.events.ticket_created import TicketCreated
@@ -33,7 +35,7 @@ from app.modules.auth.domain.events.user_updated import UserUpdated
 AUDITED_EVENT_TYPES = (
 	TicketCreated, TicketStatusChanged, TicketReassigned, PriorityChanged, TicketTransferred,
 	CommentAdded, CommentEdited, CommentDeleted, AttachmentAdded, AttachmentDeleted,
-	TicketArchived, TicketRestored,
+	TicketArchived, TicketRestored, JiraDetailsUpdated, OperationalHighlightChanged,
 	UserCreated, UserUpdated, UserActivated, UserDeactivated, RoleAssignedToUser, RoleRevokedFromUser,
 	PermissionGrantedToUser, PermissionRevokedFromUser, RolePermissionGranted, RolePermissionRevoked,
 )

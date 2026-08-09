@@ -10,6 +10,7 @@ import { useUserDirectory } from "@/hooks/use-user-directory"
 import { RequirePermission, usePermissions } from "@/lib/auth"
 import { TicketHeader } from "@/features/tickets/details/ticket-header"
 import { DescriptionCard } from "@/features/tickets/details/description-card"
+import { ResolutionCard } from "@/features/tickets/details/resolution-card"
 import { CommentsSection } from "@/features/tickets/details/comments-section"
 import { AttachmentsSection } from "@/features/tickets/details/attachments-section"
 import { ActivityTimeline } from "@/features/tickets/details/activity-timeline"
@@ -35,6 +36,8 @@ function TicketDetailView({ id }: { id: string }) {
     onReassign,
     onChangePriority,
     onTransfer,
+    onUpdateJira,
+    onUpdateOperationalHighlight,
     onAddComment,
     onUploadTicketAttachment,
     onDeleteTicketAttachment,
@@ -107,6 +110,10 @@ function TicketDetailView({ id }: { id: string }) {
         canChangePriority={
           mutable && ticket.status !== "CLOSED" && hasPermission("ticket.change_priority") && assigneeOrAdmin
         }
+        canManageJira={mutable && ticket.status !== "CLOSED" && hasPermission("ticket.manage_jira") && assigneeOrAdmin}
+        canManageHighlight={
+          mutable && ticket.status !== "CLOSED" && hasPermission("ticket.manage_highlight") && assigneeOrAdmin
+        }
         canArchive={hasPermission("ticket.archive") && assigneeOrAdmin}
         canRestore={hasPermission("ticket.restore") && assigneeOrAdmin}
         onStart={onStart}
@@ -118,11 +125,14 @@ function TicketDetailView({ id }: { id: string }) {
         onReassign={onReassign}
         onChangePriority={onChangePriority}
         onTransfer={onTransfer}
+        onUpdateJira={onUpdateJira}
+        onUpdateOperationalHighlight={onUpdateOperationalHighlight}
       />
       <PageBody className="space-y-6">
         <div className="grid gap-6 items-start xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="min-w-0 space-y-6">
             <DescriptionCard ticket={ticket} />
+            <ResolutionCard ticket={ticket} />
             <CommentsSection
               ticket={ticket}
               isLoading={false}

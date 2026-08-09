@@ -12,6 +12,8 @@ import {
   transferTicket,
   reassignTicket,
   changeTicketPriority,
+  updateTicketJira,
+  updateOperationalHighlight,
   archiveTicket,
   restoreTicket,
   addComment,
@@ -24,6 +26,7 @@ import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
 
 type Priority = components["schemas"]["Priority"]
 type TransferDestination = components["schemas"]["TransferDestination"]
+type JiraDetailsUpdateRequest = components["schemas"]["JiraDetailsUpdateRequest"]
 
 function ticketDetailQueryKey(id: string) {
   return ["tickets", "detail", id] as const
@@ -59,6 +62,14 @@ function useTicketDetail(id: string) {
   })
   const changePriority = useMutation({
     mutationFn: (priority: Priority) => changeTicketPriority(id, priority),
+    onSuccess: afterMutation,
+  })
+  const updateJira = useMutation({
+    mutationFn: (payload: JiraDetailsUpdateRequest) => updateTicketJira(id, payload),
+    onSuccess: afterMutation,
+  })
+  const updateHighlight = useMutation({
+    mutationFn: (operationalHighlight: boolean) => updateOperationalHighlight(id, operationalHighlight),
     onSuccess: afterMutation,
   })
   const archive = useMutation({ mutationFn: () => archiveTicket(id), onSuccess: afterMutation })
@@ -100,6 +111,8 @@ function useTicketDetail(id: string) {
     onTransfer: (destination: TransferDestination) => transfer.mutate(destination),
     onReassign: (assigneeId: string) => reassign.mutate(assigneeId),
     onChangePriority: (priority: Priority) => changePriority.mutate(priority),
+    onUpdateJira: (payload: JiraDetailsUpdateRequest) => updateJira.mutate(payload),
+    onUpdateOperationalHighlight: (operationalHighlight: boolean) => updateHighlight.mutate(operationalHighlight),
     onArchive: () => archive.mutate(),
     onRestore: () => restore.mutate(),
     onAddComment: (authorId: string, content: string, files: File[]) =>

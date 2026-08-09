@@ -33,6 +33,12 @@ function historyEntryLabel(entry: HistoryEntry): string {
       return "Ticket archivé"
     case "RESTORED":
       return "Ticket restauré"
+    case "JIRA_UPDATED":
+      return entry.requires_jira
+        ? `Jira mis à jour : ${entry.jira_id ?? "—"}${entry.jira_delivery_date ? ` (livraison ${entry.jira_delivery_date})` : ""}`
+        : "Jira retiré du ticket"
+    case "OPERATIONAL_HIGHLIGHT_CHANGED":
+      return entry.operational_highlight ? "Marqué comme point d'attention" : "Point d'attention retiré"
     default:
       return entry.event_type
   }

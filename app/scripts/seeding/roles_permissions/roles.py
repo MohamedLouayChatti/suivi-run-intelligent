@@ -24,6 +24,8 @@ SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 			"ticket.assign",
 			"ticket.change_priority",
 			"ticket.change_status",
+			"ticket.manage_jira",
+			"ticket.manage_highlight",
 			"ticket.transfer_application",
 			"ticket.archive",
 			"ticket.restore",

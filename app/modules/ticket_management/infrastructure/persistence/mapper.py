@@ -280,6 +280,10 @@ def history_entry_to_model(entry: TicketHistoryEntry, ticket_model: TicketModel)
 		to_priority=entry.to_priority,
 		assignee_id=entry.assignee_id,
 		transferred_to=entry.transferred_to,
+		requires_jira=entry.requires_jira,
+		jira_id=entry.jira_id,
+		jira_delivery_date=entry.jira_delivery_date,
+		operational_highlight=entry.operational_highlight,
 	)
 
 
@@ -294,6 +298,10 @@ def history_entry_model_to_domain(history_model: TicketHistoryModel) -> TicketHi
 		to_priority=history_model.to_priority,
 		assignee_id=history_model.assignee_id,
 		transferred_to=history_model.transferred_to,
+		requires_jira=history_model.requires_jira,
+		jira_id=history_model.jira_id,
+		jira_delivery_date=history_model.jira_delivery_date,
+		operational_highlight=history_model.operational_highlight,
 	)
 
 
@@ -308,6 +316,10 @@ def history_entry_model_to_dto(history_model: TicketHistoryModel) -> TicketHisto
 		to_priority=history_model.to_priority,
 		assignee_id=history_model.assignee_id,
 		transferred_to=history_model.transferred_to,
+		requires_jira=history_model.requires_jira,
+		jira_id=history_model.jira_id,
+		jira_delivery_date=history_model.jira_delivery_date,
+		operational_highlight=history_model.operational_highlight,
 	)
 
 

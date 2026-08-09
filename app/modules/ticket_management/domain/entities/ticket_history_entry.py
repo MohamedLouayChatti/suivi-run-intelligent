@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from app.modules.ticket_management.domain.enums.priority import Priority
@@ -26,6 +26,10 @@ class TicketHistoryEntry:
 	to_priority: Priority | None = None
 	assignee_id: UUID | None = None
 	transferred_to: TransferDestination | None = None
+	requires_jira: bool | None = None
+	jira_id: str | None = None
+	jira_delivery_date: date | None = None
+	operational_highlight: bool | None = None
 
 	@classmethod
 	def created(cls, *, id: UUID, occurred_at: datetime) -> TicketHistoryEntry:
@@ -54,3 +58,11 @@ class TicketHistoryEntry:
 	@classmethod
 	def restored(cls, *, id: UUID, occurred_at: datetime) -> TicketHistoryEntry:
 		return cls(id=id, event_type=TicketHistoryEventType.RESTORED, occurred_at=occurred_at)
+
+	@classmethod
+	def jira_updated(cls, *, id: UUID, occurred_at: datetime, requires_jira: bool, jira_id: str | None, jira_delivery_date: date | None) -> TicketHistoryEntry:
+		return cls(id=id, event_type=TicketHistoryEventType.JIRA_UPDATED, occurred_at=occurred_at, requires_jira=requires_jira, jira_id=jira_id, jira_delivery_date=jira_delivery_date)
+
+	@classmethod
+	def operational_highlight_changed(cls, *, id: UUID, occurred_at: datetime, operational_highlight: bool) -> TicketHistoryEntry:
+		return cls(id=id, event_type=TicketHistoryEventType.OPERATIONAL_HIGHLIGHT_CHANGED, occurred_at=occurred_at, operational_highlight=operational_highlight)

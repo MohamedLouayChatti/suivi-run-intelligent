@@ -6,6 +6,7 @@ type TicketDetail = components["schemas"]["TicketDetailResponse"]
 type Priority = components["schemas"]["Priority"]
 type TransferDestination = components["schemas"]["TransferDestination"]
 type UserSummary = components["schemas"]["UserDirectoryResponse"]
+type JiraDetailsUpdateRequest = components["schemas"]["JiraDetailsUpdateRequest"]
 
 interface TicketHeaderProps {
   ticket: TicketDetail
@@ -17,6 +18,8 @@ interface TicketHeaderProps {
   canTransfer: boolean
   canReassign: boolean
   canChangePriority: boolean
+  canManageJira: boolean
+  canManageHighlight: boolean
   canArchive: boolean
   canRestore: boolean
   onStart: () => void
@@ -28,6 +31,8 @@ interface TicketHeaderProps {
   onReassign: (assigneeId: string) => void
   onChangePriority: (priority: Priority) => void
   onTransfer: (destination: TransferDestination) => void
+  onUpdateJira: (payload: JiraDetailsUpdateRequest) => void
+  onUpdateOperationalHighlight: (operationalHighlight: boolean) => void
 }
 
 function TicketHeader(props: TicketHeaderProps) {

@@ -1,4 +1,5 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Combobox } from "@/components/ui/combobox"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { FormField } from "@/features/tickets/create-ticket/form-field"
@@ -16,21 +17,13 @@ function BusinessFields({ values, setField }: BusinessFieldsProps) {
       {values.application === "COLORIS" && (
         <div className="grid grid-cols-2 gap-4">
           <FormField label="Offre" required>
-            <Select
+            <Combobox
+              options={offerOptions}
               value={values.offer || undefined}
               onValueChange={(v) => setField("offer", v as CreateTicketFormState["offer"])}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sélectionner une offre" />
-              </SelectTrigger>
-              <SelectContent>
-                {offerOptions.map((o) => (
-                  <SelectItem key={o} value={o}>
-                    {o}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Sélectionner une offre"
+              searchPlaceholder="Rechercher une offre…"
+            />
           </FormField>
 
           <FormField label="Version" required>

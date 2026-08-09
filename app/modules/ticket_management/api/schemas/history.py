@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -23,6 +23,10 @@ class TicketHistoryEntryResponse(BaseModel):
 	to_priority: Priority | None
 	assignee: UserSummaryResponse | None
 	transferred_to: TransferDestination | None
+	requires_jira: bool | None
+	jira_id: str | None
+	jira_delivery_date: date | None
+	operational_highlight: bool | None
 
 	@classmethod
 	def from_dto(cls, entry: TicketHistoryEntryDTO) -> TicketHistoryEntryResponse:
@@ -36,4 +40,8 @@ class TicketHistoryEntryResponse(BaseModel):
 			to_priority=entry.to_priority,
 			assignee=UserSummaryResponse.from_dto(entry.assignee),
 			transferred_to=entry.transferred_to,
+			requires_jira=entry.requires_jira,
+			jira_id=entry.jira_id,
+			jira_delivery_date=entry.jira_delivery_date,
+			operational_highlight=entry.operational_highlight,
 		)

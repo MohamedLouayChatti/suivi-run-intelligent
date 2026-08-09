@@ -501,6 +501,40 @@ export interface paths {
         patch: operations["change_priority_tickets__ticket_id__priority_patch"];
         trace?: never;
     };
+    "/tickets/{ticket_id}/jira": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Jira Details */
+        patch: operations["update_jira_details_tickets__ticket_id__jira_patch"];
+        trace?: never;
+    };
+    "/tickets/{ticket_id}/operational-highlight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set Operational Highlight */
+        patch: operations["set_operational_highlight_tickets__ticket_id__operational_highlight_patch"];
+        trace?: never;
+    };
     "/tickets/{ticket_id}/comments": {
         parameters: {
             query?: never;
@@ -1270,6 +1304,15 @@ export interface components {
          * @enum {string}
          */
         HealthLevel: "good" | "warning" | "critical";
+        /** JiraDetailsUpdateRequest */
+        JiraDetailsUpdateRequest: {
+            /** Requires Jira */
+            requires_jira: boolean;
+            /** Jira Id */
+            jira_id?: string | null;
+            /** Jira Delivery Date */
+            jira_delivery_date?: string | null;
+        };
         /** JiraMetricsResponse */
         JiraMetricsResponse: {
             /** Requires Jira */
@@ -1386,6 +1429,11 @@ export interface components {
          * @enum {string}
          */
         Offer: "GCFTTX" | "NRAZO" | "MCIFO" | "GCRIA" | "TEMP" | "GCNRASR" | "MUTUFTTH" | "IPCNX" | "RIPPD" | "INFPR" | "PRMUT" | "DEGPG" | "MUTMD" | "HBNRO" | "MADPC" | "GCBLO" | "RFHLA" | "PCOZO" | "MUTSP" | "RFHCA" | "RFHGD" | "RFHAU" | "RFHBR" | "REBTD" | "RFHMO" | "DGRPG" | "RFHGE" | "REGSC" | "REMNU" | "REVTD" | "RFHVE" | "RELOA" | "RFHLO" | "SNCFR" | "RFPBR" | "NROPB" | "RFRBR" | "RFHAR" | "RFHAX" | "RFHBC" | "RFHCM" | "RFHGI" | "RFHMA" | "RFHOM" | "REMAY" | "RFRAX" | "PCNAO" | "REART" | "REAXT" | "REBFC" | "RECMT" | "REGTD" | "REOMT" | "RFROM" | "RFRGI" | "RFHSY" | "RFHVI" | "RFRPS" | "REAPS" | "RFHVT" | "REVAR" | "REVIE" | "REDSN" | "LNPMB" | "LPMCD" | "RFPAX" | "RFIAX" | "RFLAX" | "RE1AX" | "REHAU" | "RFPMA" | "RFPAR" | "RFPBC" | "RFPOM" | "RFPLA" | "RFRLA" | "RELTD" | "ROPDM_MONU" | "RFRGD" | "ROPDM_VTHD" | "ROPDM_OMTD" | "ROPDM_AXTD" | "ROPDM_MAYE" | "RFULA" | "RFRAU" | "RFPVT" | "RFPMO" | "RFHRT" | "ROPDM_ATHD_HEB" | "ROPDM_ATHD_LC" | "RONZO_THDB" | "REDAX" | "RERRT" | "RFPVI" | "RFPVE" | "RFPLN" | "RFPGD" | "RFPGN" | "RFPDS" | "RFPCM" | "RFPPS" | "RFPAU" | "RFNRA_CAPS" | "LPMSP" | "RFNRA_THDB" | "RFNRA_LTHD" | "RFNRA_VTHD" | "RORAC_IND_GTHD" | "RORAC_IRU_GTHD" | "RFRAR" | "RFCOL_GTHD" | "RFRVT" | "CSMFON" | "RFHKF" | "RFPKF" | "RECHD" | "ROPDM_CORS" | "NRA_NRO_RIP" | "ROPAP_HASF" | "ROHEB_HASF" | "RORAC_HASF" | "RFMUT_HASF" | "ROPDM_HASF" | "ROHPO_AXTD" | "ROHPO_VTHD" | "BSNRO" | "RFMUT_YANA" | "RORAC_GERS" | "ROHEB_YANA" | "ROHPA_HASF" | "ROHEB_LOAN" | "ROPAP_YANA" | "RORAC_YANA" | "ROPAP_MAYO" | "GCBLO_IFP" | "ROHPO_LTHD" | "RONZO_HASF" | "DSRIT" | "RVOPT" | "HEBEP" | "ROHEB_GDHD" | "CMS_SUPPORT" | "OPTSV" | "NRA_NRO_RIP_2" | "EVOL_GC" | "ROGCI_MONU" | "ROGCI_AXTD" | "ROGCI_CMTD" | "ROGCI_HASF" | "ROGCI_VTHD" | "ROGCI_OMTD" | "ROGCI_GERS" | "ROGCI_YANA" | "ROGCI_RRTH" | "ROGCI_ARTD" | "ROGCI_KOUR" | "ROGCI_THDB" | "ROGCI_BFCF" | "ROGCI_GTHD" | "ROGCI_CAPS" | "ROGCI_ATHD" | "ROGCI_MAYE" | "ROGCI_SY79" | "ROGCI_VIEN" | "ROHEB_THDB" | "ROHEB_SY79" | "ROHEB_VIEN" | "ROHEB_LTHD" | "ROHEB_ARTD" | "ROHEB_AXTD" | "ROHEB_BFCF" | "ROHEB_VTHD" | "ROHEB_CAPS" | "ROHEB_GTHD" | "ROHEB_YANA22" | "ROHEB_GERS" | "ROHEB_MAYE" | "ROHEB_RRTH" | "ROHEB_MONU" | "CPMFO" | "DEPOS" | "ITDMX" | "ROGCI_RTBM" | "ROHEB_RTBM" | "ROHPO_RTBM" | "ROHPO_RTRM" | "Not Specified";
+        /** OperationalHighlightUpdateRequest */
+        OperationalHighlightUpdateRequest: {
+            /** Operational Highlight */
+            operational_highlight: boolean;
+        };
         /** PermissionResponse */
         PermissionResponse: {
             /**
@@ -1567,12 +1615,20 @@ export interface components {
             to_priority: components["schemas"]["Priority"] | null;
             assignee: components["schemas"]["UserSummaryResponse"] | null;
             transferred_to: components["schemas"]["TransferDestination"] | null;
+            /** Requires Jira */
+            requires_jira: boolean | null;
+            /** Jira Id */
+            jira_id: string | null;
+            /** Jira Delivery Date */
+            jira_delivery_date: string | null;
+            /** Operational Highlight */
+            operational_highlight: boolean | null;
         };
         /**
          * TicketHistoryEventType
          * @enum {string}
          */
-        TicketHistoryEventType: "CREATED" | "STATUS_CHANGED" | "PRIORITY_CHANGED" | "REASSIGNED" | "TRANSFERRED" | "ARCHIVED" | "RESTORED";
+        TicketHistoryEventType: "CREATED" | "STATUS_CHANGED" | "PRIORITY_CHANGED" | "REASSIGNED" | "TRANSFERRED" | "ARCHIVED" | "RESTORED" | "JIRA_UPDATED" | "OPERATIONAL_HIGHLIGHT_CHANGED";
         /** TicketSummaryResponse */
         TicketSummaryResponse: {
             /**
@@ -2739,6 +2795,76 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PriorityUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_jira_details_tickets__ticket_id__jira_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JiraDetailsUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_operational_highlight_tickets__ticket_id__operational_highlight_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OperationalHighlightUpdateRequest"];
             };
         };
         responses: {

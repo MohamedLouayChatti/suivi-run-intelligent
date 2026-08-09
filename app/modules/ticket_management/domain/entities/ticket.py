@@ -227,6 +227,27 @@ class Ticket:
 		self.updated_at = changed_at
 		self.history.append(TicketHistoryEntry.priority_changed(id=uuid4(), occurred_at=changed_at, from_priority=old_priority, to_priority=priority))
 
+	def update_jira_details(self, *, requires_jira: bool, jira_id: str | None, jira_delivery_date: date | None, updated_at: datetime) -> None:
+		self._ensure_mutable(updated_at)
+		if not requires_jira:
+			jira_id = None
+			jira_delivery_date = None
+		elif not jira_id:
+			raise JiraIdRequired()
+		if jira_id is None and jira_delivery_date is not None:
+			raise ConditionalFieldForbidden()
+		self.requires_jira = requires_jira
+		self.jira_id = jira_id
+		self.jira_delivery_date = jira_delivery_date
+		self.updated_at = updated_at
+		self.history.append(TicketHistoryEntry.jira_updated(id=uuid4(), occurred_at=updated_at, requires_jira=requires_jira, jira_id=jira_id, jira_delivery_date=jira_delivery_date))
+
+	def set_operational_highlight(self, operational_highlight: bool, updated_at: datetime) -> None:
+		self._ensure_mutable(updated_at)
+		self.operational_highlight = operational_highlight
+		self.updated_at = updated_at
+		self.history.append(TicketHistoryEntry.operational_highlight_changed(id=uuid4(), occurred_at=updated_at, operational_highlight=operational_highlight))
+
 	def add_comment(self, comment: Comment, added_at: datetime) -> None:
 		self._ensure_mutable(added_at)
 		if not comment.content.strip():

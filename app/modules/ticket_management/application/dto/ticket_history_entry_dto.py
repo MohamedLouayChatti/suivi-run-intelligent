@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from app.modules.ticket_management.application.dto.user_summary_dto import UserSummaryDTO
@@ -23,6 +23,10 @@ class TicketHistoryEntryDTO:
 	to_priority: Priority | None = None
 	assignee_id: UUID | None = None
 	transferred_to: TransferDestination | None = None
+	requires_jira: bool | None = None
+	jira_id: str | None = None
+	jira_delivery_date: date | None = None
+	operational_highlight: bool | None = None
 	assignee: UserSummaryDTO | None = None
 
 	@classmethod
@@ -37,4 +41,8 @@ class TicketHistoryEntryDTO:
 			to_priority=entry.to_priority,
 			assignee_id=entry.assignee_id,
 			transferred_to=entry.transferred_to,
+			requires_jira=entry.requires_jira,
+			jira_id=entry.jira_id,
+			jira_delivery_date=entry.jira_delivery_date,
+			operational_highlight=entry.operational_highlight,
 		)

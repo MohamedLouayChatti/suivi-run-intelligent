@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey
+from sqlalchemy import Boolean, Date, DateTime, Enum as SAEnum, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -35,5 +35,9 @@ class TicketHistoryModel(Base):
 	to_priority: Mapped[Priority | None] = mapped_column(SAEnum(Priority, name="ticket_priority"), nullable=True)
 	assignee_id: Mapped[UUID | None] = mapped_column(PGUUID(as_uuid=True), nullable=True)
 	transferred_to: Mapped[TransferDestination | None] = mapped_column(SAEnum(TransferDestination, name="ticket_transfer_destination"), nullable=True)
+	requires_jira: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+	jira_id: Mapped[str | None] = mapped_column(String, nullable=True)
+	jira_delivery_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+	operational_highlight: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
 	ticket: Mapped["TicketModel"] = relationship(back_populates="history")

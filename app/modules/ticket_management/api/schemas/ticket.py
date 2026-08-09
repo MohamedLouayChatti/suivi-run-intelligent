@@ -57,6 +57,16 @@ class TransferRequest(BaseModel):
 	transferred_to: TransferDestination
 
 
+class JiraDetailsUpdateRequest(BaseModel):
+	requires_jira: bool
+	jira_id: str | None = None
+	jira_delivery_date: date | None = None
+
+
+class OperationalHighlightUpdateRequest(BaseModel):
+	operational_highlight: bool
+
+
 class TicketSummaryResponse(BaseModel):
 	id: UUID
 	title: str

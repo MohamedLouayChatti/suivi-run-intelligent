@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Archive, ArchiveRestore, ArrowRightLeft, Lock, RotateCcw, SignalHigh, UserRoundCog } from "lucide-react"
+import { Archive, ArchiveRestore, ArrowRightLeft, Flag, Lock, RotateCcw, SignalHigh, Ticket as TicketIcon, UserRoundCog } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -24,12 +24,14 @@ import {
 } from "@/components/ui/alert-dialog"
 import { priorityOptions, transferDestinationOptions } from "@/features/tickets/constants"
 import { ResolveTicketDialog } from "@/features/tickets/details/resolve-ticket-dialog"
+import { JiraDetailsDialog } from "@/features/tickets/details/jira-details-dialog"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
 type Priority = components["schemas"]["Priority"]
 type TransferDestination = components["schemas"]["TransferDestination"]
 type UserSummary = components["schemas"]["UserDirectoryResponse"]
+type JiraDetailsUpdateRequest = components["schemas"]["JiraDetailsUpdateRequest"]
 
 interface TicketActionsProps {
   ticket: TicketDetail
@@ -41,6 +43,8 @@ interface TicketActionsProps {
   canTransfer: boolean
   canReassign: boolean
   canChangePriority: boolean
+  canManageJira: boolean
+  canManageHighlight: boolean
   canArchive: boolean
   canRestore: boolean
   onStart: () => void
@@ -52,6 +56,8 @@ interface TicketActionsProps {
   onReassign: (assigneeId: string) => void
   onChangePriority: (priority: Priority) => void
   onTransfer: (destination: TransferDestination) => void
+  onUpdateJira: (payload: JiraDetailsUpdateRequest) => void
+  onUpdateOperationalHighlight: (operationalHighlight: boolean) => void
 }
 
 function TicketActions({
@@ -64,6 +70,8 @@ function TicketActions({
   canTransfer,
   canReassign,
   canChangePriority,
+  canManageJira,
+  canManageHighlight,
   canArchive,
   canRestore,
   onStart,
@@ -75,9 +83,12 @@ function TicketActions({
   onReassign,
   onChangePriority,
   onTransfer,
+  onUpdateJira,
+  onUpdateOperationalHighlight,
 }: TicketActionsProps) {
   const isArchived = ticket.archived_at !== null
   const [resolveOpen, setResolveOpen] = useState(false)
+  const [jiraOpen, setJiraOpen] = useState(false)
   const [pendingReassignee, setPendingReassignee] = useState<UserSummary | null>(null)
 
   return (
@@ -157,6 +168,26 @@ function TicketActions({
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
+      )}
+
+      {canManageJira && (
+        <>
+          <Button size="sm" variant="outline" onClick={() => setJiraOpen(true)}>
+            <TicketIcon className="size-4" /> Jira
+          </Button>
+          <JiraDetailsDialog ticket={ticket} open={jiraOpen} onOpenChange={setJiraOpen} onConfirm={onUpdateJira} />
+        </>
+      )}
+
+      {canManageHighlight && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onUpdateOperationalHighlight(!ticket.operational_highlight)}
+        >
+          <Flag className="size-4" />
+          {ticket.operational_highlight ? "Retirer le point d'attention" : "Point d'attention"}
+        </Button>
       )}
 
       {isArchived
