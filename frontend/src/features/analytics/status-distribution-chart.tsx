@@ -18,7 +18,7 @@ const statusChartColor: Record<Status, string> = {
 }
 
 interface StatusDistributionChartProps {
-  distribution: Record<Status, number>
+  distribution: components["schemas"]["DistributionsResponse"]["by_status"]
 }
 
 function StatusDistributionChart({ distribution }: StatusDistributionChartProps) {

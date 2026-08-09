@@ -7,7 +7,7 @@ interface TransferRateChartProps {
 }
 
 function TransferRateChart({ data }: TransferRateChartProps) {
-  const chartData = data.map((d) => ({ label: d.engineer, value: d.value }))
+  const chartData = data.map((d) => ({ label: d.engineer?.display_name ?? "Utilisateur inconnu", value: d.value }))
 
   return (
     <SectionCard title="Taux de transfert par ingénieur" description="Part des tickets transférés">

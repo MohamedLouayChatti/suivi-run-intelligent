@@ -19,6 +19,8 @@ const appColor: Record<(typeof applicationOptions)[number], string> = {
   VIO: "var(--color-chart-4)",
 }
 
+const monthFormatter = new Intl.DateTimeFormat("fr-FR", { month: "short" })
+
 function MonthlyTrends({ data }: MonthlyTrendsProps) {
   return (
     <SectionCard
@@ -40,6 +42,7 @@ function MonthlyTrends({ data }: MonthlyTrendsProps) {
             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
             <XAxis
               dataKey="month"
+              tickFormatter={(value: string) => monthFormatter.format(new Date(value))}
               tickLine={false}
               axisLine={false}
               fontSize={12}
@@ -47,6 +50,9 @@ function MonthlyTrends({ data }: MonthlyTrendsProps) {
             />
             <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="var(--color-muted-foreground)" />
             <Tooltip
+              labelFormatter={(value) =>
+                typeof value === "string" ? monthFormatter.format(new Date(value)) : value
+              }
               contentStyle={{
                 borderRadius: 8,
                 border: "1px solid var(--color-border)",
@@ -58,7 +64,7 @@ function MonthlyTrends({ data }: MonthlyTrendsProps) {
               <Line
                 key={app}
                 type="monotone"
-                dataKey={app}
+                dataKey={(row: AppMonthlyTrendPoint) => row.counts[app]}
                 name={app}
                 stroke={appColor[app]}
                 strokeWidth={2}

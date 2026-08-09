@@ -1,11 +1,5 @@
 import type { TimeRange } from "@/features/analytics/constants"
-import {
-  getActiveTicketsPerEngineer,
-  getAssignmentDistribution,
-  getAvgResolutionPerEngineer,
-  getResolvedTicketsPerEngineer,
-  getTransferRatePerEngineer,
-} from "@/features/analytics/mock-data-admin"
+import { useAdminOverview } from "@/features/analytics/use-analytics"
 import { ActiveTicketsChart } from "@/features/analytics/team/active-tickets-chart"
 import { AssignmentDistributionChart } from "@/features/analytics/team/assignment-distribution-chart"
 import { AvgResolutionChart } from "@/features/analytics/team/avg-resolution-chart"
@@ -17,8 +11,14 @@ interface TeamOverviewProps {
 }
 
 // "All Applications" only — lets supervisors read workload distribution as operational
-// insight, not as a ranking, hence the neutral chart titles throughout.
+// insight, not as a ranking, hence the neutral chart titles throughout. Shares its
+// query (and cache) with CrossApplicationOverview — same admin-overview endpoint.
 function TeamOverview({ timeRange }: TeamOverviewProps) {
+  const { data } = useAdminOverview(timeRange)
+  if (!data) return null
+
+  const { team } = data
+
   return (
     <div className="space-y-6">
       <div>
@@ -28,13 +28,13 @@ function TeamOverview({ timeRange }: TeamOverviewProps) {
         </p>
       </div>
       <div className="grid gap-6 xl:grid-cols-2">
-        <ActiveTicketsChart data={getActiveTicketsPerEngineer(timeRange)} />
-        <AssignmentDistributionChart data={getAssignmentDistribution(timeRange)} />
+        <ActiveTicketsChart data={team.active_tickets} />
+        <AssignmentDistributionChart data={team.assignment_distribution} />
       </div>
-      <ResolvedTicketsChart data={getResolvedTicketsPerEngineer(timeRange)} />
+      <ResolvedTicketsChart data={team.resolved_tickets} />
       <div className="grid gap-6 xl:grid-cols-2">
-        <AvgResolutionChart data={getAvgResolutionPerEngineer(timeRange)} />
-        <TransferRateChart data={getTransferRatePerEngineer(timeRange)} />
+        <AvgResolutionChart data={team.avg_resolution_hours} />
+        <TransferRateChart data={team.transfer_rate_pct} />
       </div>
     </div>
   )

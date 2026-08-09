@@ -5,14 +5,7 @@ import { ResolutionTimeComparison } from "@/features/analytics/admin/resolution-
 import { TransferRate } from "@/features/analytics/admin/transfer-rate"
 import { WorkloadComparison } from "@/features/analytics/admin/workload-comparison"
 import type { TimeRange } from "@/features/analytics/constants"
-import {
-  getApplicationHealth,
-  getJiraDependency,
-  getMonthlyTrends,
-  getResolutionTimeComparison,
-  getTransferRate,
-  getWorkloadComparison,
-} from "@/features/analytics/mock-data-admin"
+import { useAdminOverview } from "@/features/analytics/use-analytics"
 
 interface CrossApplicationOverviewProps {
   timeRange: TimeRange
@@ -20,16 +13,19 @@ interface CrossApplicationOverviewProps {
 
 // Administrator-oriented — only rendered when "All Applications" is selected.
 function CrossApplicationOverview({ timeRange }: CrossApplicationOverviewProps) {
+  const { data } = useAdminOverview(timeRange)
+  if (!data) return null
+
   return (
     <div className="space-y-6">
-      <WorkloadComparison rows={getWorkloadComparison(timeRange)} />
-      <ApplicationHealthCards data={getApplicationHealth(timeRange)} />
+      <WorkloadComparison rows={data.workload} />
+      <ApplicationHealthCards data={data.health} />
       <div className="grid gap-6 xl:grid-cols-2">
-        <ResolutionTimeComparison data={getResolutionTimeComparison(timeRange)} />
-        <JiraDependency data={getJiraDependency(timeRange)} />
+        <ResolutionTimeComparison data={data.resolution_time} />
+        <JiraDependency data={data.jira_dependency} />
       </div>
-      <TransferRate data={getTransferRate(timeRange)} />
-      <MonthlyTrends data={getMonthlyTrends(timeRange)} />
+      <TransferRate data={data.transfer_rate} />
+      <MonthlyTrends data={data.monthly_trends} />
     </div>
   )
 }

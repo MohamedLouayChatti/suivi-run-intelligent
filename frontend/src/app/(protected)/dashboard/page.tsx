@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { useCurrentUser } from "@/lib/auth"
 import { getPrimaryApplication, getBackupApplication } from "@/services/api/auth"
 import { useTicketsList } from "@/features/tickets/use-tickets-list"
-import { mockTrend, mockConversations, mockKpis } from "@/features/dashboard/mock-data"
+import { mockConversations } from "@/features/dashboard/mock-data"
+import { useMyActivityTrend, useMyKpiSnapshot } from "@/features/dashboard/use-dashboard-analytics"
 import { KpiCards } from "@/features/dashboard/kpi-cards"
 import { MyAssignments } from "@/features/dashboard/my-assignments"
 import { TicketStatusSummary } from "@/features/dashboard/ticket-status-summary"
@@ -31,6 +32,8 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
 export default function DashboardPage() {
   const { data: user } = useCurrentUser()
   const { tickets } = useTicketsList()
+  const { data: myKpiSnapshot } = useMyKpiSnapshot()
+  const { data: myActivityTrend } = useMyActivityTrend()
   const myTickets = tickets.filter((t) => t.assignee?.id === user?.id)
   const primaryApplication = user ? getPrimaryApplication(user) : null
   const backupApplication = user ? getBackupApplication(user) : null
@@ -68,9 +71,9 @@ export default function DashboardPage() {
       <PageBody className="space-y-6">
         <KpiCards
           activeAssignments={myTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS").length}
-          resolvedThisWeek={mockKpis.resolvedThisWeek}
-          createdThisWeek={mockKpis.createdThisWeek}
-          avgResolutionMinutes={mockKpis.avgResolutionMinutes}
+          resolvedThisWeek={myKpiSnapshot?.resolved_this_week ?? 0}
+          createdThisWeek={myKpiSnapshot?.created_this_week ?? 0}
+          avgResolutionMinutes={Math.round((myKpiSnapshot?.avg_resolution_hours ?? 0) * 60)}
         />
 
         <div className="grid gap-6 xl:grid-cols-3">
@@ -78,7 +81,15 @@ export default function DashboardPage() {
           <TicketStatusSummary tickets={myTickets} />
         </div>
 
-        <IncidentTrendChart data={mockTrend} />
+        {myActivityTrend && (
+          <IncidentTrendChart
+            data={myActivityTrend.map((point) => ({
+              date: point.bucket_start,
+              created: point.created,
+              resolved: point.resolved,
+            }))}
+          />
+        )}
 
         <div className="grid gap-6 xl:grid-cols-3">
           <div className="xl:col-span-2">

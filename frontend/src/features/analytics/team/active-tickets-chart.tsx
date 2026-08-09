@@ -7,7 +7,7 @@ interface ActiveTicketsChartProps {
 }
 
 function ActiveTicketsChart({ data }: ActiveTicketsChartProps) {
-  const chartData = data.map((d) => ({ label: d.engineer, value: d.value }))
+  const chartData = data.map((d) => ({ label: d.engineer?.display_name ?? "Utilisateur inconnu", value: d.value }))
 
   return (
     <SectionCard title="Tickets actifs par ingénieur" description="Charge de travail en cours">

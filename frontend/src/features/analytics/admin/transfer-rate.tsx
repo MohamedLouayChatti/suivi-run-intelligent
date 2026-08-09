@@ -1,15 +1,13 @@
 import { SectionCard } from "@/components/app/page"
 import { HorizontalBarChart } from "@/features/analytics/charts/horizontal-bar-chart"
-import type { components } from "@/types/api"
-
-type Application = components["schemas"]["Application"]
+import type { AppTransferRate } from "@/features/analytics/types"
 
 interface TransferRateProps {
-  data: { application: Application; transferRatePct: number }[]
+  data: AppTransferRate[]
 }
 
 function TransferRate({ data }: TransferRateProps) {
-  const chartData = data.map((d) => ({ label: d.application, value: d.transferRatePct }))
+  const chartData = data.map((d) => ({ label: d.application, value: d.transfer_rate_pct }))
 
   return (
     <SectionCard title="Taux de transfert" description="Part des tickets transférés par application">

@@ -13,18 +13,16 @@ import { defaultAnalyticsFilters } from "@/features/analytics/filter-analytics"
 import { ApplicationInsights } from "@/features/analytics/insights/application-insights"
 import { JiraMetricsCard } from "@/features/analytics/jira-metrics"
 import { KpiSnapshotCards } from "@/features/analytics/kpi-snapshot"
-import {
-  getActivityTrend,
-  getAttentionRequired,
-  getCategoryDistribution,
-  getJiraMetrics,
-  getKpiSnapshot,
-  getPriorityDistribution,
-  getStatusDistribution,
-} from "@/features/analytics/mock-data"
 import { PriorityDistributionChart } from "@/features/analytics/priority-distribution-chart"
 import { StatusDistributionChart } from "@/features/analytics/status-distribution-chart"
 import { TeamOverview } from "@/features/analytics/team/team-overview"
+import {
+  useActivityTrend,
+  useAttentionRequired,
+  useDistributions,
+  useJiraMetrics,
+  useKpiSnapshot,
+} from "@/features/analytics/use-analytics"
 import { usePermissions } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 
@@ -51,13 +49,11 @@ export default function AnalyticsPage() {
     setFilters((prev) => ({ ...prev, ...patch }))
   }
 
-  const snapshot = getKpiSnapshot(filters)
-  const activity = getActivityTrend(filters)
-  const statusDistribution = getStatusDistribution(filters)
-  const categoryDistribution = getCategoryDistribution(filters)
-  const priorityDistribution = getPriorityDistribution(filters)
-  const jiraMetrics = getJiraMetrics(filters)
-  const attention = getAttentionRequired(filters)
+  const { data: snapshot } = useKpiSnapshot(filters)
+  const { data: activity } = useActivityTrend(filters)
+  const { data: distributions } = useDistributions(filters)
+  const { data: jiraMetrics } = useJiraMetrics(filters)
+  const { data: attention } = useAttentionRequired(filters.application)
 
   // FCI has no additional widgets — Application Insights renders nothing for it.
   const showApplicationInsights = filters.application !== "all" && filters.application !== "FCI"
@@ -78,21 +74,21 @@ export default function AnalyticsPage() {
         }
       />
       <PageBody className="space-y-6">
-        <KpiSnapshotCards snapshot={snapshot} />
+        {snapshot && <KpiSnapshotCards snapshot={snapshot} />}
 
-        <ActivityChart data={activity} />
+        {activity && <ActivityChart data={activity} timeRange={filters.timeRange} />}
 
         <div className="grid gap-6 xl:grid-cols-2">
-          <StatusDistributionChart distribution={statusDistribution} />
-          <CategoryDistributionChart distribution={categoryDistribution} />
+          {distributions && <StatusDistributionChart distribution={distributions.by_status} />}
+          {distributions && <CategoryDistributionChart distribution={distributions.by_category} />}
         </div>
 
         <div className="grid gap-6 xl:grid-cols-2">
-          <PriorityDistributionChart distribution={priorityDistribution} />
-          <JiraMetricsCard metrics={jiraMetrics} />
+          {distributions && <PriorityDistributionChart distribution={distributions.by_priority} />}
+          {jiraMetrics && <JiraMetricsCard metrics={jiraMetrics} />}
         </div>
 
-        <AttentionRequiredSection data={attention} />
+        {attention && <AttentionRequiredSection data={attention} />}
 
         {showApplicationInsights && <ApplicationInsights filters={filters} />}
 

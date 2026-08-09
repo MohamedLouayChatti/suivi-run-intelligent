@@ -1,15 +1,13 @@
 import { SectionCard } from "@/components/app/page"
 import { HorizontalBarChart } from "@/features/analytics/charts/horizontal-bar-chart"
-import type { components } from "@/types/api"
-
-type Application = components["schemas"]["Application"]
+import type { AppJiraDependency } from "@/features/analytics/types"
 
 interface JiraDependencyProps {
-  data: { application: Application; jiraIncidents: number }[]
+  data: AppJiraDependency[]
 }
 
 function JiraDependency({ data }: JiraDependencyProps) {
-  const chartData = data.map((d) => ({ label: d.application, value: d.jiraIncidents }))
+  const chartData = data.map((d) => ({ label: d.application, value: d.jira_incidents }))
 
   return (
     <SectionCard title="Dépendance à Jira" description="Incidents liés à Jira par application">

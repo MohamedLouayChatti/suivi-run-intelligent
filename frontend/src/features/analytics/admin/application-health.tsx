@@ -31,15 +31,15 @@ function ApplicationHealthCards({ data }: ApplicationHealthCardsProps) {
             <dl className="mt-4 space-y-2 text-xs">
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Tickets actifs</dt>
-                <dd className="font-medium tabular-nums">{app.activeTickets}</dd>
+                <dd className="font-medium tabular-nums">{app.active_tickets}</dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Résolution moyenne</dt>
-                <dd className="font-medium tabular-nums">{app.avgResolutionHours.toFixed(1)} h</dd>
+                <dd className="font-medium tabular-nums">{app.avg_resolution_hours.toFixed(1)} h</dd>
               </div>
               <div className="flex items-center justify-between">
                 <dt className="text-muted-foreground">Tickets urgents</dt>
-                <dd className="font-medium tabular-nums">{app.urgentTickets}</dd>
+                <dd className="font-medium tabular-nums">{app.urgent_tickets}</dd>
               </div>
             </dl>
           </div>

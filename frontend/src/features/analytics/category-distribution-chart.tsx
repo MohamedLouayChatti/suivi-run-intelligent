@@ -3,10 +3,8 @@ import { HorizontalBarChart } from "@/features/analytics/charts/horizontal-bar-c
 import { categoryOptions } from "@/features/tickets/constants"
 import type { components } from "@/types/api"
 
-type Category = components["schemas"]["Category"]
-
 interface CategoryDistributionChartProps {
-  distribution: Record<Category, number>
+  distribution: components["schemas"]["DistributionsResponse"]["by_category"]
 }
 
 // Shared across every application — ranked magnitude, single hue (see HorizontalBarChart).

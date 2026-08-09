@@ -1,15 +1,13 @@
 import { SectionCard } from "@/components/app/page"
 import { HorizontalBarChart } from "@/features/analytics/charts/horizontal-bar-chart"
-import type { components } from "@/types/api"
-
-type Application = components["schemas"]["Application"]
+import type { AppResolutionTime } from "@/features/analytics/types"
 
 interface ResolutionTimeComparisonProps {
-  data: { application: Application; avgResolutionHours: number }[]
+  data: AppResolutionTime[]
 }
 
 function ResolutionTimeComparison({ data }: ResolutionTimeComparisonProps) {
-  const chartData = data.map((d) => ({ label: d.application, value: d.avgResolutionHours }))
+  const chartData = data.map((d) => ({ label: d.application, value: d.avg_resolution_hours }))
 
   return (
     <SectionCard

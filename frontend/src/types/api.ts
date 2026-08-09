@@ -656,6 +656,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/audit/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Audit Entries */
+        get: operations["export_audit_entries_audit_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/audit/{entry_id}": {
         parameters: {
             query?: never;
@@ -765,10 +782,277 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/analytics/kpi-snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Kpi Snapshot */
+        get: operations["get_kpi_snapshot_analytics_kpi_snapshot_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/activity-trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Activity Trend */
+        get: operations["get_activity_trend_analytics_activity_trend_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/distributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Distributions */
+        get: operations["get_distributions_analytics_distributions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/jira-metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Jira Metrics */
+        get: operations["get_jira_metrics_analytics_jira_metrics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/attention-required": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Attention Required */
+        get: operations["get_attention_required_analytics_attention_required_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/application-insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Application Insights */
+        get: operations["get_application_insights_analytics_application_insights_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/admin-overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Admin Overview
+         * @description Admin-only: the cross-application "all applications" view, never scoped to a
+         *     single application -- see AdminOverviewDTO.
+         */
+        get: operations["get_admin_overview_analytics_admin_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/my-kpi-snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get My Kpi Snapshot
+         * @description Dashboard-only personal KPIs (resolved/created this week, avg resolution time),
+         *     scoped to the caller as assignee -- never application-scoped, since an assignee's own
+         *     tickets are visible to them regardless of their current application assignments
+         *     (same precedent as TicketAccessPolicy's assignee-only operations). No `application`/
+         *     `time_range` params: this endpoint always answers "my last 7 days".
+         */
+        get: operations["get_my_kpi_snapshot_analytics_my_kpi_snapshot_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/analytics/my-activity-trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get My Activity Trend
+         * @description Dashboard-only: the caller's own created-vs-resolved trend, always the trailing
+         *     30 days (no time-range selector on that page).
+         */
+        get: operations["get_my_activity_trend_analytics_my_activity_trend_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ActivityPointResponse */
+        ActivityPointResponse: {
+            /**
+             * Bucket Start
+             * Format: date-time
+             */
+            bucket_start: string;
+            /** Created */
+            created: number;
+            /** Resolved */
+            resolved: number;
+        };
+        /** AdminOverviewResponse */
+        AdminOverviewResponse: {
+            /** Workload */
+            workload: components["schemas"]["AppWorkloadRowResponse"][];
+            /** Health */
+            health: components["schemas"]["ApplicationHealthResponse"][];
+            /** Resolution Time */
+            resolution_time: components["schemas"]["AppResolutionTimeResponse"][];
+            /** Jira Dependency */
+            jira_dependency: components["schemas"]["AppJiraDependencyResponse"][];
+            /** Transfer Rate */
+            transfer_rate: components["schemas"]["AppTransferRateResponse"][];
+            /** Monthly Trends */
+            monthly_trends: components["schemas"]["AppMonthlyTrendPointResponse"][];
+            team: components["schemas"]["TeamOverviewResponse"];
+        };
+        /** AgingIncidentResponse */
+        AgingIncidentResponse: {
+            /**
+             * Ticket Id
+             * Format: uuid
+             */
+            ticket_id: string;
+            /** Title */
+            title: string;
+            /** Age Days */
+            age_days: number;
+            priority: components["schemas"]["Priority"];
+            /**
+             * Assignee Id
+             * Format: uuid
+             */
+            assignee_id: string;
+            assignee: components["schemas"]["AnalyticsUserSummaryResponse"] | null;
+        };
+        /** AnalyticsUserSummaryResponse */
+        AnalyticsUserSummaryResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Display Name */
+            display_name: string;
+            /** Avatar Url */
+            avatar_url: string | null;
+        };
+        /** AppJiraDependencyResponse */
+        AppJiraDependencyResponse: {
+            application: components["schemas"]["Application"];
+            /** Jira Incidents */
+            jira_incidents: number;
+        };
+        /** AppMonthlyTrendPointResponse */
+        AppMonthlyTrendPointResponse: {
+            /**
+             * Month
+             * Format: date
+             */
+            month: string;
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+        };
+        /** AppResolutionTimeResponse */
+        AppResolutionTimeResponse: {
+            application: components["schemas"]["Application"];
+            /** Avg Resolution Hours */
+            avg_resolution_hours: number;
+        };
+        /** AppTransferRateResponse */
+        AppTransferRateResponse: {
+            application: components["schemas"]["Application"];
+            /** Transfer Rate Pct */
+            transfer_rate_pct: number;
+        };
+        /** AppWorkloadRowResponse */
+        AppWorkloadRowResponse: {
+            application: components["schemas"]["Application"];
+            /** Open */
+            open: number;
+            /** In Progress */
+            in_progress: number;
+            /** Resolved */
+            resolved: number;
+        };
         /**
          * Application
          * @enum {string}
@@ -778,6 +1062,27 @@ export interface components {
         ApplicationAssignmentSchema: {
             application: components["schemas"]["Application"];
             assignment_type: components["schemas"]["AssignmentType"];
+        };
+        /** ApplicationHealthResponse */
+        ApplicationHealthResponse: {
+            application: components["schemas"]["Application"];
+            health: components["schemas"]["HealthLevel"];
+            /** Active Tickets */
+            active_tickets: number;
+            /** Avg Resolution Hours */
+            avg_resolution_hours: number;
+            /** Urgent Tickets */
+            urgent_tickets: number;
+        };
+        /** ApplicationInsightsResponse */
+        ApplicationInsightsResponse: {
+            application: components["schemas"]["Application"];
+            /** Coloris Heatmap */
+            coloris_heatmap: components["schemas"]["ColorisHeatmapCellResponse"][] | null;
+            /** Aero Top Elements */
+            aero_top_elements: components["schemas"]["RankedEntryResponse"][] | null;
+            /** Vio App Rows */
+            vio_app_rows: components["schemas"]["VioAppRowResponse"][] | null;
         };
         /**
          * AssignmentType
@@ -803,6 +1108,15 @@ export interface components {
             uploaded_at: string;
             /** Deleted At */
             deleted_at: string | null;
+        };
+        /** AttentionRequiredResponse */
+        AttentionRequiredResponse: {
+            /** Count */
+            count: number;
+            /** Threshold Days */
+            threshold_days: number;
+            /** Incidents */
+            incidents: components["schemas"]["AgingIncidentResponse"][];
         };
         /**
          * AuditActorSummaryResponse
@@ -866,6 +1180,13 @@ export interface components {
          * @enum {string}
          */
         Category: "Bug" | "Anomalie applicatif" | "Manque d'information" | "Assistance client" | "Bon usage" | "vide" | "Synchronisation des données" | "Opération de service" | "Habilitation" | "Hors périmètre" | "Infrastructure";
+        /** ColorisHeatmapCellResponse */
+        ColorisHeatmapCellResponse: {
+            offer: components["schemas"]["Offer"];
+            version: components["schemas"]["Version"];
+            /** Count */
+            count: number;
+        };
         /** CommentCreateRequest */
         CommentCreateRequest: {
             /**
@@ -903,11 +1224,37 @@ export interface components {
             /** Content */
             content: string;
         };
+        /** DistributionsResponse */
+        DistributionsResponse: {
+            /** By Status */
+            by_status: {
+                [key: string]: number;
+            };
+            /** By Category */
+            by_category: {
+                [key: string]: number;
+            };
+            /** By Priority */
+            by_priority: {
+                [key: string]: number;
+            };
+        };
         /**
          * Element
          * @enum {string}
          */
         Element: "API" | "Connexion impossible" | "Cuivre IHM" | "Données absentes ou incorrectes" | "Droit Habilitation" | "Fibre IHM FTTE" | "Fibre IHM FTTH" | "Fibre IHM FTTO" | "Message d'erreur ou résultat inattendu" | "Orange-Eligibility KO" | "Retour sur ticket";
+        /** EngineerDatumResponse */
+        EngineerDatumResponse: {
+            /**
+             * Engineer Id
+             * Format: uuid
+             */
+            engineer_id: string;
+            /** Value */
+            value: number;
+            engineer: components["schemas"]["AnalyticsUserSummaryResponse"] | null;
+        };
         /**
          * FunctionalTeam
          * @enum {string}
@@ -917,6 +1264,47 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /**
+         * HealthLevel
+         * @enum {string}
+         */
+        HealthLevel: "good" | "warning" | "critical";
+        /** JiraMetricsResponse */
+        JiraMetricsResponse: {
+            /** Requires Jira */
+            requires_jira: number;
+            /** Awaiting Delivery */
+            awaiting_delivery: number;
+            /** Avg Delivery Delay Days */
+            avg_delivery_delay_days: number;
+        };
+        /** KpiSnapshotResponse */
+        KpiSnapshotResponse: {
+            /** Total Tickets */
+            total_tickets: number;
+            /** Open Tickets */
+            open_tickets: number;
+            /** Resolved Tickets */
+            resolved_tickets: number;
+            /** Avg Resolution Hours */
+            avg_resolution_hours: number;
+            /** Urgent Tickets */
+            urgent_tickets: number;
+            trends: components["schemas"]["KpiTrendsResponse"];
+        };
+        /** KpiTrendsResponse */
+        KpiTrendsResponse: {
+            /** Total Tickets */
+            total_tickets: number;
+            /** Open Tickets */
+            open_tickets: number;
+            /** Resolved Tickets */
+            resolved_tickets: number;
+            /** Avg Resolution Hours */
+            avg_resolution_hours: number;
+            /** Urgent Tickets */
+            urgent_tickets: number;
         };
         /** MarkAllReadResponse */
         MarkAllReadResponse: {
@@ -945,6 +1333,15 @@ export interface components {
             roles: components["schemas"]["RoleResponse"][];
             /** Effective Permissions */
             effective_permissions: components["schemas"]["PermissionResponse"][];
+        };
+        /** MyKpiSnapshotResponse */
+        MyKpiSnapshotResponse: {
+            /** Resolved This Week */
+            resolved_this_week: number;
+            /** Created This Week */
+            created_this_week: number;
+            /** Avg Resolution Hours */
+            avg_resolution_hours: number;
         };
         /** NotificationResponse */
         NotificationResponse: {
@@ -1010,6 +1407,12 @@ export interface components {
         PriorityUpdateRequest: {
             priority: components["schemas"]["Priority"];
         };
+        /** RankedEntryResponse */
+        RankedEntryResponse: {
+            label: components["schemas"]["Element"];
+            /** Count */
+            count: number;
+        };
         /** ReassignRequest */
         ReassignRequest: {
             /**
@@ -1040,6 +1443,19 @@ export interface components {
          * @enum {string}
          */
         Status: "OPEN" | "IN_PROGRESS" | "TRANSFERRED" | "RESOLVED" | "CLOSED";
+        /** TeamOverviewResponse */
+        TeamOverviewResponse: {
+            /** Active Tickets */
+            active_tickets: components["schemas"]["EngineerDatumResponse"][];
+            /** Resolved Tickets */
+            resolved_tickets: components["schemas"]["EngineerDatumResponse"][];
+            /** Avg Resolution Hours */
+            avg_resolution_hours: components["schemas"]["EngineerDatumResponse"][];
+            /** Assignment Distribution */
+            assignment_distribution: components["schemas"]["EngineerDatumResponse"][];
+            /** Transfer Rate Pct */
+            transfer_rate_pct: components["schemas"]["EngineerDatumResponse"][];
+        };
         /** TicketCreateRequest */
         TicketCreateRequest: {
             /** Title */
@@ -1189,6 +1605,11 @@ export interface components {
             archived_at: string | null;
         };
         /**
+         * TimeRange
+         * @enum {string}
+         */
+        TimeRange: "30D" | "3M" | "6M" | "1Y";
+        /**
          * TransferDestination
          * @enum {string}
          */
@@ -1284,6 +1705,16 @@ export interface components {
          * @enum {string}
          */
         VioApp: "FOP" | "PARC" | "SAGIC" | "VIGIE";
+        /** VioAppRowResponse */
+        VioAppRowResponse: {
+            vio_app: components["schemas"]["VioApp"];
+            /** Open */
+            open: number;
+            /** Resolved */
+            resolved: number;
+            /** Total */
+            total: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -2699,6 +3130,37 @@ export interface operations {
             };
         };
     };
+    export_audit_entries_audit_export_get: {
+        parameters: {
+            query?: {
+                module?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_audit_entry_audit__entry_id__get: {
         parameters: {
             query?: never;
@@ -2850,6 +3312,269 @@ export interface operations {
                 };
                 content: {
                     "text/event-stream": unknown;
+                };
+            };
+        };
+    };
+    get_kpi_snapshot_analytics_kpi_snapshot_get: {
+        parameters: {
+            query?: {
+                application?: components["schemas"]["Application"] | null;
+                time_range?: components["schemas"]["TimeRange"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KpiSnapshotResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_activity_trend_analytics_activity_trend_get: {
+        parameters: {
+            query?: {
+                application?: components["schemas"]["Application"] | null;
+                time_range?: components["schemas"]["TimeRange"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityPointResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_distributions_analytics_distributions_get: {
+        parameters: {
+            query?: {
+                application?: components["schemas"]["Application"] | null;
+                time_range?: components["schemas"]["TimeRange"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DistributionsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_jira_metrics_analytics_jira_metrics_get: {
+        parameters: {
+            query?: {
+                application?: components["schemas"]["Application"] | null;
+                time_range?: components["schemas"]["TimeRange"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JiraMetricsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_attention_required_analytics_attention_required_get: {
+        parameters: {
+            query?: {
+                application?: components["schemas"]["Application"] | null;
+                threshold_days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttentionRequiredResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_application_insights_analytics_application_insights_get: {
+        parameters: {
+            query: {
+                application: components["schemas"]["Application"];
+                time_range?: components["schemas"]["TimeRange"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationInsightsResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_admin_overview_analytics_admin_overview_get: {
+        parameters: {
+            query?: {
+                time_range?: components["schemas"]["TimeRange"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOverviewResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_my_kpi_snapshot_analytics_my_kpi_snapshot_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyKpiSnapshotResponse"];
+                };
+            };
+        };
+    };
+    get_my_activity_trend_analytics_my_activity_trend_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityPointResponse"][];
                 };
             };
         };

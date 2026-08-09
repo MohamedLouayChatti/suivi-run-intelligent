@@ -3,10 +3,8 @@ import { HorizontalBarChart } from "@/features/analytics/charts/horizontal-bar-c
 import { priorityOptions } from "@/features/tickets/constants"
 import type { components } from "@/types/api"
 
-type Priority = components["schemas"]["Priority"]
-
 interface PriorityDistributionChartProps {
-  distribution: Record<Priority, number>
+  distribution: components["schemas"]["DistributionsResponse"]["by_priority"]
 }
 
 // Kept in severity order (P1 → P4), not sorted by count — priority has an intrinsic

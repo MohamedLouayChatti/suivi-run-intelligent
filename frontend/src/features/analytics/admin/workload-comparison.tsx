@@ -10,7 +10,7 @@ function WorkloadComparison({ rows }: WorkloadComparisonProps) {
   const data = rows.map((row) => ({
     label: row.application,
     open: row.open,
-    inProgress: row.inProgress,
+    inProgress: row.in_progress,
     resolved: row.resolved,
   }))
 

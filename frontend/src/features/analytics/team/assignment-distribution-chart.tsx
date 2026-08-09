@@ -11,7 +11,7 @@ interface AssignmentDistributionChartProps {
 function AssignmentDistributionChart({ data }: AssignmentDistributionChartProps) {
   const total = data.reduce((sum, d) => sum + d.value, 0)
   const chartData = data.map((d, index) => ({
-    label: d.engineer,
+    label: d.engineer?.display_name ?? "Utilisateur inconnu",
     value: d.value,
     color: `color-mix(in oklch, var(--color-primary) ${Math.max(15, 42 - index * 6)}%, var(--color-muted))`,
   }))

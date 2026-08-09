@@ -27,7 +27,7 @@ function AttentionRequiredSection({ data }: AttentionRequiredSectionProps) {
         <AlertTriangle className="size-5 shrink-0 text-warning" strokeWidth={1.75} />
         <p className="text-sm font-medium text-warning">
           {data.count} incident{data.count > 1 ? "s" : ""} ouvert{data.count > 1 ? "s" : ""} depuis
-          plus de {data.thresholdDays} jours
+          plus de {data.threshold_days} jours
         </p>
       </div>
 
@@ -42,17 +42,19 @@ function AttentionRequiredSection({ data }: AttentionRequiredSectionProps) {
         </TableHeader>
         <TableBody>
           {data.incidents.map((incident) => (
-            <TableRow key={incident.ticketId}>
+            <TableRow key={incident.ticket_id}>
               <TableCell className="max-w-[280px] truncate font-medium" title={incident.title}>
-                {incident.ticketId} · {incident.title}
+                {incident.ticket_id.slice(0, 8)} · {incident.title}
               </TableCell>
               <TableCell className="tabular-nums text-muted-foreground">
-                {incident.ageDays} j
+                {incident.age_days} j
               </TableCell>
               <TableCell>
                 <PriorityBadge priority={incident.priority} />
               </TableCell>
-              <TableCell className="text-muted-foreground">{incident.assignee}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {incident.assignee?.display_name ?? "Utilisateur inconnu"}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

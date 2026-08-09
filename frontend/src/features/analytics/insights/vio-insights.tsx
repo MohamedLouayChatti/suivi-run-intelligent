@@ -10,7 +10,7 @@ interface VioInsightsProps {
 // not a third segment).
 function VioInsights({ rows }: VioInsightsProps) {
   const data = rows.map((row) => ({
-    label: row.vioApp,
+    label: row.vio_app,
     open: row.open,
     resolved: row.resolved,
     total: row.total,

@@ -7,7 +7,10 @@ interface ResolvedTicketsChartProps {
 }
 
 function ResolvedTicketsChart({ data }: ResolvedTicketsChartProps) {
-  const chartData = data.map((d) => ({ label: d.engineer.split(" ")[0], value: d.value }))
+  const chartData = data.map((d) => ({
+    label: (d.engineer?.display_name ?? "Utilisateur inconnu").split(" ")[0],
+    value: d.value,
+  }))
 
   return (
     <SectionCard title="Tickets résolus par ingénieur" description="Volume résolu sur la période">

@@ -7,7 +7,7 @@ interface AvgResolutionChartProps {
 }
 
 function AvgResolutionChart({ data }: AvgResolutionChartProps) {
-  const chartData = data.map((d) => ({ label: d.engineer, value: d.value }))
+  const chartData = data.map((d) => ({ label: d.engineer?.display_name ?? "Utilisateur inconnu", value: d.value }))
 
   return (
     <SectionCard title="Temps de résolution moyen par ingénieur" description="En heures">

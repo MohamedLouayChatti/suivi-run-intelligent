@@ -26,33 +26,33 @@ function KpiSnapshotCards({ snapshot }: KpiSnapshotCardsProps) {
   const kpis: { label: string; value: string; icon: LucideIcon; changePct: number }[] = [
     {
       label: "Total tickets",
-      value: String(snapshot.totalTickets),
+      value: String(snapshot.total_tickets),
       icon: Ticket,
-      changePct: snapshot.trends.totalTickets,
+      changePct: snapshot.trends.total_tickets,
     },
     {
       label: "Tickets ouverts",
-      value: String(snapshot.openTickets),
+      value: String(snapshot.open_tickets),
       icon: Activity,
-      changePct: snapshot.trends.openTickets,
+      changePct: snapshot.trends.open_tickets,
     },
     {
       label: "Tickets résolus",
-      value: String(snapshot.resolvedTickets),
+      value: String(snapshot.resolved_tickets),
       icon: CheckCircle2,
-      changePct: snapshot.trends.resolvedTickets,
+      changePct: snapshot.trends.resolved_tickets,
     },
     {
       label: "Temps de résolution moyen",
-      value: formatDuration(snapshot.avgResolutionHours),
+      value: formatDuration(snapshot.avg_resolution_hours),
       icon: Clock3,
-      changePct: snapshot.trends.avgResolutionHours,
+      changePct: snapshot.trends.avg_resolution_hours,
     },
     {
       label: "Tickets urgents",
-      value: String(snapshot.urgentTickets),
+      value: String(snapshot.urgent_tickets),
       icon: AlertTriangle,
-      changePct: snapshot.trends.urgentTickets,
+      changePct: snapshot.trends.urgent_tickets,
     },
   ]
 
