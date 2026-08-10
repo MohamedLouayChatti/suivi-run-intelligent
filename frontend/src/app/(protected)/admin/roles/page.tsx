@@ -4,7 +4,7 @@ import { RequirePermission } from "@/lib/auth"
 
 export default function RolesPage() {
   return (
-    <RequirePermission admin>
+    <RequirePermission permissions={["role.read_all", "permission.read", "user.read_all"]}>
       <PageHeader
         title="Rôles"
         description="Ensembles de permissions appliqués sur la plateforme"

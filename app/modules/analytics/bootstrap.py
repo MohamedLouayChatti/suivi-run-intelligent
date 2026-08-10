@@ -14,6 +14,7 @@ def register_subscriptions(registry: SubscriptionRegistry) -> None:
 def register_instance_authorization_policies(registry: InstanceAuthorizationRegistry) -> None:
 	"""Analytics has no single-resource instance authorization: access is gated by the
 	analytics.read permission plus an application-collection scope (see
-	require_analytics_applications_scope), and the admin-only overview by require_admin
-	-- neither needs a per-resource_id policy in this registry."""
+	require_analytics_applications_scope), and the cross-application overview by the
+	analytics.read_any_application breadth permission -- neither needs a per-resource_id
+	policy in this registry."""
 	return None

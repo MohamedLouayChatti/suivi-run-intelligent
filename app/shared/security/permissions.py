@@ -4,48 +4,33 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 
-from app.modules.auth.api.dependencies import get_effective_permissions_handler, get_user_read_repository
-from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
-from app.modules.auth.application.queries.get_effective_permissions.handler import GetEffectivePermissionsHandler
-from app.modules.auth.application.queries.get_effective_permissions.query import GetEffectivePermissionsQuery
-from app.modules.auth.application.security.support import ADMIN_ROLE_NAME
 from app.shared.security.current_user import CurrentUser, get_current_user
 
 
 def require_permissions(*permissions: str):
-	"""Return a dependency requiring every exact permission name provided."""
+	"""Return a dependency requiring every exact permission name provided.
 
-	async def dependency(
-		current_user: Annotated[CurrentUser, Depends(get_current_user)],
-		handler: Annotated[GetEffectivePermissionsHandler, Depends(get_effective_permissions_handler)],
-	) -> CurrentUser:
-		effective = await handler.handle(GetEffectivePermissionsQuery(user_id=current_user.id))
-		effective_names = {permission.name for permission in effective}
-		if not set(permissions).issubset(effective_names):
-			raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions.")
-		return current_user
+	Permissions are the *only* authorization currency in this codebase: a role is nothing
+	but a way to grant a set of them, so nothing here (or anywhere else) branches on a role
+	name.  Endpoints whose reach exceeds the caller's own resources are gated by an explicit
+	breadth permission (`user.read_all`, `ticket.read_any_application`, ...) rather than by
+	role membership -- see `app/scripts/seeding/roles_permissions/roles.py`.
 
-	return dependency
+	This is a type-level check only: it says the caller may perform this *kind* of operation,
+	never on which instances.  Pair it with `require_instance_permission` on any route that
+	targets a single resource.
 
-
-def require_admin():
-	"""Return a dependency requiring the caller to hold the Admin role.
-
-	Distinct from `require_permissions`: a type-level permission grant (e.g. `user.read`)
-	only proves the caller may perform that *kind* of read somewhere; it does not imply
-	they may see every instance. Collection/global reference-data endpoints (list all
-	users, list all roles, anything permission-related) are an Admin-only capability by
-	role, not by permission grant, so they must not depend solely on what happens to be
-	in the permission catalog for a role.
+	Reads `CurrentUser.permissions`, already resolved once for the request, so composing
+	several of these on one route costs no extra queries.
 	"""
 
+	required = frozenset(permissions)
+
 	async def dependency(
 		current_user: Annotated[CurrentUser, Depends(get_current_user)],
-		user_repository: Annotated[UserReadRepository, Depends(get_user_read_repository)],
 	) -> CurrentUser:
-		roles = await user_repository.get_user_roles(current_user.id)
-		if not any(role.name == ADMIN_ROLE_NAME for role in roles):
-			raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required.")
+		if not required.issubset(current_user.permissions):
+			raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions.")
 		return current_user
 
 	return dependency

@@ -10,6 +10,7 @@ from app.modules.auth.application.dto.permission_dto import PermissionDTO
 from app.modules.auth.application.interfaces.permission_read_repository import PermissionReadRepository
 from app.modules.auth.application.queries.get_effective_permissions.query import GetEffectivePermissionsQuery
 from app.modules.auth.application.queries.list_permissions.query import ListPermissionsQuery
+from app.modules.auth.domain.services.authorization_service import AuthorizationService
 from app.modules.auth.infrastructure.persistence import mapper
 from app.modules.auth.infrastructure.persistence.models.permission_model import PermissionModel
 from app.modules.auth.infrastructure.persistence.models.role_model import RoleModel
@@ -38,8 +39,11 @@ class SqlAlchemyPermissionReadRepository(PermissionReadRepository):
 		)
 		if user is None:
 			return []
-		role_permission_ids = {permission.id for role in user.roles for permission in role.permissions}
-		permission_ids = (role_permission_ids | {permission.id for permission in user.direct_permissions}) - {permission.id for permission in user.revoked_permissions}
+		permission_ids = AuthorizationService.combine_permissions(
+			role_permission_ids=(permission.id for role in user.roles for permission in role.permissions),
+			direct_permission_ids=(permission.id for permission in user.direct_permissions),
+			revoked_permission_ids=(permission.id for permission in user.revoked_permissions),
+		)
 		if not permission_ids:
 			return []
 		result = await self.session.scalars(select(PermissionModel).where(PermissionModel.id.in_(permission_ids)).order_by(PermissionModel.name))

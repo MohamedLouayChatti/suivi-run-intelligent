@@ -23,27 +23,30 @@ import {
   useJiraMetrics,
   useKpiSnapshot,
 } from "@/features/analytics/use-analytics"
-import { usePermissions } from "@/lib/auth"
+import { RequirePermission, usePermissions } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 
 export default function AnalyticsPage() {
-  const { user: currentUser, isAdmin } = usePermissions()
+  const { user: currentUser, hasPermission } = usePermissions()
+  // Mirrors the backend's analytics application scope: holding the breadth permission is what
+  // lets a caller span every application, rather than belonging to any particular role.
+  const canReadAllApplications = hasPermission("analytics.read_any_application")
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
 
   const [filters, setFilters] = useState<AnalyticsFilters>(defaultAnalyticsFilters)
 
-  // Non-admins can never filter across every application, so their view defaults to (and never
-  // offers "all", only) their own assignments — admins keep the "all applications" default.
+  // Without the breadth permission a user can never filter across every application, so their
+  // view defaults to (and only ever offers) their own assignments — holders keep "all".
   // Applied once so it never overrides a filter the user has since changed.
   const appliedDefaultRef = useRef(false)
   useEffect(() => {
     if (appliedDefaultRef.current || !currentUser) return
-    if (!isAdmin && primaryApplication) {
+    if (!canReadAllApplications && primaryApplication) {
       setFilters((prev) => ({ ...prev, application: primaryApplication }))
     }
     appliedDefaultRef.current = true
-  }, [currentUser, isAdmin, primaryApplication])
+  }, [currentUser, canReadAllApplications, primaryApplication])
 
   function handleFilterChange(patch: Partial<AnalyticsFilters>) {
     setFilters((prev) => ({ ...prev, ...patch }))
@@ -60,7 +63,7 @@ export default function AnalyticsPage() {
   const showAdminSections = filters.application === "all"
 
   return (
-    <>
+    <RequirePermission permission="analytics.read">
       <PageHeader
         title="Analyses"
         description="Performance opérationnelle du support — tickets, résolution, tendances"
@@ -68,7 +71,7 @@ export default function AnalyticsPage() {
           <AnalyticsFilterControls
             filters={filters}
             onChange={handleFilterChange}
-            isAdmin={isAdmin}
+            canReadAllApplications={canReadAllApplications}
             accessibleApplications={accessibleApplications}
           />
         }
@@ -99,6 +102,6 @@ export default function AnalyticsPage() {
           </>
         )}
       </PageBody>
-    </>
+    </RequirePermission>
   )
 }

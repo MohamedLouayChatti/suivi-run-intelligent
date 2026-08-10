@@ -46,7 +46,7 @@ function TicketDetailView({ id }: { id: string }) {
     commentAttachmentError,
   } = useTicketDetail(id)
   const { users } = useUserDirectory()
-  const { user: currentUser, hasPermission, isTicketAssignee, isAdmin } = usePermissions()
+  const { user: currentUser, hasPermission, isTicketAssignee } = usePermissions()
 
   if (isLoading) {
     return (
@@ -86,7 +86,9 @@ function TicketDetailView({ id }: { id: string }) {
   // Mirrors Ticket._transition_to's allowed map and the explicit checks in resume()/close()
   // (app/modules/ticket_management/domain/entities/ticket.py) — every status-changing action
   // also requires the ticket to be unarchived, since all of them go through _ensure_mutable.
-  const assigneeOrAdmin = isTicketAssignee(ticket) || isAdmin
+  // Mirrors TicketAccessPolicy's _ASSIGNEE_OR_MANAGE_ANY_OPERATIONS: the assignee, or anyone
+  // holding the breadth permission to act on tickets they are not assigned to.
+  const canManage = isTicketAssignee(ticket) || hasPermission("ticket.manage_any")
   const mutable = ticket.archived_at === null
   const canChangeStatus = mutable && hasPermission("ticket.change_status") && isTicketAssignee(ticket)
   const isResolvedOrTransferred = ticket.status === "RESOLVED" || ticket.status === "TRANSFERRED"
@@ -106,16 +108,16 @@ function TicketDetailView({ id }: { id: string }) {
           isTicketAssignee(ticket) &&
           ticket.status === "IN_PROGRESS"
         }
-        canReassign={mutable && ticket.status !== "CLOSED" && hasPermission("ticket.assign") && assigneeOrAdmin}
+        canReassign={mutable && ticket.status !== "CLOSED" && hasPermission("ticket.assign") && canManage}
         canChangePriority={
-          mutable && ticket.status !== "CLOSED" && hasPermission("ticket.change_priority") && assigneeOrAdmin
+          mutable && ticket.status !== "CLOSED" && hasPermission("ticket.change_priority") && canManage
         }
-        canManageJira={mutable && ticket.status !== "CLOSED" && hasPermission("ticket.manage_jira") && assigneeOrAdmin}
+        canManageJira={mutable && ticket.status !== "CLOSED" && hasPermission("ticket.manage_jira") && canManage}
         canManageHighlight={
-          mutable && ticket.status !== "CLOSED" && hasPermission("ticket.manage_highlight") && assigneeOrAdmin
+          mutable && ticket.status !== "CLOSED" && hasPermission("ticket.manage_highlight") && canManage
         }
-        canArchive={hasPermission("ticket.archive") && assigneeOrAdmin}
-        canRestore={hasPermission("ticket.restore") && assigneeOrAdmin}
+        canArchive={hasPermission("ticket.archive") && canManage}
+        canRestore={hasPermission("ticket.restore") && canManage}
         onStart={onStart}
         onResolve={onResolve}
         onResume={onResume}

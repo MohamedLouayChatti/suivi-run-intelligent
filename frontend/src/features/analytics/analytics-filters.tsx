@@ -19,7 +19,7 @@ interface AnalyticsFilterControlsProps {
   onChange: (patch: Partial<AnalyticsFilters>) => void
   /** Hard admin-role gate — only admins may see cross-application ("Toutes les applications")
    * analytics; everyone else is scoped to their own assignments. */
-  isAdmin: boolean
+  canReadAllApplications: boolean
   /** The user's own applications (primary, + backup if any) — ignored for admins, who choose
    * from every application instead. */
   accessibleApplications: Application[]
@@ -29,7 +29,7 @@ interface AnalyticsFilterControlsProps {
 function AnalyticsFilterControls({
   filters,
   onChange,
-  isAdmin,
+  canReadAllApplications,
   accessibleApplications,
 }: AnalyticsFilterControlsProps) {
   return (
@@ -37,13 +37,13 @@ function AnalyticsFilterControls({
       <Select
         value={filters.application}
         onValueChange={(value) => onChange({ application: value as AnalyticsFilters["application"] })}
-        disabled={!isAdmin && accessibleApplications.length < 2}
+        disabled={!canReadAllApplications && accessibleApplications.length < 2}
       >
         <SelectTrigger className="w-[170px]">
           <SelectValue placeholder="Application" />
         </SelectTrigger>
         <SelectContent>
-          {isAdmin ? (
+          {canReadAllApplications ? (
             <>
               <SelectItem value="all">Toutes les applications</SelectItem>
               {applicationOptions.map((app) => (

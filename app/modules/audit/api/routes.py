@@ -14,12 +14,12 @@ from app.modules.audit.api.schemas import AuditEntryResponse
 from app.modules.audit.application.queries.export_audit_entries.query import ExportAuditEntriesQuery
 from app.modules.audit.application.queries.get_audit_entry.query import GetAuditEntryQuery
 from app.modules.audit.application.queries.list_audit_entries.query import ListAuditEntriesQuery
-from app.shared.security.permissions import require_admin, require_permissions
+from app.shared.security.permissions import require_permissions
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
 
-@router.get("", response_model=list[AuditEntryResponse], dependencies=[Depends(require_permissions("audit.read")), Depends(require_admin())])
+@router.get("", response_model=list[AuditEntryResponse], dependencies=[Depends(require_permissions("audit.read"))])
 async def list_audit_entries(
 	handler=Depends(dep.get_list_audit_entries_handler),
 	module: str | None = None,
@@ -38,7 +38,7 @@ async def list_audit_entries(
 	return [AuditEntryResponse.from_dto(entry) for entry in await handler.handle(query)]
 
 
-@router.get("/export", dependencies=[Depends(require_permissions("audit.read")), Depends(require_admin())])
+@router.get("/export", dependencies=[Depends(require_permissions("audit.read"))])
 async def export_audit_entries(handler=Depends(dep.get_export_audit_entries_handler), module: str | None = None):
 	query = ExportAuditEntriesQuery(module=module)
 	entries = await handler.handle(query)
@@ -60,6 +60,6 @@ async def export_audit_entries(handler=Depends(dep.get_export_audit_entries_hand
 	)
 
 
-@router.get("/{entry_id}", response_model=AuditEntryResponse, dependencies=[Depends(require_permissions("audit.read")), Depends(require_admin())])
+@router.get("/{entry_id}", response_model=AuditEntryResponse, dependencies=[Depends(require_permissions("audit.read"))])
 async def get_audit_entry(entry_id: UUID, handler=Depends(dep.get_get_audit_entry_handler)):
 	return AuditEntryResponse.from_dto(await handler.handle(GetAuditEntryQuery(entry_id)))

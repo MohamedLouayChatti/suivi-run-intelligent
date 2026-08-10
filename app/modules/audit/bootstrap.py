@@ -54,5 +54,8 @@ def register_subscriptions(registry: SubscriptionRegistry) -> None:
 
 def register_instance_authorization_policies(registry: InstanceAuthorizationRegistry) -> None:
 	"""Audit has no per-resource instance authorization: both collection and
-	single-entry reads are gated by require_admin + audit.read at the route level."""
+	single-entry reads are gated by the audit.read permission at the route level.
+
+	audit.read is seeded onto Admin alone, but nothing here requires that -- granting it to
+	a dedicated auditor role is all it takes to open the log to a non-administrator."""
 	return None

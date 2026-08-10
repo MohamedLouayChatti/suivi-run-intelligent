@@ -20,6 +20,15 @@ RoleReadRepositoryScope = Callable[[], AbstractAsyncContextManager[RoleReadRepos
 PermissionReadRepositoryScope = Callable[[], AbstractAsyncContextManager[PermissionReadRepository]]
 
 ADMIN_ROLE_NAME = "Admin"
+"""The only role name still referenced anywhere in the codebase -- and deliberately so.
+
+This is an *audience*, not an authorization check: it answers "who should be told", never
+"who is allowed". Authorization branches solely on permissions (see
+`app/shared/security/permissions.py`); nothing here grants or denies access. Treating the
+administrators as a notification audience is a routing decision that belongs to this module,
+and resolving it by permission instead would mean granting a permission silently changed who
+gets paged.
+"""
 
 # Large enough to cover this system's entire user base in one page -- an internal
 # support tool, not a mass-user product. Deliberately avoids adding a new filtered

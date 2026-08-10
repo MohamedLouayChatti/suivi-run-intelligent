@@ -23,7 +23,7 @@ function UsersPageContent() {
   const activeCount = users.filter((u) => u.active).length
 
   return (
-    <RequirePermission admin>
+    <RequirePermission permissions={["user.read_all", "role.read_all", "permission.read"]}>
       <PageHeader
         title="Utilisateurs"
         description={`${activeCount} actifs sur ${users.length} comptes`}

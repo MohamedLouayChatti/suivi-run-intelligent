@@ -60,8 +60,12 @@ function CommentsSection({
 }: CommentsSectionProps) {
   const [draft, setDraft] = useState("")
   const [files, setFiles] = useState<File[]>([])
-  const { user: currentUser, hasPermission, isAdmin, canActOnApplication, isAttachmentUploader } = usePermissions()
-  const canComment = hasPermission("comment.create") && (canActOnApplication(ticket.application) || isAdmin)
+  const { user: currentUser, hasPermission, canActOnApplication, isAttachmentUploader } = usePermissions()
+  // Mirrors CommentAccessPolicy's "create" rule: assigned to the ticket's application, or
+  // holding the cross-application breadth permission.
+  const canComment =
+    hasPermission("comment.create") &&
+    (canActOnApplication(ticket.application) || hasPermission("ticket.read_any_application"))
   // Newest first — the backend returns comments in creation order.
   const comments = [...ticket.comments].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),

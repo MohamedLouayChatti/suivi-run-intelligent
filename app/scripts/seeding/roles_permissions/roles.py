@@ -12,6 +12,12 @@ class RoleDefinition:
 	permission_names: tuple[str, ...]
 
 
+# Roles are *only* a way to cluster permissions -- nothing in the codebase branches on a
+# role name.  The breadth permissions (`user.read_all`, `role.read_all`,
+# `ticket.read_any_application`, `ticket.manage_any`, `analytics.read_any_application`) are
+# what actually grant system-wide reach, and they happen to be seeded onto "Admin" alone.
+# Granting one of them to another role -- or directly to a single user -- is all it takes to
+# delegate that reach; there is no separate role gate to satisfy.
 SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 	RoleDefinition("Admin", tuple(PERMISSIONS_BY_NAME)),
 	RoleDefinition(
@@ -19,6 +25,7 @@ SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 		(
 			"user.read",
 			"role.read",
+			"permission.read",
 			"ticket.create",
 			"ticket.read",
 			"ticket.assign",

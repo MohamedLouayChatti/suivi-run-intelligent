@@ -14,7 +14,7 @@ from app.modules.analytics.application.queries.get_jira_metrics.handler import G
 from app.modules.analytics.application.queries.get_kpi_snapshot.handler import GetKpiSnapshotHandler
 from app.modules.analytics.application.queries.get_my_activity_trend.handler import GetMyActivityTrendHandler
 from app.modules.analytics.application.queries.get_my_kpi_snapshot.handler import GetMyKpiSnapshotHandler
-from app.modules.analytics.application.security.access_scope import accessible_applications
+from app.modules.analytics.application.security.access_scope import READ_ANY_APPLICATION_PERMISSION
 from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_admin_analytics_read_repository import (
 	SqlAlchemyAdminAnalyticsReadRepository,
 )
@@ -29,10 +29,9 @@ from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_pe
 )
 from app.modules.auth.api.dependencies import get_user_read_repository
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
-from app.modules.auth.application.security.support import ADMIN_ROLE_NAME
 from app.modules.ticket_management.domain.enums.application import Application
 from app.shared.database.session import create_session
-from app.shared.security.current_user import CurrentUser, get_current_user
+from app.shared.security.application_scope import require_application_scope
 
 
 async def get_analytics_read_repository() -> AsyncIterator[SqlAlchemyAnalyticsReadRepository]:
@@ -67,20 +66,11 @@ async def get_personal_analytics_read_repository() -> AsyncIterator[SqlAlchemyPe
 		await session.close()
 
 
-async def require_analytics_applications_scope(
-	current_user: Annotated[CurrentUser, Depends(get_current_user)],
-	user_repository: Annotated[UserReadRepository, Depends(get_user_read_repository)],
-) -> frozenset[Application] | None:
-	"""None for admins (no restriction, may request "all applications"). Everyone else is
-	silently scoped to their own assignments -- mirrors
-	TicketAccessPolicy.allowed_applications_filter. Combined with an explicit `application`
-	filter (if any) at the query layer, so an out-of-scope request simply yields an empty
-	result rather than a 403 -- same behavior as Ticket Management's list/search endpoints.
-	"""
-	roles = await user_repository.get_user_roles(current_user.id)
-	if any(role.name == ADMIN_ROLE_NAME for role in roles):
-		return None
-	return accessible_applications(current_user)
+# None means "every application" (the caller holds analytics.read_any_application), otherwise
+# the caller's own assignments. The same shared dependency backs Ticket Management's
+# list/search/export scope, so both modules answer "how wide may this caller look" identically
+# instead of each re-deriving it -- see app/shared/security/application_scope.py.
+require_analytics_applications_scope = require_application_scope(READ_ANY_APPLICATION_PERMISSION, Application)
 
 
 def get_kpi_snapshot_handler(

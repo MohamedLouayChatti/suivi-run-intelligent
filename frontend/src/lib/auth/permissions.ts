@@ -1,4 +1,4 @@
-import { getAccessibleApplications, isAdmin as isAdminUser } from "@/services/api/auth";
+import { getAccessibleApplications } from "@/services/api/auth";
 import type { CurrentUser } from "@/services/api/auth";
 import type { components } from "@/types/api";
 
@@ -8,9 +8,21 @@ type Application = components["schemas"]["Application"];
  * Pure, framework-free permission checks over `CurrentUser`. Each mirrors a rule read directly
  * from the backend's instance authorization policies — for hiding UI only, never a substitute
  * for the backend's own enforcement.
+ *
+ * There is deliberately no `isAdmin` here, and nothing in the frontend reads `user.roles` to
+ * decide what may be done. A role is only a bundle of permissions on the backend, so mapping
+ * "role Admin" to a capability would be business logic living in the UI — and it would go
+ * stale the moment a permission is granted to another role or directly to one user. Ask for
+ * the permission the backend actually enforces instead (including breadth permissions like
+ * `user.read_all` or `ticket.manage_any`).
  */
 function hasPermission(user: CurrentUser | undefined, name: string): boolean {
   return user?.effectivePermissions.some((permission) => permission.name === name) ?? false;
+}
+
+/** Every listed permission must be held — mirrors the backend's conjunctive `require_permissions`. */
+function hasAllPermissions(user: CurrentUser | undefined, names: readonly string[]): boolean {
+  return names.every((name) => hasPermission(user, name));
 }
 
 function isTicketAssignee(
@@ -39,16 +51,11 @@ function canActOnApplication(user: CurrentUser | undefined, application: Applica
   return user !== undefined && getAccessibleApplications(user).includes(application);
 }
 
-/** The backend's hard `require_admin` role gate — see `services/api/auth.ts`'s `isAdmin`. */
-function isAdmin(user: CurrentUser | undefined): boolean {
-  return user !== undefined && isAdminUser(user);
-}
-
 export {
   hasPermission,
+  hasAllPermissions,
   isTicketAssignee,
   isCommentAuthor,
   isAttachmentUploader,
   canActOnApplication,
-  isAdmin,
 };

@@ -3,31 +3,32 @@ from __future__ import annotations
 from typing import Any
 
 from app.modules.ticket_management.application.security.support import (
+	MANAGE_ANY_PERMISSION,
 	TicketReadRepositoryScope,
-	UserReadRepositoryScope,
-	has_application_assignment,
-	is_admin,
-	is_same_functional_team,
+	may_reach_application,
 	parse_uuid,
 )
-from app.modules.ticket_management.domain.enums.application import Application
-from app.modules.ticket_management.domain.enums.functional_team import FunctionalTeam
 from app.shared.security.authorization_result import AuthorizationResult
 from app.shared.security.current_user import CurrentUser
 from app.shared.security.instance_authorization_policy import InstanceAuthorizationPolicy
 
 _ASSIGNEE_ONLY_OPERATIONS = frozenset({"start", "resolve", "close", "resume", "transfer"})
-_ASSIGNEE_OR_ADMIN_OPERATIONS = frozenset({"reassign", "change_priority", "archive", "restore", "update_jira", "update_operational_highlight"})
+_ASSIGNEE_OR_MANAGE_ANY_OPERATIONS = frozenset({"reassign", "change_priority", "archive", "restore", "update_jira", "update_operational_highlight"})
 
 
 class TicketAccessPolicy(InstanceAuthorizationPolicy):
-	def __init__(
-		self,
-		ticket_repository_scope: TicketReadRepositoryScope,
-		user_repository_scope: UserReadRepositoryScope,
-	) -> None:
+	"""Instance rules for one ticket.
+
+	Two distinct axes, each now backed by its own breadth permission rather than by the
+	caller's role: *reach* (is this ticket within my applications, or do I hold
+	`ticket.read_any_application`) and *ownership* (am I the assignee, or do I hold
+	`ticket.manage_any`).  The operations in `_ASSIGNEE_ONLY_OPERATIONS` are workflow
+	transitions that only the person actually working the ticket may drive, so they admit no
+	breadth override at all.
+	"""
+
+	def __init__(self, ticket_repository_scope: TicketReadRepositoryScope) -> None:
 		self._ticket_repository_scope = ticket_repository_scope
-		self._user_repository_scope = user_repository_scope
 
 	async def authorize(self, *, current_user: CurrentUser, resource_id: Any, operation: str) -> AuthorizationResult:
 		ticket_id = parse_uuid(resource_id)
@@ -42,7 +43,7 @@ class TicketAccessPolicy(InstanceAuthorizationPolicy):
 			return AuthorizationResult(True, "")
 
 		if operation == "read":
-			if has_application_assignment(current_user, ticket.application) or await is_admin(self._user_repository_scope, current_user):
+			if may_reach_application(current_user, ticket.application):
 				return AuthorizationResult(True, "")
 			return AuthorizationResult(False, "You are not authorized to access this ticket.")
 
@@ -51,29 +52,9 @@ class TicketAccessPolicy(InstanceAuthorizationPolicy):
 				return AuthorizationResult(True, "")
 			return AuthorizationResult(False, "Only the ticket assignee can perform this operation.")
 
-		if operation in _ASSIGNEE_OR_ADMIN_OPERATIONS:
-			if ticket.assignee_id == current_user.id or await is_admin(self._user_repository_scope, current_user):
+		if operation in _ASSIGNEE_OR_MANAGE_ANY_OPERATIONS:
+			if ticket.assignee_id == current_user.id or current_user.has_permission(MANAGE_ANY_PERMISSION):
 				return AuthorizationResult(True, "")
-			return AuthorizationResult(False, "Only the ticket assignee or an admin can perform this operation.")
+			return AuthorizationResult(False, "Only the ticket assignee, or a user allowed to manage any ticket, can perform this operation.")
 
 		return AuthorizationResult(False, f"Unknown ticket operation '{operation}'.")
-
-	async def authorize_creation(
-		self,
-		*,
-		current_user: CurrentUser,
-		application: Application,
-		functional_team: FunctionalTeam,
-	) -> AuthorizationResult:
-		if not has_application_assignment(current_user, application):
-			return AuthorizationResult(False, "You are not assigned to this application.")
-		if not is_same_functional_team(current_user, functional_team):
-			return AuthorizationResult(False, "This ticket does not belong to your functional team.")
-		return AuthorizationResult(True, "")
-
-	async def allowed_applications_filter(self, *, current_user: CurrentUser) -> frozenset[Application] | None:
-		if await is_admin(self._user_repository_scope, current_user):
-			return None
-		return frozenset(
-			Application(assignment.application.value) for assignment in current_user.application_assignments
-		)

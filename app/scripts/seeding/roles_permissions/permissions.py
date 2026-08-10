@@ -14,9 +14,11 @@ class PermissionDefinition:
 # seeding and logging.
 PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("user.read", "Lire les informations d'un utilisateur."),
+	PermissionDefinition("user.read_all", "Lire les informations de tous les utilisateurs."),
 	PermissionDefinition("user.activate", "Activer un utilisateur."),
 	PermissionDefinition("user.deactivate", "Désactiver un utilisateur."),
 	PermissionDefinition("role.read", "Lire les informations d'un rôle."),
+	PermissionDefinition("role.read_all", "Lire les informations de tous les rôles."),
 	PermissionDefinition("role.assign", "Attribuer un rôle à un utilisateur."),
 	PermissionDefinition("role.revoke", "Retirer un rôle à un utilisateur."),
 	PermissionDefinition("permission.read", "Lire les informations d'une permission."),
@@ -26,6 +28,8 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("permission.revoke_from_user", "Retirer une permission directe d'un utilisateur."),
 	PermissionDefinition("ticket.create", "Créer un ticket."),
 	PermissionDefinition("ticket.read", "Lire les informations d'un ticket."),
+	PermissionDefinition("ticket.read_any_application", "Consulter les tickets de toutes les applications, au-delà de ses propres affectations."),
+	PermissionDefinition("ticket.manage_any", "Agir sur un ticket dont on n'est pas l'assigné."),
 	PermissionDefinition("ticket.assign", "Affecter un ticket."),
 	PermissionDefinition("ticket.change_priority", "Changer la priorité d'un ticket."),
 	PermissionDefinition("ticket.change_status", "Changer le statut d'un ticket."),
@@ -43,6 +47,7 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("audit.read", "Lire les entrées du journal d'audit."),
 	PermissionDefinition("notification.read", "Lire ses propres notifications."),
 	PermissionDefinition("analytics.read", "Lire les indicateurs et statistiques analytiques."),
+	PermissionDefinition("analytics.read_any_application", "Consulter les analyses de toutes les applications (vue transverse)."),
 )
 
 PERMISSIONS_BY_NAME = {permission.name: permission for permission in PERMISSION_CATALOG}

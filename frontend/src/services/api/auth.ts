@@ -80,11 +80,5 @@ function getAccessibleApplications(user: CurrentUser): components["schemas"]["Ap
   return [primary, backup].filter((a): a is components["schemas"]["Application"] => a !== null);
 }
 
-/** The backend's `require_admin` gate is a hard role check, not a permission grant — mirror
- * that here by name rather than inferring admin-ness from any specific permission. */
-function isAdmin(user: CurrentUser): boolean {
-  return user.roles.some((role) => role.name === "Admin");
-}
-
-export { getCurrentUser, getPrimaryApplication, getBackupApplication, getAccessibleApplications, isAdmin };
+export { getCurrentUser, getPrimaryApplication, getBackupApplication, getAccessibleApplications };
 export type { CurrentUser, CurrentUserApplicationAssignment, CurrentUserPermission, CurrentUserRole };

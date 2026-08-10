@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from app.modules.ticket_management.domain.enums.application import Application
-from app.shared.security.current_user import CurrentUser
+READ_ANY_APPLICATION_PERMISSION = "analytics.read_any_application"
+"""Breadth permission: report across every application rather than one's own assignments.
 
-
-def accessible_applications(current_user: CurrentUser) -> frozenset[Application]:
-	"""The caller's own assigned applications, translated from Auth's Application enum
-	to Ticket Management's -- same values, distinct types (see
-	TicketAccessPolicy.allowed_applications_filter for the precedent)."""
-	return frozenset(Application(assignment.application.value) for assignment in current_user.application_assignments)
+Analytics keeps its own breadth permission rather than reusing Ticket Management's
+`ticket.read_any_application`: aggregated, anonymised reporting over an application is a
+weaker exposure than reading its individual tickets, so the two are worth granting
+separately.  Holding this one is also what unlocks the cross-application overview.
+"""

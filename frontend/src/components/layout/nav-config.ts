@@ -14,8 +14,6 @@ import {
 export interface NavItemRequirement {
   /** A single permission name the current user's effective permissions must include. */
   permission?: string;
-  /** Hard admin-role gate — mirrors the backend's `require_admin` on the underlying pages. */
-  adminOnly?: boolean;
 }
 
 export interface NavItem {
@@ -33,15 +31,19 @@ export const primaryNavItems: NavItem[] = [
   { title: "Tickets", href: "/tickets", icon: Ticket, requires: { permission: "ticket.read" } },
   { title: "Historique", href: "/history", icon: History, requires: { permission: "ticket.read" } },
   { title: "Chatbot", href: "/chatbot", icon: MessageSquare },
-  { title: "Analyses", href: "/analytics", icon: BarChart3 },
+  { title: "Analyses", href: "/analytics", icon: BarChart3, requires: { permission: "analytics.read" } },
 ];
 
 export const administrationNavGroupLabel = "Administration";
 
+// "Administration" is a grouping label for the user, not an authorization concept: each item
+// below names the breadth permission its page's endpoints actually require. Nothing here keys
+// off a role, so granting e.g. `audit.read` to a non-Admin role reveals exactly that one entry.
+
 export const administrationNavItems: NavItem[] = [
-  { title: "Utilisateurs", href: "/admin/users", icon: Users, requires: { adminOnly: true } },
-  { title: "Rôles", href: "/admin/roles", icon: ShieldCheck, requires: { adminOnly: true } },
-  { title: "Audit", href: "/admin/audit", icon: ScrollText, requires: { adminOnly: true, permission: "audit.read" } },
+  { title: "Utilisateurs", href: "/admin/users", icon: Users, requires: { permission: "user.read_all" } },
+  { title: "Rôles", href: "/admin/roles", icon: ShieldCheck, requires: { permission: "role.read_all" } },
+  { title: "Audit", href: "/admin/audit", icon: ScrollText, requires: { permission: "audit.read" } },
 ];
 
 export const settingsNavItem: NavItem = {

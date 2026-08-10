@@ -30,7 +30,7 @@ export default function AuditPage() {
   }
 
   return (
-    <RequirePermission admin permission="audit.read">
+    <RequirePermission permission="audit.read">
       <PageHeader
         title="Audit"
         description="Registre immuable des événements métier et administratifs"

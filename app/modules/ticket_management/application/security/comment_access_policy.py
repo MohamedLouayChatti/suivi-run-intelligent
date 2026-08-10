@@ -6,9 +6,7 @@ from uuid import UUID
 from app.modules.ticket_management.application.dto.comment_dto import CommentDTO
 from app.modules.ticket_management.application.security.support import (
 	TicketReadRepositoryScope,
-	UserReadRepositoryScope,
-	has_application_assignment,
-	is_admin,
+	may_reach_application,
 	parse_uuid,
 )
 from app.shared.security.authorization_result import AuthorizationResult
@@ -17,13 +15,8 @@ from app.shared.security.instance_authorization_policy import InstanceAuthorizat
 
 
 class CommentAccessPolicy(InstanceAuthorizationPolicy):
-	def __init__(
-		self,
-		ticket_repository_scope: TicketReadRepositoryScope,
-		user_repository_scope: UserReadRepositoryScope,
-	) -> None:
+	def __init__(self, ticket_repository_scope: TicketReadRepositoryScope) -> None:
 		self._ticket_repository_scope = ticket_repository_scope
-		self._user_repository_scope = user_repository_scope
 
 	async def authorize(self, *, current_user: CurrentUser, resource_id: Any, operation: str) -> AuthorizationResult:
 		# `resource_id` is not tied to "comment" as a type: its meaning depends on
@@ -40,7 +33,7 @@ class CommentAccessPolicy(InstanceAuthorizationPolicy):
 				# Let the request through: the handler will raise the proper
 				# not-found error. A missing resource is not an authorization outcome.
 				return AuthorizationResult(True, "")
-			if has_application_assignment(current_user, ticket.application) or await is_admin(self._user_repository_scope, current_user):
+			if may_reach_application(current_user, ticket.application):
 				return AuthorizationResult(True, "")
 			return AuthorizationResult(False, "You are not authorized to comment on this ticket.")
 

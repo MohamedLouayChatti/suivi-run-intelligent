@@ -28,7 +28,7 @@ from app.modules.analytics.application.support.filters import effective_applicat
 from app.modules.analytics.application.support.time_range import TimeRange
 from app.modules.ticket_management.domain.enums.application import Application
 from app.shared.security.current_user import CurrentUser, get_current_user
-from app.shared.security.permissions import require_admin, require_permissions
+from app.shared.security.permissions import require_permissions
 
 router = APIRouter(prefix="/analytics", tags=["analytics"], dependencies=[Depends(require_permissions("analytics.read"))])
 
@@ -108,11 +108,12 @@ async def get_application_insights(
 @router.get(
 	"/admin-overview",
 	response_model=AdminOverviewResponse,
-	dependencies=[Depends(require_admin())],
+	dependencies=[Depends(require_permissions("analytics.read_any_application"))],
 )
 async def get_admin_overview(handler=Depends(dep.get_admin_overview_handler), time_range: TimeRange = TimeRange.LAST_30_DAYS):
-	"""Admin-only: the cross-application "all applications" view, never scoped to a
-	single application -- see AdminOverviewDTO."""
+	"""The cross-application "all applications" view, never scoped to a single application
+	-- see AdminOverviewDTO. Gated by analytics.read_any_application, the same breadth
+	permission that lets the other endpoints span every application."""
 	query = GetAdminOverviewQuery(time_range=time_range)
 	return AdminOverviewResponse.from_dto(await handler.handle(query))
 
