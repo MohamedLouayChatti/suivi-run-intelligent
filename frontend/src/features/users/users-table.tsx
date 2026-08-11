@@ -171,6 +171,7 @@ function UsersTable({ users, highlightUserId, onChangeRole, onToggleActive, onSa
         onOpenChange={(open) => !open && closeSheet()}
         onSaveRole={onChangeRole}
         onSavePermissions={onSavePermissions}
+        onToggleActive={onToggleActive}
       />
     </SectionCard>
   )

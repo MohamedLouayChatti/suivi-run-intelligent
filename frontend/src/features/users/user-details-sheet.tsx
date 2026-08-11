@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { ActiveBadge } from "@/components/app/status"
 import { getPrimaryApplication, getBackupApplication } from "@/services/api/users"
 import { getRoleName } from "@/features/users/get-role-name"
@@ -30,9 +31,10 @@ interface UserDetailsSheetProps {
   onOpenChange: (open: boolean) => void
   onSaveRole: (userId: string, roleId: string) => void
   onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void
+  onToggleActive: (userId: string) => void
 }
 
-function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions }: UserDetailsSheetProps) {
+function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions, onToggleActive }: UserDetailsSheetProps) {
   const { roles } = useRolesList()
   const { permissions } = usePermissionsList()
   const currentRoleId = user?.role_ids[0] ?? roles[0]?.id ?? ""
@@ -49,6 +51,7 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions }:
     )
   )
   const [checkedPermissionIds, setCheckedPermissionIds] = useState<Set<string>>(effectivePermissionIds)
+  const [active, setActive] = useState(user?.active ?? true)
 
   if (!user) return <Sheet open={false} onOpenChange={onOpenChange} />
 
@@ -72,6 +75,8 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions }:
     const toRevoke = permissions.filter((p) => !checkedPermissionIds.has(p.id) && effectivePermissionIds.has(p.id)).map((p) => p.id)
     if (toGrant.length > 0 || toRevoke.length > 0) onSavePermissions(user.id, toGrant, toRevoke)
 
+    if (active !== user.active) onToggleActive(user.id)
+
     onOpenChange(false)
   }
 
@@ -82,7 +87,13 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions }:
       backupApplication ? `${primaryApplication} (principal), ${backupApplication} (secours)` : (primaryApplication ?? "—"),
     ],
     ["Équipe fonctionnelle", functionalTeamLabels[user.functional_team]],
-    ["Statut", <ActiveBadge key="status" active={user.active} />],
+    [
+      "Statut",
+      <div key="status" className="flex items-center gap-2">
+        <ActiveBadge active={active} />
+        <Switch checked={active} onCheckedChange={setActive} aria-label="Activer ou désactiver le compte" />
+      </div>,
+    ],
   ]
 
   return (
