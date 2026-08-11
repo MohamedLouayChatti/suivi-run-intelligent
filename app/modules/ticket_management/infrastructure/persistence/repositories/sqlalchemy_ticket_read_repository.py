@@ -8,7 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
-from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
+from app.modules.ticket_management.application.dto.ticket_dto import (
+	TicketDetailDTO,
+	TicketSimilaritySummaryDTO,
+	TicketSummaryDTO,
+)
 from app.modules.ticket_management.application.interfaces.ticket_read_repository import TicketReadRepository
 from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
@@ -77,6 +81,16 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 		if attachment_model is None:
 			return None
 		return mapper.attachment_model_to_dto(attachment_model)
+
+	async def get_similarity_summaries(self, ticket_ids: list[UUID]) -> list[TicketSimilaritySummaryDTO]:
+		if not ticket_ids:
+			return []
+		stmt = select(TicketModel).where(TicketModel.id.in_(ticket_ids))
+		result = await self.session.scalars(stmt)
+		return [
+			TicketSimilaritySummaryDTO(id=m.id, title=m.title, status=m.status, resolution_notes=m.resolution_notes)
+			for m in result.all()
+		]
 
 	def _build_list_query(self, query: ListTicketsQuery) -> Select[tuple[TicketModel]]:
 		stmt = select(TicketModel)

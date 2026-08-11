@@ -4,7 +4,11 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
-from app.modules.ticket_management.application.dto.ticket_dto import TicketDetailDTO, TicketSummaryDTO
+from app.modules.ticket_management.application.dto.ticket_dto import (
+	TicketDetailDTO,
+	TicketSimilaritySummaryDTO,
+	TicketSummaryDTO,
+)
 from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
@@ -37,4 +41,10 @@ class TicketReadRepository(ABC):
 
 	@abstractmethod
 	async def get_attachment(self, attachment_id: UUID) -> AttachmentDTO | None:
+		raise NotImplementedError
+
+	@abstractmethod
+	async def get_similarity_summaries(self, ticket_ids: list[UUID]) -> list[TicketSimilaritySummaryDTO]:
+		"""Batch projection consumed by Knowledge Base to enrich persisted SimilarityResult rows
+		with live title/status/resolution_notes -- never cached on the Knowledge Base side."""
 		raise NotImplementedError

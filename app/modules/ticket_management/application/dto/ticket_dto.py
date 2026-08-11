@@ -37,6 +37,26 @@ class TicketSummaryDTO:
 
 
 @dataclass(frozen=True)
+class TicketSimilaritySummaryDTO:
+	"""Narrow projection for Knowledge Base to enrich SimilarityResult rows with live ticket
+	context (title/status/resolution_notes) without depending on TicketDetailDTO's full shape.
+
+	resolution_notes is not cached anywhere in Knowledge Base -- it's fetched fresh through this
+	DTO on every read, because Ticket.resume() clears it, so a cached copy could go stale the
+	moment a resolved ticket reopens.
+	"""
+
+	id: UUID
+	title: str
+	status: Status
+	resolution_notes: str | None
+
+	@classmethod
+	def from_ticket(cls, ticket: Ticket) -> TicketSimilaritySummaryDTO:
+		return cls(ticket.id, ticket.title, ticket.status, ticket.resolution_notes)
+
+
+@dataclass(frozen=True)
 class TicketDetailDTO:
 	id: UUID; title: str; description: str; application: Application; status: Status; priority: Priority
 	assignee_id: UUID; category: Category; functional_team: FunctionalTeam
