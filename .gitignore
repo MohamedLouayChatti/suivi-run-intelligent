@@ -86,3 +86,6 @@ data/
 
 # Local object storage
 storage/
+
+# Notebook experiment artifacts (regenerable / may echo raw ticket content, same as data/)
+notebooks/models_evaluation/cache/
