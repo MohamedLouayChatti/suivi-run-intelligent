@@ -14,7 +14,7 @@ from app.shared.security.instance_authorization_registry import InstanceAuthoriz
 
 
 def register_subscriptions(registry: SubscriptionRegistry, event_bus: InMemoryEventBus) -> None:
-	"""Subscribes to TicketCreated only -- see knowledge_base/CLAUDE.md §7.
+	"""Subscribes to TicketCreated only.
 
 	Takes `event_bus` (unlike every other module's register_subscriptions, which only takes
 	`registry`) because this is the first handler that needs to publish an event of its own
@@ -31,6 +31,5 @@ def register_subscriptions(registry: SubscriptionRegistry, event_bus: InMemoryEv
 
 def register_instance_authorization_policies(registry: InstanceAuthorizationRegistry) -> None:
 	"""Knowledge Base registers no policy of its own -- its read endpoint reuses Ticket
-	Management's already-registered "ticket" policy via require_instance_permission. See
-	knowledge_base/CLAUDE.md §6, §8."""
+	Management's already-registered "ticket" policy via require_instance_permission."""
 	return None

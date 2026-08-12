@@ -20,19 +20,6 @@ def knowledge_item_to_model(item: KnowledgeItem) -> KnowledgeItemModel:
 	)
 
 
-def model_to_knowledge_item(model: KnowledgeItemModel) -> KnowledgeItem:
-	return KnowledgeItem(
-		id=model.id,
-		source_type=model.source_type,
-		source_id=model.source_id,
-		application=model.application,
-		embedding=list(model.embedding),
-		embedding_model=model.embedding_model,
-		embedding_model_version=model.embedding_model_version,
-		generated_at=model.generated_at,
-	)
-
-
 def similarity_result_to_model(result: SimilarityResult) -> SimilarityResultModel:
 	return SimilarityResultModel(
 		id=result.id,

@@ -12,5 +12,5 @@ class KnowledgeItemRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
-	async def get_by_source(self, source_id: UUID) -> KnowledgeItem | None:
+	async def exists(self, source_id: UUID) -> bool:
 		raise NotImplementedError

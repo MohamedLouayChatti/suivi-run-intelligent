@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 
 
 class KnowledgeBaseEventHandler(EventHandler):
-	"""Subscribed to TicketCreated only -- see knowledge_base/CLAUDE.md §7. Builds one fresh
+	"""Subscribed to TicketCreated only. Builds one fresh
 	session per call, shared by the UoW (writes) and the search port (a read that happens
-	mid-write, deliberately kept off the UoW interface itself -- CLAUDE.md §12), the same way
+	mid-write, deliberately kept off the UoW interface itself, the same way
 	AuditEventHandler builds a fresh UoW per call: this handler instance is subscribed once and
 	reused across concurrent requests, so nothing here can be shared state.
 	"""
