@@ -1,0 +1,720 @@
+﻿ID Ticket GENERGY ;ID Ticket OCEANE;Description;Acteur;Colonne1;Statut;Priorité;Actions réalisés;Date d'ouverture;Date de résolution;Durée de résolution;ID Jira;Offre composée;Catégorie d'incident
+INC001010841667;2510K27774;Blocage de FAS sur commandes ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"02/10 SN3: Un point planifié avec le demandeur, parce qu’il souhaite que les actions soient faites en live.
+02/10 SN3 : le point a été fait avec Paul. Il souhaite que l’on attende lundi pour réaliser l’action, car il attend la confirmation de quelqu’un.";02/10/2025;06/10/2025;✅ Résolu en 2 jours;;;
+INC001010842399;2510K36669;Transfert Coloris-OPUS en rejet;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;02/10 SN3:il s’agissait d’un problème lié à OJS. Une correction a été apportée par Coloris et sera mise en production lors de la MEP d’octobre;02/10/2025;02/10/2025;✅ Résolu en < 1 jour;;;
+INC001010766880; 2508V23293;Blocage de resil emplacement;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;En cours de modification pour une mep prevue mi octobre;25/08/2025;06/10/2025;✅ Résolu en 30 jours;;;
+INC001010785806;2509Z08065;Absence champ type de module dans proxima;PIERROT CALLIZO Celia;Paramétrage COLORIS;Transféré;P4;"Suite analyse, la modification du CI PROXIMA est nécessaire avec certainement un impact sur le paramétrage dans PROXIMA. Envoi mail à PROXIMA, en attente de retour pour planifier un point sur le sujet et transférer les tickets incidents.
+Il n'y a pas d'incohérence dans le paramétrage COLORIS. En fonction des prestations, deux champs différents sont envoyés, l'un en position 20 du CI et l'autre en position 52.
+16/10 – SN3 : Ticket transféré à Proxima.
+";04/09/2025;02/10/2025;➡️ Transféré en 20 jours;;HBNRO;Transféré
+INC001010835596;2510K20044; 6 prestations production alors que commande de 3 lien;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;;02/10/2025;09/10/2025;✅ Résolu en 5 jours;;;Paramétrage COLORIS
+INC001010842376;2510K66437;le site 49331NYO n'est pas visible en synthèse de parc;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"06/10 SN3 :Nous avons rencontré un problème lors du batch d’import Banco du 01/10, ce qui explique pourquoi nous n’avons pas trouvé la NRA.
+J’ai effectué une mise à jour de la date de modification de cette NRA et nous allons attendre le lancement du batch d’aujourd’hui pour la correction du problème.
+10/10 SN3 : Nous sommes toujours en attente de la réponse du client pour clôturer le ticket. Le problème est corrigé.";03/10/2025;13/10/2025;✅ Résolu en 6 jours;;;
+INC001010843878;2510L81841;GE0005 : Erreur en recherche dans la table LigneCommande;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;06/10 SN3 : Nous avons trouvé deux lignes de commande ayant le même numéro de prestation Opus, c’est pour cela qu’il y a ce blocage;06/10/2025;06/10/2025;✅ Résolu en < 1 jour;;;
+INC001010848678;2510M10160;Bloquer les FAS des commandes passees en termine le 8 octobre;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;06/10 SN3:Le blocage FAS a été effectué.;07/10/2025;08/10/2025;✅ Résolu en 1 jour;;;
+INC001010847741;2510L85440;Motif d'annulation manquant sur l'operation etudemenagement de l'offre ROZAC_HASF;GARA Kais;Paramétrage COLORIS;Résolu;P4;"MEP Réalisée avec succès et mail envoyé au dépositaire :
+
+Ajout de type d’annulation : Passer Ferme non réalisé / Doublon de commande / Annulation, a été bien réalisé en production Coloris sur les lignes de commandes :
+
+-Etude déménagement PFONZAC
+
+-Ferme déménagement PFONZAC";06/10/2025;07/10/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010850508;2510M23496;Absence champ type de module dans proxima;PIERROT CALLIZO Celia;Paramétrage COLORIS;Transféré;P4;"Suite analyse, la modification du CI PROXIMA est nécessaire avec certainement un impact sur le paramétrage dans PROXIMA. Envoi mail à PROXIMA, en attente de retour pour planifier un point sur le sujet et transférer les tickets incidents.
+Il n'y a pas d'incohérence dans le paramétrage COLORIS. En fonction des prestations, deux champs différents sont envoyés, l'un en position 20 du CI et l'autre en position 52.
+16/10 – SN3 : Ticket transféré à Proxima.
+";07/10/2025;09/10/2025;➡️ Transféré en 2 jours;;HBNRO;Transféré
+INC001010850821;2510M28287;Absence champ type de module dans proxima;PIERROT CALLIZO Celia;Paramétrage COLORIS;Transféré;P4;"Suite analyse, la modification du CI PROXIMA est nécessaire avec certainement un impact sur le paramétrage dans PROXIMA. Envoi mail à PROXIMA, en attente de retour pour planifier un point sur le sujet et transférer les tickets incidents.
+Il n'y a pas d'incohérence dans le paramétrage COLORIS. En fonction des prestations, deux champs différents sont envoyés, l'un en position 20 du CI et l'autre en position 52.
+16/10 – SN3 : Ticket transféré à Proxima.
+";07/10/2025;09/10/2025;➡️ Transféré en 2 jours;;HBNRO;Transféré
+INC001010851066;2510M60561;Absence champ localite dans proxima;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;Correction faite du paramétrage en production. Le prochain envoi contiendra les champs PROXIMA.;08/10/2025;09/10/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010856156;2510N45253;BLOCAGE DE FAS POUR OFFRE ITDMX;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;10/10 SN3:Le blocage FAS a été effectué.;10/10/2025;10/10/2025;✅ Résolu en < 1 jour;;;
+INC001010857444;2510N50250;désarchivage de commande;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;10/10 SN3:désarchivage fait.;10/10/2025;10/10/2025;✅ Résolu en < 1 jour;;;
+INC001010858037;2510N58520;" => Titre de la demande : - désarchivage de document d'une commande
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"13/10 SN3:Nous avons reçu un incident : les utilisateurs ne peuvent pas télécharger les documents de plusieurs anciennes commandes.
+Après vérification avec Amine, nous avons constaté qu’il est nécessaire de modifier la première partie de l’URL
+http://livedoc.sso.infra.ftgroup/
+par
+https://livedocg2.sso.infra.ftgroup/
+afin que les utilisateurs ne rencontrent plus ce message.
+Nous n’avons pas reçu d’information de la part de l’équipe Livedoc concernant ce changement de lien.
+À noter que près de 8 000 000 lignes devront être mises à jour dans la base de données";10/10/2025;14/10/2025;✅ Résolu en 2 jours;;;
+INC001010850889;2510N42927;"Bonjour,
+J'ai un dossier réalisé en ""pas de câble à poser"", sauf que le dossier me remonte avec un numéro de commande FCI qui ne correspond pas. Le numéro correspond à une commande ""simple"" qui à été généré avant la création de mon dossier. Je souhaite simplement annuler cette commande F21542240425, mais la capture d'écran jointe au dossier montre le refus de WebOp. Merci de m'annuler cette commande ou de me rediriger vers une personne pouvant m'aider sur ce dossier s'il vous plait. Bonne journée !";GARA Kais;Paramétrage COLORIS;Résolu;P4;"Bonjour,
+Point fait avec le dépositaire et il s'agit de bon usage sur la saisie du code insee. ticket à clore.
+Cordialement.";10/10/2025;13/10/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010857011; 2510N55609;"Sur l'offre RFRGD,
+ ligne de commande : RFRGD : Etude de faisabilité FOP raccordement de site
+
+Valeurs incohérentes : 
+- Date contractuelle OPUS : +38 jours ouvrés
+- Date de MES retenue : +40 jours ouvrés
+
+Valeur attendue :
+Date contractuelle OPUS : +13 jours ouvrés 
+Date de MES retenue : +15 jours ouvrés 
+
+Le calcul des jalons semble OK
+
+** EXEMPLES :   F70696050523 / F45139190925 / F36903060824 **";GARA Kais;Paramétrage COLORIS;Résolu;P4;"Bonjour,
+
+un call a été effectué avec Paul Robert pour la modification du délai de la date MES retenu de 40 à 15. les tests ont été effectués avec succès et on a fait la MEP en séance.
+
+ticket à clore
+
+Cordialement.";10/10/2025;16/10/2025;✅ Résolu en 4 jours;;;Paramétrage COLORIS
+INC001010866728;2510P25710;Resiliation HEP Code site et Nom site non renseigne;SAID Mariem;Paramétrage COLORIS;Résolu;P4;Les deux premières pistes de correction testées n'ont pas permis de résoudre l'incident. Une nouvelle correction a été effectué vendredi dernier et je n'ai pas pu la tester car je suis actuellement bloqué côté FCI( un message d'erreur s'affiche lors du test). En attente de déblocage pour poursuivre la validation.;15/10/2025;25/11/2025;✅ Résolu en 29 jours;;;Paramétrage COLORIS
+INC001010863311;2510P58300​;La puissance commande sur EF HEPOC ne remonte pas;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;"Analyse faite - 
+Date prévu de correction : 20/10
+
+Correction faite sur la prod pour la puissance commandé pour l'énérgie 48 et vérification sur la puissance équipé et commandé pour les énergie 48 et 230 
+
+---> Ce problème n'est pas reproductible pour faire les tests : 
+La vérification est faite sur des commandes existantes . ";16/10/2025;16/10/2025;✅ Résolu en < 1 jour;;;Paramétrage COLORIS
+INC001010867102;2510P29545;Erreur lors de la validation d'etude de faisabilite de refroidissement;SAID Mariem;Paramétrage COLORIS;Résolu;P4;Suite à l’analyse de l’incident 2510P29545, il s’avère qu’il s’agit d’une fausse manipulation lors de la saisie.Voici les éléments constatés : Première erreur : le type d’emplacement renseigné est incorrect. Le numéro de prestation saisi correspond à DGRPG, alors que l’opération concerne HBNRO. Deuxième erreur : en conséquence, le type de prestation étant erroné, il est normal que la sélection du bon type de Volume n’ait pas pu s’effectuer. Troisième erreur : le numéro de contrat renseigné est également incorrect, ce qui a contribué à l’apparition de l’erreur.Merci de corriger ces informations et de relancer le traitement avec les bons paramètres.Par conséquent, je clôture l’incident.;15/10/2025;16/10/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010869433;2510Q00343;Manque des prestation dans MARINE suite migration du TDM vers COLORIS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;20/10 SN3:Les prestations ont été envoyées à Marine;17/10/2025;20/10/2025;✅ Résolu en 1 jour;;;
+INC001010871604;2510Q16744;BLOCAGE DE FAS POUR LA COMMANDE F63550021025  ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;17/10 SN3:Le blocage FAS a été effectué.;17/10/2025;17/10/2025;✅ Résolu en < 1 jour;;;
+INC001010871600;2510Q16729;BLOCAGE DE FAS POUR LA COMMANDE F63542021025 ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;17/10 SN3:Le blocage FAS a été effectué.;17/10/2025;17/10/2025;✅ Résolu en < 1 jour;;;
+INC001010874057;2510R17086;"absence du bouton ""activer remontée FCI pilotée"" sur CMPL";OUEASLATI Chiraz;Paramétrage COLORIS;Résolu;P4;20/10: point fait avec le dépositaire correction faite et cloture de ticket ;20/10/2025;20/10/2025;✅ Résolu en < 1 jour;;;Paramétrage COLORIS
+INC001010877002;2510R57792;Correction MES technique sur offre CPMFO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;22/10 – SN3 : La modification a été effectuée.;21/10/2025;22/10/2025;✅ Résolu en 1 jour;;;
+INC001010878413;2510R87345;date theorique retour de l'unite erronee;OUEASLATI Chiraz;Paramétrage COLORIS;Résolu;P4;22/10 analyse et modification faite sur idaho IAAS                                                                        23/10 point fait avec le dépositaire élodie RASO partage de solution proposé => confirmation qu'il s'agit d'une nvlle demande (non incident) . Il a été convenu de passer par une DT => cloture d'incident ;22/10/2025;23/10/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010878220;2510R91379;Lenteur + dysfonction. Sur HNRO LIB DIRFERM - Pas de prod une fois l'étude validée - HBNRO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;22/10 – SN3 : Le problème est corrigé.;22/10/2025;22/10/2025;✅ Résolu en < 1 jour;;;
+INC001010878536;2510R91436;Déblocage des deux commandes fermes des LIB;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;22/10 – SN3 : Le problème est corrigé.;22/10/2025;22/10/2025;✅ Résolu en < 1 jour;;;
+INC001010880753;2510S33935;[COLORIS]Transfert OPUS en rejet;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;23/10 – SN3 : Le problème est corrigé.;23/10/2025;23/10/2025;✅ Résolu en < 1 jour;;;
+INC001010878913;2510R96192;"Passage de la commande de résiliation de saisie en ""en cours"" non fluidi ni logique";KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;"23/10 Cette anomalie a été remontée lors des tests et était corrigée sur COLORIS IDAHO dans l'attente de retour de Amira lundi 27/10 pour faire le nécessaire
+Réponse de Amira : ce probleme est un bug coloris qui est lié à la valeur par défaut, j'ai le remonté depuis l'eté (meme sur IDAHO IAAS, le mm soucis) et j'ai informé le métier que la correction sera en mep d'octobre. Il faut verifier avec RP quand elle a fait le test avant la MEP de coloris ou bien après.";22/10/2025;23/10/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010874310;2510R40303 ;Prestation HBNRO et DGRPG : Commande Ferme Conditionnement Air-V14;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;"Validé avec dépositaire, le ticket va être fermé. L'analyse sera continué à côté, elle est bien avancée et reste à finaliser.
+Le cas du ticket avait bien été corrigé par l'ADV.";22/10/2025;18/12/2025;✅ Résolu en 41 jours;;;Paramétrage COLORIS
+INC001010877069;2510R96598;GTI pour H2O à 6h00 à la place de 4h00;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;MEP du dynamisme réalisée pour masquer la GTI et ne pas l'envoyer à MARINE pour l'OSM H2O.;22/10/2025;12/01/2026;✅ Résolu en 58 jours;;;Paramétrage COLORIS
+INC001010885456;2510T79681;onditionné par Faisabilité d'ajout d'1 position optique?;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;27/10 SN3:Le blocage FAS a été effectué.;27/10/2025;27/10/2025;✅ Résolu en < 1 jour;;;
+INC001010889819;2510U54778;"Description problème : 
+COVAGE a un  message d'erreur lors de l'activation des badges CMS COVAGE car visiblement une activation est déjà faite sur cette commande. il ne peut pas activer toutes les CMS. 
+En pj le mail du client avec tous les échanges
+Merci pour votre aide ";KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;Controle corrigé;28/10/2025;31/10/2025;✅ Résolu en 3 jours;;;Paramétrage COLORIS
+INC001010891272;2510U87898;l'OI n'arrive pas à créer une demande d'étude sous le produit DEG_SC_ED_ER  pour un devis de climatisation sur le NRO 78372MLR / C14298040119 / COL01000000010750373.;KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;Controle corrigé;29/10/2025;31/10/2025;✅ Résolu en 2 jours;;;Paramétrage COLORIS
+INC001010891941;2510U96102;Harmonisation des NRAs du sud Est;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"J’ai effectué tous les transferts des commandes d’une NRA à une autre.
+";29/10/2025;31/10/2025;✅ Résolu en 2 jours;;;
+INC001010886911;2510V39149; pas lien valide vers coloris;ZAKRAOUI Mohamed;Support COLORIS;Transféré;P4;"03/11 – SN3 :Nous avons modifié les anciens liens hypertexte 1 et 2 pour la liste de commandes suivante :
+F59513180122, F59096180122, F85470070422, F75738050522, F54543251022, F14503101122, F94796160523, F94939160523, F62763130623, F63057130623, F59472180122, F59096180122, F74868160322, F94552160523, F62763130623.
+Ticket transféré à Opus le 03/11 pour compléter le travail de leur côté";30/10/2025;03/11/2025;➡️ Transféré en 2 jours;;;
+INC001010898460;2511W68059;"pour la commande d'étude F72279081025 sur la dernière prestation COL01000000046457170 dans le pavé EMPLACEMENT le n° travée est obligatoire alors que sur les autres 
+
+prestations Etude Lien Optique RO RGH aboutement-V1, cette info n'existe pas. La DOR ne peut pas valider la MAD,";DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;"Première analyse effectué : le champs existe en donnée obligatoire pour les prestations en question : 
+Planifier le 06/11  réunion avec Helène vu son indisponibilité le 04 et 05 pour clarifier la demande si elle souhaite rajouté ce champ pour les autres prestations ou bien le rendre non obligatoire pour l'existant 
+
+--> La solution etait de rajouter les dépendances pour les 3 champs qui s'affichent dans l'étude de faisabilité CRV pour les prestations aboutements de 1 --> 8 ";03/11/2025;04/11/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010905639;2511X87091;corriger la formule du jalon 'envoi à l'ort' ;KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;"06/11 j'ai envoyé une liste des lignes de commandes à Helene afin de me valider la liste que je vais les modifier ==> Attente d'un retour
+07/11 Correction est faite suite à la confirmation de Helene de la liste";06/11/2025;07/11/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010904537;2511X58226;"Etude Lien Optique RO RGH aboutement 
+--> Dans les données spécifiques du pavé emplacement : Affichage entre les prestations non conforme ";DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;"Cet incident est corrigé dans le problème du  n° travée ( incident  2511W68059)
+
+--> La correction a été faite dans l'incident 2511W68059  sur toutes les lignes manquantes  : N°travée , Code volume3 et ref de  prestation emplacement ";05/11/2025;06/11/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010904398;2511X58274;Rattrapage du type de site sur les anciennes commandes ;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;"12/11: point planifié avec les métiers de l'offre HEPOC 
+
+5/05 Mail envoyé   : Le champ « Type de site » est pris en compte uniquement pour les commandes HEPOC et nécessite une dépendance avec le Code projet.
+Validé avec les métiers  lors du traitement de cette DM  :Ce champ sera rattrapé manuellement avec Hélène ou via un fichier d’injection.
+
+Actions à faire 
+le 10/11 :  : point prévu avec les métiers  de l'offre afin de 
+Lister les prestations pour lesquelles la DS « Code projet » doit être rattrapée, par le traitement en masse, avec la valeur « HEPOC";06/11/2025;14/11/2025;✅ Résolu en 6 jours;;;Paramétrage COLORIS
+INC001010905846;2511X89294;"un controle qui bloque la commande FCI  lors de la résiliation
+ total des prestations erronées ";DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P3;"Actuellement, Il n'y a pas de contrôle coloris permettant de bloquer la commande de résiliation total :
+---> Vu que cet exemple  représente un cas exceptionnel et date depuis longtemps , l'action suivante est de décider si ca sera utile de mettre ce nouveau control ou non 
+
+12/11: Point effecué avec Isballe Fauconnier : Le controle devrait étre rajouté sous forme de DT car il n'existe pas : A voir avec Aurélie sa nécessité . 
+--> L'incident sera cloturé aprés avoir informer le dépositaire et lui expliquer la situation 
+10/11: Point effectué avec Helene Malibeau : Resultat souhaité non définit : suggestion de contacter Isabelle Fauconnier pour voir le bon comportement souhaité   
+07/11: Point effectué avec le dépositaire de ce ticket : Comportement souhaité non définit --> Besoin de contacter le métier .                                            
+06/11 : point effectué avec GRISAR SEVERIN : la résiliation fonctionne si on met les prestations correctement : la demande c'est de voir s'il ya un controle qui bloque la commande si les prestations ne sont pas liées 
+
+Actions a faire : 
+Rechercher s'il existe un controle dans ce sens qui ne fonctionne pas --> A corriger 
+Sinon demande d'une évolution ";06/11/2025;12/11/2025;✅ Résolu en 4 jours;;;Paramétrage COLORIS
+INC001010913798;2511A49469;Donnee manquante;GARA Kais;Paramétrage COLORIS;Résolu;P3;"Investigation en cours
+Point fait avec Yosra et Marlène et analyse approfondie effectuée qui indique un cas spécial qui a provoqué des doublons de facturation sur les articles FAS sur les 7 cas signalés. ticket à clore par Yosra.";13/11/2025;13/11/2025;✅ Résolu en < 1 jour;;;Paramétrage COLORIS
+INC001010914931;2511A49675;Erreur dans l'enregistrement du suivi de la ligne de commande. GE0005 : Erreur en recherche dans la table Prestation;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;13/11 – SN3 : Problème corrigé. Le problème venait du fait que la commande contenait une ligne de commande sans prestation, ce qui a généré l’incident.;13/11/2025;14/11/2025;✅ Résolu en 1 jour;;;
+INC001010909443;2511Y48554;champs nom du site et code du site absents sur l'entete des commandes;BEN TAHER Narjes;Paramétrage COLORIS;Résolu;P4;"Point fait avec RP et ADV: ticket à cloturer, l RP va deposer une DT pour etudier la faisabilité 
+de modifier le BDC fci ou bien une evol dans coloris";07/11/2025;21/11/2025;✅ Résolu en 10 jours;;;Paramétrage COLORIS
+ INC001010916298;2511A96840;prestation rendue  non faisable à l'étude remonte à la commande ferme;BEN TAHER Narjes;Paramétrage COLORIS;Résolu;P4;Correction faite sur IDAHO , test concluant;14/11/2025;20/11/2025 00:00;✅ Résolu en 3 jours;;;Paramétrage COLORIS
+INC001010913591;2511B97586;rendre le champ montant total fcx obligatoire que à terminer ;KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;Correction effectuée;17/11/2025;18/11/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010918399;2511A94849;Erreur d'injection de la commade de FCI vers COLORIS;KCHAOU Amira;Paramétrage COLORIS;Résolu;P3;Correction effectuée;14/11/2025;18/11/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010925935;2511C72409;Changement de code et non site sur 1 etude et 1 commande ferme;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Modification effectuée;19/11/2025;19/11/2025;✅ Résolu en < 1 jour;;;
+INC001010926434;2511C79586;Modification à apporter dans la base de données COLORIS pour l'offre ITDMX;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Modification effectuée;19/11/2025;20/11/2025;✅ Résolu en 1 jour;;;
+INC001010921038;2511B98134;Sur plusieurs commandes de résiliation  MAD  le Jalon Envoi à l'ORT  n'est pas complété;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;"Le problème est identique au ticket INC001010905639 / 2511X87091 et celui-ci a été corrigé le 07/11. La mise à jour du lien date MES retenue a été réalisée dans le paramétrage du planning jalon.
+Dépositaire contacté et informé. Fermeture du ticket.";17/11/2025;25/11/2025;✅ Résolu en 6 jours;;;Paramétrage COLORIS
+INC001010919538;2511B06811;COMMANDE DE RESILIATION F36805141125 - BLOQUEE DANS FCI;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P3;"Vérification du contrôle qui semble OK. Le problème provient des informations présentes en base de données. L'indicateur de la valeur du champ ""Code du NRA MED"" est inactif alors que la valeur est bien présente et qu'il ne semble pas y avoir eu de modification. Ce qui fait que le résultat du contrôle est faux à tort. Vérifier avec le soutien COLORIS pourquoi cet indicateur n'est pas actif. Pas de problème de paramétrage.
+20/11 SN3 : Modification de l'indicateur en cours depuis la base de donnée";14/11/2025;20/11/2025;✅ Résolu en 4 jours;;;Paramétrage COLORIS
+INC001010911901;2511B97225;"message d'erreur lors de la MAD d'1 commande de ""Résiliations groupées câble""F04501281025";PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;Correction de la recopie de la date de déconstruction souhaitée (param_injection_champ);17/11/2025;25/11/2025;✅ Résolu en 6 jours;;;Paramétrage COLORIS
+INC001010928604;2511D20021; Supprimer les FAS de 3 prestations;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;20/11 SN3:Le blocage FAS a été effectué.;20/11/2025;20/11/2025;✅ Résolu en < 1 jour;;;
+ INC001010925781;2511C72289;DS puissance commandés non renseignée sur des commandes fermes;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P3;"Anomalie non reproduite sur IDAHO 
+21/11 : Planification d'un point avec Aurélie afin de la reproduire sur la PROD 
+Correction effectué sur la prod : Action suivante: Les ADV doivent faire un traitement en masse pour renseigner la valeur des Puissances Commandés vides : A confirmer avec Aurélie ";25/11/2025;02/12/2025;✅ Résolu en 5 jours;;;Paramétrage COLORIS
+INC001010933003;2511E53561;controle coloris non fonctionnel;FEZAI Fatma;Paramétrage COLORIS;Transféré;P4;"25/11 : D’après analyse, j’ai testé le contrôle coloris ControlColPrestationTypeLien qui vérifie que le numéro de prestation correspond à une prestation de type LOIR lorsque $typeLien = LOIR et à une prestation de type LIB lorsque $typeLien = LIB sur l’emplacement renseigné. En utilisant des données correctes et en renseignant le champ Type de lien --> Le contrôle est fonctionnel côté Coloris avec un retour = VRAI.
+Le scénario pour déclencher le controle sur le champ type de lien n'est pas adéquat --> Ce qui entraine le non déclenchemnt du controle coloris  ControlColPrestationTypeLien.
+Vu avec Wahbi  équipe FCI Catalogue  .
+***************************************
+26/11 : Concernant le contrôle coloris, nous avons effectué des tests et celui-ci fonctionne comme prévu lorsqu’on sélectionne le type de lien LIB ou LOIR selon un scénario réalisable via les inputs. Il est toutefois nécessaire de vérifier coté catalogue FCI et d’ajouter les contrôles FCI sur le BDC afin de rendre certains champs obligatoires ce qui permettra de déclencher correctement le contrôle coloris dans ce cas particulier.
+J'ai transferé le ticket à l'équipe catalogue FCI .";25/11/2025;25/11/2025;➡️ Transféré en < 1 jour;;DGRPG;Transféré
+INC001010936738;2511F09321;Nous avons reçu côté Proxima une demande de facturation sur le COL01000000043331119 code article DGP0000056. cet élément de facturation tombe en erreur car le nombre d'heures n'est pas véhiculé. Apparemment il ne serait pas véhiculé sur les prestations en version V15. sur les prestations en version V14 elles ont bien facturées;FEZAI Fatma;Paramétrage COLORIS;Résolu;P4;D'après analyse , le paramètre à facturer et à envoyer à proxima n'est pas paramétré dans onglet COMPOSITION EXPORT pour DGRPG V15 --> Correction effectuée .;25/11/2025 00:00;25/11/2025 00:00;✅ Résolu en < 1 jour;;;Paramétrage COLORIS
+INC001010930664;2511D64476;" Bouton ""Passer à l'état Terminée"" grisée, impossible de terminer de la commande";FEZAI Fatma;Paramétrage COLORIS;Résolu;P4;Correction effectuée : La ligne de commande doit etre facturer ;26/11/2025;26/11/2025;✅ Résolu en < 1 jour;;;Paramétrage COLORIS
+INC001010936386;2511F03258;Injection en masse de prestations;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;Sujet échangé avec Aurélie Vantyghem, la RP, la GTI est bien paramétrée actuellement sur les prestations de lien optique, il est donc normal que cela remonte lors de la création même si le champ n'a pas été rempli dans l'injection. Pas de problème de paramétrage, l'affichage de la GTI a été validé par la RP SAV. Fermeture du ticket.;25/11/2025;26/11/2025;✅ Résolu en 1 jour;;;Paramétrage COLORIS
+INC001010941126;2511G33321;Le numero de travee remonte en donnee obligatoire alors qu'elle ne doit pas exister;FEZAI Fatma;Paramétrage COLORIS;Résolu;P4;"Point prévu avec le demandeur pour spécifier le résultat attendu 
+Correction effectuée";01/12/2025;01/12/2025;✅ Résolu en < 1 jour;;HBNRO;Paramétrage COLORIS
+INC001010943358;2511G34783;impossible de déposer cde de résil lié au contrat inscrit dans coloris ;NAMOUCHI Ala;Support COLORIS;Résolu;P3;03_11 : Le paramétrage du contrat pour les commandes mentionnées a été effectué conformément à la demande.;02/12/2025;03/12/2025;✅ Résolu en 1 jour;;;
+INC001010941186;2511G33509;Mise à jour des Commandes Fermes Terminées, MAD et encours HEPOC;TERCHELLAH Rim;Support COLORIS;Résolu;P3;05_12_SN3 : Ticket acquité ;05/12/2025;08/12/2025;✅ Résolu en < 1 jour;;;
+INC001010946370;2512H26516;- donnée manquante ou incohérente;NAMOUCHI Ala;Support COLORIS;Résolu;P4;05_12_SN3 : Ticket acquité ;05/12/2025;08/12/2025;✅ Résolu en < 1 jour;;;
+INC001010954972;2512I74470;Remboursement Sur commande passer à terminé;NAMOUCHI Ala;Support COLORIS;Résolu;P3;05_12_SN3 : Ticket acquité ;05/12/2025;08/12/2025;✅ Résolu en < 1 jour;;;
+INC001010945205;2512I77589;EAF généré à tort : COL01000000015692162;NAMOUCHI Ala;Support COLORIS;Résolu;P3;05_12_SN3 : Ticket acquité ;05/12/2025;11/12/2025;✅ Résolu en 3 jours;;;
+INC001010962409;2512K29063;désarchivage commande GCBLO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le désarchivage a été effectué.;11/12/2025;11/12/2025;✅ Résolu en < 1 jour;;;
+INC001010959895;2512K12011;Absence de facturation visible dans l'IHM COLORIS pour 2 prestations;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"SN3 : Un bug doit être créé
+Bug crée le 12/12 COL-11560";11/12/2025;18/12/2025;✅ Résolu en 4 jours;;;
+INC001010960404;2512K12060;Remboursement intégral prestations COL01000000044272533 et COL01000000044274856;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4; SN3 :Rembourssement FAS a été effectué.;11/12/2025;11/12/2025;✅ Résolu en < 1 jour;;;
+INC001010962248;2512K28364;REMBOURSEMENT NON EFFECTUE;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4; SN3 :Rembourssement FAS a été effectué.;11/12/2025;11/12/2025;✅ Résolu en < 1 jour;;;
+INC001010972355;2512M17882;ADVMUTU LYON  demande relance flux de 2 prestations col vers marine;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;SN3: Les deux prestations ont été envoyées à Marine;16/12/2025;18/12/2025;✅ Résolu en 2 jours;;;
+INC001010977436;2512N03824;GC : commande de Prolongation de Travaux rejetée par Coloris;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;SN3:Nous n’avons pas pu identifier la raison du rejet de cette commande, car nous n’avons trouvé aucune trace dans les logs : la commande date de plus de deux mois.;19/12/2025;23/12/2025;✅ Résolu en 2 jours;;;
+INC001010990229;2601R16948;Ligne de commande n'est pas modifiable depuis l'ESU COLORIS.;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;05/01 : En cours d'analyse ;13/01/2026;13/01/2026;✅ Résolu en < 1 jour;;ROHEB;Paramétrage COLORIS
+INC001010989752;2601R16818;"Perte du Suffixe sur le champ""Code opération global""";DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;05/01 : Paramétrage corrigé : Attente du retour métier pour cloturer le ticket ;13/01/2026;13/01/2026;✅ Résolu en < 1 jour;;HEBEP;Paramétrage COLORIS
+INC001010971723;2512M08831;Redevance travaux emplacement et prestation spécifique ne fonctionne pas;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;05/01 : Paramétrage corrigé : Point à planifier avec PROXIMA pour cloturer le ticket ;13/01/2026;13/01/2026;✅ Résolu en < 1 jour;;HEBEP/HEPOC;Paramétrage COLORIS
+INC001010992936;2601R32467;Liste déroulante incohérente HEPOC HEBEP : Prestation spécifiques Abonnement-V1;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;07/1 : Ticket validé avec le métier : cloturé ;05/01/2026;07/01/2026;✅ Résolu en 2 jours;;HEBEP/HEPOC;Paramétrage COLORIS
+INC34690437;2601R2467;"Le champ ""Faisabilité globale de l'ajout de positions optiques"" :
+n'est pas modifiable depuis l'ESU COLORIS.
+OU
+n'est pas dynamique (conditionné par Faisabilité d'ajout d'1 position optique?)";DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;07/1 : Ticket validé avec le métier : cloturé ;05/01/2026;07/01/2026;✅ Résolu en 2 jours;;HEBEP;Paramétrage COLORIS
+INC001010991664;2601R19332 ;ESIL EMPLACEMENT DOUBLON F01692271025 F93873221025 44109MAR MARRIERE => Description de la demande : Bonjour, L'opérateur a pu saisir 2 commandes de résiliations , F01692271025 et F93873221025 44109MAR MARRIERE à plusieurs jours d'intervalles pour les mêmes prestations.Aucun contrôle applicatif n'a détecté que les prestations étaient déjà demandées en résiliation.Pouvez vous vérifier les contrôles ? N° de commande : F01692271025 et F93873221025 ;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P1;MEP du contrôle réalisée. MEP FCI faite le 19/01.;05/01/2026;21/01/2026 00:00;✅ Résolu en 12 jours;;DGRPG LOT3;Paramétrage COLORIS
+INC001010994222;2601R66479;HEBEP/ LC etude, le champ code volume n'est pas modifiable dans ESU. C'est pourquoi l'ADV ne peut pas renseigner la valeur de ce champ à partir de l'écran ESU.;OUEASLATI Chiraz;Paramétrage COLORIS;Résolu;P4;07/01: correction de paramétrage ;06/01/2026;07/01/2026;✅ Résolu en 1 jour;;HEBEP;Paramétrage COLORIS
+INC001010995703;2601R84092;Données incohérentes;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;07/01 – SN3 : Le problème est corrigé.;07/01/2026;08/01/2026;✅ Résolu en 1 jour;;;
+INC001010997270;2601S16913 ;" Description de la demande : 
+Bonjour, Le client ne peut valider son bon de commande DPS  , sans forcer, il a des messages d'erreur de contrôle qui ne semblent  pas cohérents.Entre autre - ControlColCommandeDeposeEARM  SOUS RESERVE : Dans le cas dune dépose dArmoire ou MED, mettre « non » à la question La baie est-elle fixée au sol ?- ControleCodVolumeDGRPG IMPOSSIBLE : La référence du code volume insérée dans le BDC ne correspond pas au numéro de commandede résiliation.";KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;"07/01: correction de controle Coloris 
+08/01 : ajout en production du contrôle ControlColCommandeEtatBloquee (non lié à la résolution de l'incident mais détecté avec ce ticket)
+J'attends le retour métier pour cloturer l'incident ";07/01/2026;12/01/2026;✅ Résolu en 3 jours;;DEPOSE;Paramétrage COLORIS
+INC001010995562;2601R67453;des éléments à facturer sont tombés sur le code article HBN0000474 et HBN0000401 car la capacité n'est pas renseignée;OUEASLATI Chiraz;Paramétrage COLORIS;Résolu;P2;07/01: étude de probleme et partage avec Zack 2 actions à faire 1 coté parametrage: ajout de la DS capacité et 1 de la part de zack : rattrapage                     08/01: point fait avec le déposiataire et validation de correction (un email est envoyé auprès de dépositaire pour la tracabilité de la demande de rattrapage) ;07/01/2026;08/01/2026;✅ Résolu en < 1 jour;;HBNRO;Paramétrage COLORIS
+INC001010995991;2601R87494;"Description de la demande : 
+Bonjour,Sur le bon de commande résiliation NANOSITE, résiliation partielle. Il n'y a pas de blocage pour l'opérateur pour résilier. La commande passe alors que seul la COL de l'emplacement est renseigné 36168PRI COL01000000005215925";KCHAOU Amira;Paramétrage COLORIS;Transféré;P4;"12/01: j'ai fait le point avec Helene et je dois créér un controle Coloris qui verfie le soucis. Je vais regarder si FCI peut créer le controle c'est plus simple de le créer dans Coloris (vu que c'est compliqué)
+J'attends le retour de wahbi pour voir de leur coté 
+15/01: rendre ticket à FCI pour créer le controle ";07/01/2026;15/01/2026;➡️ Transféré en 6 jours;;DGRPG LOT3;Transféré
+INC001011003167;2601T45306;Ajout conditions dynamiques via la BDD;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;SN3 12/01 :L’ajout de dynamisme via la BDD a été effectué;12/01/2026;12/01/2026;✅ Résolu en < 1 jour;;;
+INC001010995606;2601R66527;anomalies Proxima N106 : date non valide;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;SN3 – 13/01 : le ticket est clôturé. Le dépositaire créera un nouveau ticket côté Coloris. Tout est conforme.;13/01/2026;13/01/2026;✅ Résolu en < 1 jour;;;
+INC001011006488;2601T94208;anomalie détectée : la recherche par prestation;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;SN3: Probleme corrige;13/01/2026;14/01/2026;✅ Résolu en 1 jour;;;
+INC001011009078;2601U31120;"Bonjour,Problème pour valider les commandes COLORIS;Pièce jointe en exemple;N° de commande :  F45116191125Tous les champs sont renseignés et lorsque je veux valider la commande alors les deux champs ""Code volume"" disparaissent";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;SN3 15/01 :Réunion faite avec le dépositaire, car il n’y a pas de problème.;15/01/2026;15/01/2026;✅ Résolu en < 1 jour;;;
+INC001011006357;2601T89632;Bonjour, pour la commande F18035120126 NRA 01033BEL (emplacement existant) l'opérateur a demandé dans son bon de commande FCI 5 LOIR. Les prestations ne remontent pas dans la commande COLORISDonnées concernée : Prestations de LOIRRésultat attendu souhaité : Que la prestations remontentRésultat obtenu : Que la prestations remontent;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;Incident causé par un décalage dans le bon de commande FCI. Correction faite par FCI le 16/01. Problème résolu, les nouvelles commandes déposées ont été sans problèmes.;13/01/2026;26/01/2026;✅ Résolu en 9 jours;;HEBEP/HEPOC;Bon usage
+INC001011006438;2601T89697;Bonjour, pour la commande F15917090126 NRA 39198DOL (emplacement existant) l'opérateur a demandé dans son bon de commande FCI 2 LOIR. Les prestations ne remontent pas dans la commande COLORISDonnées concernée : Prestations de LOIRRésultat attendu souhaité : Que la prestation remonteRésultat obtenu : Que la prestations remontent;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;Incident causé par un décalage dans le bon de commande FCI. Correction faite par FCI le 16/01. Problème résolu, les nouvelles commandes déposées ont été sans problèmes.;13/01/2026;26/01/2026;✅ Résolu en 9 jours;;HEBEP/HEPOC;Bon usage
+INC001011010510;2601U54361;Nous avons les anomalies N102 dans Proxima pour l’article DGP0000151. En fait, ces anomalies sont présentes car rien n’est envoyé en position 34 pour ‘ENBCHAMBR’ alors que c’est obligatoire dans le CI.;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;Ajout indicateur obligatoire facturer pour deux DS LONG_CH0_RGA et LONG_CH0_RO_2 sur les prestations envoyées à PROXIMA.;15/01/2026;15/01/2026;✅ Résolu en < 1 jour;;DGRPG;Paramétrage COLORIS
+INC001011009021;2601U28313;Regularisation des noeuds Corse;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"J’ai effectué tous les transferts des commandes d’une NRA à une autre.
+";16/01/2026;19/01/2026;✅ Résolu en 1 jour;;;
+INC001011016641;2601W21556;donnée manquante ou incohérente;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;J'ai modifié la valeur dans cette ticket de 1 a 0;20/01/2026;20/01/2026;✅ Résolu en < 1 jour;;;
+INC001011016791;2601W36783;Bloquer les FAS F02995170625;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;20/01/2026;20/01/2026;✅ Résolu en < 1 jour;;;
+INC001011006856;2601U85993;saisi d'un doublon  N° de commande : DPS F17112120126  doublon de F15363090126 sur la commande ferme F03632291225;OUEASLATI Chiraz;Paramétrage COLORIS;Résolu;P4;de 20/01 au 23/01 : differente point d'analyse réalisée avec Amira,Célia et Dali. Un nouveau contrôle à créer. Un point a été fait avec le rapporteur /décision : clôturer l'incident et créer une DT.;20/01/2026 00:00;23/01/2026;✅ Résolu en 3 jours;;DEPOSE;Paramétrage COLORIS
+INC001011019274;2601W71178;Demenagement OVT - NRA 2A004AJC;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Changement du code volume fait;21/01/2026;21/01/2026;✅ Résolu en < 1 jour;;;
+INC001011020054;2601W81752 ;"Description de la demande :  
+Bonjour,J'ai constaté avec les pilotes DSO, que Coloris demandais sur les résiliations de LOIR un deuxième code volume qui n'existe pas dans les champs contenu Commande Résiliation de la prestation (voir échange en PJ de la DMI).Je reste à votre disposition pour toutes informations complémentaires.CordialementArthur GOULEY - Port: 06.80.47.48.41Fonctionnalité concernée : Ecran unitéLe r";KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;"Après investigation, j'ai constaté que la DS "" code volume 2"" n 'existe pas que les prestations de resiliation V16 mais existent seulement sur les prestations fermes V14 et qui sont vides ce qui affiche le message d'erreur. (vu que cette DS est obligatoire à MAD). 
+Il faut que ADV verifie bien que ce champ est bien rempli sur les prestations fermes V14 sinon les COTs seront bloqués sur ESU";21/01/2026;21/01/2026;✅ Résolu en < 1 jour;;DGRPG V14;Bon usage
+INC001011018464;2601W78940;10437VIB VIREY SOUS BAR;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;J’ai mis l’identifiant de la prestation mère dans la prestation du bloc réglette.;21/01/2026;26/01/2026;✅ Résolu en 3 jours;;;
+ INC001011031342;2601Z11991;"lors de l'enregistrement, le champs ""code volume"" se vide et donc impossible de valider la commande, le message ""Donnée Code volume obligatoire pour la production mais non renseignée."" apparait.Fonctionnalité concernée : Traitement en masse / Parc commercialLe résultat souhaité attendu : Sauvegarde du champs code volumeLe résultat obtenu : le champs se vide lors de la validation ";FEZAI Fatma;Paramétrage COLORIS;Résolu;P4;Il s’agit bien d’un bon usage, il n’y a aucun problème concernant le paramétrage des coloris. Il suffit simplement de renseigner les champs vides dans la prestation annulée en veillant également à vérifier les champs des autres prestations.;28/01/2026;28/01/2026;✅ Résolu en < 1 jour;;HEBEP;Bon usage
+INC001011032516;2601Z36808​;F48722211125 N° travée  demandé sur COL01000000047125279 par exemple et pas de champ pour saisir la donnéeDonnées concernée : COL01000000047125279Résultat attendu souhaité : pas de champ à saisirRésultat obtenu : pas de validation possible;FEZAI Fatma;Paramétrage COLORIS;Résolu;P4;Modification effectuée;29/01/2026;29/01/2026;✅ Résolu en < 1 jour;;HEBEP;Paramétrage COLORIS
+INC001011027588;2601Y58264;"Description problème : 
+Les commandes:
+F37719260126 
+F37735260126 
+F37737260126 
+F37754260126 
+F37780260126
+F37793260126 
+F37811260126 
+sont impossible à envoyer en livraison cause défaut code Orange.
+Nous avons rencontré le même problème déjà signalé et résolu (INC001010978868), le défaut est que dans COLORIS c'est enregistré en CAA alors que le client le rentre en PRO et impossible à modifier côté ADV.
+Merci par avance.
+N°commande : F37719260126-F37725260126-F37735260126-F37737260126-F37754260126-F37780260126-F37793260126";KCHAOU Amira;Paramétrage COLORIS;Résolu;P1;"J'ai fait le point le 02/02 avec Anthony, Mathieu et Christele (RP de lo'offre ITDMX) et nous avons mis d'accord: 
+rien à faire coté paramétrage parce que la valeur de type de raccordement dans les prestations fermes sont fautes et la valeur de resil doit etre que CAA au lieu de PRO
+Christele va verifier les factures de decembre après midi 02/02
+J'ai informé le RP de lui demander à Cédrine de l'aider si elle veut changer une valeur sur une prestation à l'etat términée 
+pas d'ajout d'un controle coloris sur BDC resil selon RP 
+ADV va injecter tous les resils bloqués en modifiant le PRO par CAA pourque le type de raccordement soit correspond à ce qui existe dans BANCO.";02/02/2026;05/02/2026;✅ Résolu en 3 jours;;ITDMX;Bon usage
+INC001011008395;2601U28478;ADVL - P1 - Prestations absentes de Marine ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Les prestations ont été envoyées à Marine après la correction du batch. L’équipe de développement a corrigé les lenteurs.;30/01/2026;03/02/2026;✅ Résolu en 2 jours;;;
+INC001011041381;2602B25523;Bonjour,Pouvez vous si possible me désarchiver la commande F74723230721 svp ? Jai besoin de faire une action suite à une réclamation;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Désarchivage fait;04/02/2026;05/02/2026;✅ Résolu en 1 jour;;;
+INC001011023726;2601X57491;Commande bloquee suite erreur;GARA Kais;Paramétrage COLORIS;Résolu;P3;"Point prévu avec ALA FCI au cours de la journée 05/02
+Bonjour,
+problème réglé suite à la sppression de X PATH champ classe SR sur la prestation de résiliation, ce champ n'apparait pas dans le bon de commande de résil du coup il a cause problème sur la résiliation des prestations.
+​​​​​​​Cordialement.";04/02/2026;05/02/2026;✅ Résolu en 1 jour;PCOLORIS-617;DGRPG;Paramétrage COLORIS
+INC001011043712;2602B63052;Titre et texte incoherent ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;J’ai vu avec l’ADV, le problème est corrigé;04/02/2026;05/02/2026;✅ Résolu en 1 jour;;;
+INC001011045028;2602B78282;Modifier date MES retenue étude terminée;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;c’est fait pour tout les commandes et les prestations;05/02/2026;05/02/2026;✅ Résolu en < 1 jour;;;
+INC001011054152;2602D72821;Commande F34517131125 OSM SFR;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;11/02/2026;11/02/2026;✅ Résolu en < 1 jour;;;
+INC001011053933;2602D72762;Titre : Commande F34551131125 OSM SFR;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;11/02/2026;11/02/2026;✅ Résolu en < 1 jour;;;
+INC458720590;2602E18652;[COLORIS] / [SMC3, ARGENT] / [REMCOLL_NOOPI_JOB / ENDED_NOT_OK / JU.COL.GEO.RAS ] : [NOOPI : le job JU.COL.GEO.RAS (WORKFLOW : W.COL.GEO.RAS.X.WS01, RUNID : 1685021472, CLIENTNUM : 1568 ) s est termine dans l etat ENDED_NOT_OK a 14:33:53.];ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Nous avons effectué les investigations et constaté qu’il s’agissait d’une erreur ponctuelle. Le batch de 17h s’est bien déroulé, tout est donc conforme.;13/02/2026;13/02/2026;✅ Résolu en < 1 jour;;;
+INC001011057391 ;2602E54811;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;13/02/2026;16/02/2026;✅ Résolu en 1 jour;;;
+INC001011059798;2602F63202;Blocage FAS pour creation de prestations NRAZO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;16/02/2026;16/02/2026;✅ Résolu en < 1 jour;;;
+INC001011058331;2602F90971;Extraction de donnees FCI;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Extraction de donnees FCI;16/02/2026;17/02/2026;✅ Résolu en 1 jour;;;
+INC001011054560;2602D77139;Regularisation des commandes pour les noeuds Nord Est;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le changement des NRA a été effectué avec la désactivation des anciens NRA et la création des codes volume.;17/02/2026;17/02/2026;✅ Résolu en < 1 jour;;;
+INC001011037388;2602A57071;Bonjour , le NRA  MED 59400M7V(MERVILLE MED )    59660  MERVILLE    ne remonte pas dans BANCO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Les commandes sous cette NRA ont été changées vers la NRA 59423M7V;17/02/2026;17/02/2026;✅ Résolu en < 1 jour;;;
+INC001011061556;2602F92465;Bloquer les FAS de la commande F03001170625  mise en service commerciale le 20/02/26;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;23/02/2026;23/02/2026;✅ Résolu en < 1 jour;;;
+INC001011070755;2602I23184;envoi en livraison impossible : Erreur Technique Coloris : Erreur en appel du service d'injection :null;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Problème corrigé : la commande d’accès contenait une date obligatoire dans les jalons qui n’était pas renseignée.;24/02/2026;25/02/2026;✅ Résolu en 1 jour;;;
+INC001011077993;2602J65463;Blocage de FAS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;27/02/2026;27/02/2026;✅ Résolu en < 1 jour;;;
+INC001011078220;2602J67555;Blocage de FAS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;27/02/2026;27/02/2026;✅ Résolu en < 1 jour;;;
+INC001011073344;2602I64607; Renvoi en SAV de la COL01000000044995643 ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4; Renvoi en SAV de la COL01000000044995643 ;24/02/2026;27/02/2026;✅ Résolu en 3 jours;;;
+INC001011073373;2602I84250; ADVC - Mettre en facturation des colonnes montantes sur commande déjà facturées;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le problème a été corrigé :j'ai fait un retour en arrière sur toutes les commandes afin de facturer les prestations non facturées depuis le début.;25/02/2026;27/02/2026;✅ Résolu en 2 jours;;;
+INC001011071901;2602I47235;Bonjour, sur la commande de résiliation F92225181225, certaines prestations de commande ferme ne remontent pas voir copie écran :  8 lignes de résiliation faisables alors qu'il n'y a que 4 lignes de cde ferme qui remontent ( pour info :  il y a eu un retour arrière pour que la DOR puisse passer certaines lignes de résiliation de non faisable à faisable);ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Vu avec Isabelle, il n’y a pas de problème. La commande, dès le début, passe par 4 prestations faisables et 4 non faisables. C’est pour ça qu’on voit que 4 prestations de la commande sont fermées;25/02/2026;27/02/2026;✅ Résolu en 2 jours;;;
+INC001011074665;2602J00020;Nettoyage referentiel noeud;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Les nœuds qui n’existent pas dans Banco sont désactivés;25/02/2026;02/03/2026;✅ Résolu en 3 jours;;;
+INC001011074738;2602I99226;"Dernier lot de regularisation desynchro Banco Coloris
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le changement des NRA a été effectué avec la désactivation des anciens NRA et la création des codes volume.;25/02/2026;02/03/2026;✅ Résolu en 3 jours;;;
+INC001011058247;2602G09462;"La donnée du motif de rejet ne figure pas dans Coloris alors que le motif est présent dans FCI
+Exemple F56683060125";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Nous avons créé un bug pour l’équipe dev (COL-11666). La correction sera effectuée dans le Sprint 129.;23/02/2026;02/03/2026;✅ Résolu en 5 jours;COL-11666;;
+INC001011087099;2603L71508;anomalies V427 Caract non numérique pour tarif sur offre HEB POPFREE;DHIFLAOUI Besma;Paramétrage COLORIS;Transféré;P3;"Réunion effectuée le 24/03 avec les métier : En train d'analyser le problème car ca touche uniquement pop free et non pas HEPOC ou HEBEP ( vu que c'est le meme paramétrage) : Risque d'impact sur la facturation spécifique 
+25/03: Réunion avec Aurélie et Yosra -- Résultat : le fichier de paramétrage est partagé entre les 3 produits : Aucune solution coté paramétrage vu que le comportement est correcte pour HEPOC et HEBEP --> Action proposé : Coté proxima ou Dev Coloris ( Attente du retour de Yosra et Proxima ) 
+Une réunion a planifier avec le dépositaire pour clarifier le problème 
+16/03 La DS en question n'est pas facturé en PROXIMA , Il s'agit d'un montant devis à renseigner par l'ADV 
+Une réunion est prévu le 16/03 avec le dépositaire et l'ADV . 
+Action coté paramétrage : enlever la case facturable pour la DS et garder le montant devis a renseigner ";05/03/2026;25/03/2026;➡️ Transféré en 14 jours;;HEBEP;Transféré
+INC001011065276;2602G80592;PRESTAT SPECIFIQUE impossible de terminer la commande;DHIFLAOUI Besma;Paramétrage COLORIS;Transféré;P3;"Le besoin est d'afficher le champ ""application remise afin"" de pouvoir terminer la prestation , Or la commande a été faite avant la MEP de cette DT donc cette DS n'existe pas
+
+Action suivante : Ajout de la DS en question sur la prestation qui bloque la commande pour débloquer le dépositaire 
+
+ 
+
+le rattrapage de cette DS sur toutes les prestations  sera traité dans une DT a part 
+
+16/03 : rattrapage sur la prestation effectué : un autre msg bloque la commande : en cours d'analyse ";16/03/2026;25/03/2026;➡️ Transféré en 6 jours;PCOLORIS-623;HEBEP;Transféré
+INC001011085951;2603L53257 ;Commande bloquée sous FCI F72225040326;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P3;;05/03/2026;12/03/2026;✅ Résolu en 5 jours;;NRA_NRO_Tiers_T1;Paramétrage COLORIS
+INC001011080296;2603K43437;LEVER LES BLOCAGES pour passer une cde de résiliation TOTALE;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P3;"Il faut désactiver temporairement un contrôle de paramétrage sur la production COLORIS, 
+afin de laisser passer une commande déposée par l’opérateur.et la réactiver par la suite";02/03/2026;05/03/2026;✅ Résolu en 3 jours;PCOLORIS-634;HBNRO;Bon usage
+INC001011082272 ;26345G5653;blocage FAS sur commande EvolGC;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;04/03/2026;04/03/2026;✅ Résolu en < 1 jour;;;
+INC001011085463;2603L34192;ADVC OS suppression de la Date MES commerciale pour les prestations en pj;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;modification de la date mes commercial;05/03/2026;05/03/2026;✅ Résolu en < 1 jour;;;
+INC001011090876;2603M81233;"
+Bonjour, il manque l'information NOM DU SITE et CODE DU SITE dans le bandeau de la commande, une genergy avait été déposée en octobre INC001010814692";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Rattrapage fait;10/03/2026;10/03/2026;✅ Résolu en < 1 jour;;;
+INC001011095250;2603N63574;Offre CPMFOAbsence des données spécifiques pour toutes lignes de commandes dispo et travauxexemple : COL01000000048109464;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P4;"Vu avec Kais, le paramétrage lié à la MEP CPMFO (9h-15h55 / T603163054) était en cours. Un dynamisme mal paramétré, lié à la MEP de Séparation Segment/Prolongement, causait le problème d'affichage des DS. Le problème a été corrigé avec la terminaison de la MEP.
+
+Les données spécifiques sont bien réaffichées sur l'ensemble des lignes de commande pour l'offre CPMFO.";11/03/2026 00:00;11/03/2026 00:00;✅ Résolu en < 1 jour;PCOLORIS-642;CPMFO;Paramétrage COLORIS
+INC001011093562;2603N24867;Prestation COL01000000045129052 non visible dans Marine;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Renvoi en SAV de la COL01000000045129052;11/03/2026;12/03/2026;✅ Résolu en 1 jour;;;
+INC001011099561;2603O42517; => Titre de la demande : désarchivage de commande;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Désarchivage fait;13/03/2026;16/03/2026;✅ Résolu en 1 jour;;;
+INC001011089138;2603N20507;Modif champs Extremite A point de livraison livre selon le fichier joint;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Rattrapage fait;13/03/2026;16/03/2026;✅ Résolu en 1 jour;;;
+INC001011089139;2603P17592;Sur l'offre HEPOC, il est attendu que le champ Code opération globale redescende dans OPUS sous le format HEBEP-HEPOC-CO ou HEBEP-HEPOC-Super CO. Mais ce n'est pas bon sur 3 autres articles: HEB DIVERS, HEB ENER 48V, HEB PEN CABLE RO;OUEASLATI Chiraz;Paramétrage COLORIS;Résolu;P4;parametrage et test OK une démo demain avec le dépositaire le 18/03. MEP faite le 19/03;16/03/2026;19/03/2026;✅ Résolu en 3 jours;PCOLORIS-644;HEBEP;Paramétrage COLORIS
+INC001011107051;2603Q23573;Votre commande N° F35255130326 n'a pas été soumise cause '-200 : ControlColCmdResilEnCoursHbnro : Erreur, une résiliation est en cours sur l'emplacement 'COL01000000010746886 '.;OUEASLATI Chiraz;Paramétrage COLORIS;Résolu;P4;"échange avec le dépostaire et déscativation de controle temporairement pour pouvroir passer la 3ème cde de résiliation sur ce site
+";19/03/2026;19/03/2026;✅ Résolu en < 1 jour;PCOLORIS-648;HBNRO;Bon usage
+INC001011100880;2603P17484;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS.;16/03/2026;23/03/2026;✅ Résolu en 5 jours;;;
+INC001011104826;2603Q68325; Bloquer les FAS de la cde HEBEP F03005170625 mise en service commerciale le 20/03/2026;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;23/03/2026;23/03/2026;✅ Résolu en < 1 jour;;;
+INC001011105714;2603R47951;"Modif PDL champs extemite A ou B livré
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Rattrapage fait;23/03/2026;23/03/2026;✅ Résolu en < 1 jour;;;
+INC001011106122;2603R48000;Déménagement de volume 35360VIT-(VITRE)  Volume 1/EDFT-ESR vers 2/EDFT-ESP;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le changement du code volume a été effectué pour toutes les prestations, du code volume 1/EDFT-ESR vers 2/EDFT-ESP;23/03/2026;24/03/2026;✅ Résolu en < 1 jour;;;
+INC001011099412;2603O37197;ADVGC P0 Traitement en masse COLORIS ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le traitement en masse a été effectué pour toutes les commandes de la liste envoyée.;20/03/2026;24/03/2026;✅ Résolu en 2 jours;;;
+INC457823052075;2603S15119;Blocage des prestations a cause de déclenchement des 2 controles : ControlColResilAllBlocReg - ControlColResilAllEmpl ;FEZAI Fatma;Paramétrage COLORIS;Transféré;P4;Suite à un echange entre amira et Aurelie , il a été décidé d'enlever ces deux controles du bdc FCI;26/03/2026;26/03/2026;➡️ Transféré en < 1 jour;PCOLORIS-654;DGRPG;Transféré
+INC001011112798;2603R72942;offre ROGCI_RTBM : blocage FAS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;23/03/2026;27/03/2026;✅ Résolu en 4 jours;;;
+INC001011122625;2603T90595;Erreur  de code site ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"Correction du code site pour la commande F24435261115
+";30/03/2026;30/03/2026;✅ Résolu en < 1 jour;;;
+INC846545784378;INC001011149840;Duplication offre ROGCI_RTBM : parametrage MARINE oublie ;FEZAI Fatma;Paramétrage COLORIS;Résolu;P4;Suite à une analyse , les 2 offres sont identiques et correctes : Il suffit juste d'attendre le déroulement du batch MARINE (On a bien les prestation Liaisons GC);30/03/2026 00:00;30/03/2026 00:00;✅ Résolu en < 1 jour;PCOLORIS-655;ROGCI_RTBM;Bon usage
+INC001011122605;2603T90876;Blocage FAS parc ROHPO_RTBM et ROHEB_RTBM;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;31/03/2026;31/03/2026;✅ Résolu en < 1 jour;;;
+INC001011122687;2603T90511;Bloquer les FAS de la cde HEBEP  F03011170625 mise en service commerciale le 01/04/2026;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;31/03/2026;01/04/2026;✅ Résolu en < 1 jour;;;
+INC001011126365;2604U59945;Nous rencontrons le message d'erreur : - Erreur, toutes les prestations emplacement et extension de SU doivent être résiliées dans le cas d'une résiliation totale et au moins 1 doit rester en service pour une résiliation partielle. - Erreur, toutes les prestations emplacement et extension de SU doivent être résiliées dans le cas d'une résiliation totale et au moins 1 doit rester en service pour une résiliation partielle . J'ai créé une commande type : DEG_ARM + CommandeFaisabilitéResil + V16 TYPE_DEG_EARM_CFR_V16S0F0_0;KCHAOU Amira;Paramétrage COLORIS;Résolu;P3;Controle coloris est corrigé ;01/04/2026;06/04/2026;✅ Résolu en 3 jours;PCOLORIS-656;DGRPG V16;Paramétrage COLORIS
+INC001011126931;2604U75955; offre ROGCI-RTBM : blocage FAS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;01/04/2026;01/04/2026;✅ Résolu en < 1 jour;;;
+INC001011125439;2604U76331;" merci de changer les PDL livrés extrémité A, en les passant de RGH à RO
+ Fournir le fichier excel avec les éléments à corriger";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Operation de service;02/04/2026;02/04/2026;✅ Résolu en < 1 jour;;;
+INC001011128851;2604V10521;Commandes à clôturer en masse avec facturation;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;j’ai renseigné la date de validation pour toutes les lignes de commande dans la liste;02/04/2026;03/04/2026;✅ Résolu en < 1 jour;;;
+INC001011130287;2604V33659;DESARCHIVAGE DE COMMANDE ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Désarchivage fait;03/04/2026;03/04/2026;✅ Résolu en < 1 jour;;;
+INC001011122542;2603T91059;Valeurs ne remonte pas offre DGRPG NRAMED ;GARA Kais;Paramétrage COLORIS;Résolu;P4;Bonjour, point fait avec le dépositaire Severin et il n'y a pas de blocage au niveau de la production Coloris. il s'agite d'une demande de correction et un mail sous l'objet : Incident INC001011122542 / 2603T91059 a été envoyé dans ce sens pour la création de la DT.;31/03/2026;02/04/2026;✅ Résolu en 2 jours;;DGRPG V15;Bon usage
+INC001011124906;2603U28302;Votre commande N° F84369300326 n'a pas ete soumise;GARA Kais;Paramétrage COLORIS;Résolu;P4;Point fait avec le dépositaire, problème réglé au niveau du control coloris.;03/04/2026 00:00;07/04/2026 00:00;✅ Résolu en 2 jours;;DGRPG;Paramétrage COLORIS
+INC001011125142;2603U31849;F83151300326;GARA Kais;Paramétrage COLORIS;Résolu;P4;Point fait avec le dépositaire, problème réglé au niveau du control coloris.;03/04/2026 00:00;07/04/2026 00:00;✅ Résolu en 2 jours;;DGRPG;Paramétrage COLORIS
+INC001011134352;2604W61506;"Bonjour, 
+sur cette commande le code et nom du site ne remontent pas alors que toutes les données sont complétées.
+voir pj
+est il possible de les ajouter ?
+merci d'avance
+Cordialement 
+
+
+Données concernée : code et nom du site
+Résultat attendu souhaité : Nom du site : GOUILLONS Code du site : 28184GOU
+Résultat obtenu : Nom du site : non renseigné Code du site : non renseigné";SAID Mariem;Paramétrage COLORIS;Transféré;P4;La commande est passée sur la version V1S0F0, qui n'est pas la dernère version disponible sur FCI (V1S0F2). Cette version ne correspond pas à l'xpath mis à jour et validé le 09 mars. Tout est conforme au bon de commande V1S0F2 donc rien a corriger côté paramétrage, je transfere le ticket a Coloris pour renseigner les champs directement sur la base de données.;07/04/2026 16:26;08/04/2026 15:30;➡️ Transféré en < 1 jour;;HEPOC;Transféré
+INC001011134352;2604W61506;"Bonjour, 
+sur cette commande le code et nom du site ne remontent pas alors que toutes les données sont complétées.
+voir pj
+est il possible de les ajouter ?
+merci d'avance
+Cordialement 
+
+
+Données concernée : code et nom du site
+Résultat attendu souhaité : Nom du site : GOUILLONS Code du site : 28184GOU
+Résultat obtenu : Nom du site : non renseigné Code du site : non renseigné";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;La commande est passée sur la version V1S0F0, qui n'est pas la dernère version disponible sur FCI (V1S0F2). Cette version ne correspond pas à l'xpath mis à jour et validé le 09 mars. Tout est conforme au bon de commande V1S0F2 donc rien a corriger côté paramétrage, je transfere le ticket a Coloris pour renseigner les champs directement sur la base de données.;07/04/2026 16:26;08/04/2026 15:30;✅ Résolu en < 1 jour;;;
+INC001011125410;2604W81157;"Précisez les informations suivantes 
+Quelle donnée ? F82860060326  ,COL01000000011725936
+Quel est le résultat attendu ?
+Quel est le résultat obtenu ?
+Fournir : le N° de commande , de ligne de commande ou de prestation et au besoin une copie d'écran
+
+Disponibilités : 09h00 17h00
+
+Données concernée : manque :Type de demande ,Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal 
+Résultat attendu souhaité : infos :Type de demande ,Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal
+Résultat obtenu : validation coloris";SAID Mariem;Paramétrage COLORIS;Résolu;P4;Suite à l'analyse de l'incident il a été constaté que les champs étaient vides dans la commande ferme ce qui a entrainé un blocage dans l'ESU. J'ai contacté l'ADV GRISAR Severin qui a procédé au renseignement des valeurs manquantes. Le problème est désormais résolu, je procède donc à la clôture de l'incident.;08/04/2026;08/04/2026;✅ Résolu en < 1 jour;;DGRPG V15;Bon usage
+INC001011125329;2604W80730;"Précisez les informations suivantes 
+Quelle donnée ? F82860060326
+Quel est le résultat attendu ?VALIDATION COLORIS 
+Quel est le résultat obtenu ?PAS VALIDATION COLORIS
+Fournir : le N° de commande , de ligne de commande ou de prestation et au besoin une copie d'écran
+
+Disponibilités : 09h00 17h00
+
+Données concernée : Type de demandeabs ,Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Résultat attendu souhaité : Type de demandesou ,Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Résultat obtenu : pas validation coloris COL01000000011725936";SAID Mariem;Paramétrage COLORIS;Résolu;P4;Suite à l'analyse de l'incident il a été constaté que les champs étaient vides dans la commande ferme ce qui a entrainé un blocage dans l'ESU. J'ai contacté l'ADV GRISAR Severin qui a procédé au renseignement des valeurs manquantes. Le problème est désormais résolu, je procède donc à la clôture de l'incident.;08/04/2026;08/04/2026;✅ Résolu en < 1 jour;;DGRPG V15;Bon usage
+ INC001011125526;2604W80621;"Précisez les informations suivantes 
+Quelle donnée ? F94509090326  ,COL01000000008379928 ,COL01000000008379929
+Quel est le résultat attendu ?Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Quel est le résultat obtenu ?manque Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Fournir : le N° de commande , de ligne de commande ou de prestation et au besoin une copie d'écran
+
+Disponibilités : 09h00 17h00
+
+Données concernée : manque Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Résultat attendu souhaité : validation Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Résultat obtenu : coloris blocage validation";SAID Mariem;Paramétrage COLORIS;Résolu;P4;Suite à l'analyse de l'incident il a été constaté que les champs étaient vides dans la commande ferme ce qui a entrainé un blocage dans l'ESU. J'ai contacté l'ADV GRISAR Severin qui a procédé au renseignement des valeurs manquantes. Le problème est désormais résolu, je procède donc à la clôture de l'incident.;08/04/2026;08/04/2026;✅ Résolu en < 1 jour;;DGRPG V15;Bon usage
+Par erreur de ma part j'ai clôturé le ticket sans noter le numéro;_______93;"Précisez les informations suivantes 
+Quelle donnée ? F94509090326  ,COL01000000008379928 ,COL01000000008379929
+Quel est le résultat attendu ?Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Quel est le résultat obtenu ?manque Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Fournir : le N° de commande , de ligne de commande ou de prestation et au besoin une copie d'écran
+
+Disponibilités : 09h00 17h00
+
+Données concernée : manque Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Résultat attendu souhaité : validation Nombre de blocs de réglettes commandé,Nombre de blocs de réglettes minimal utile
+Résultat obtenu : coloris blocage validation";SAID Mariem;Paramétrage COLORIS;Résolu;P4;Suite à l'analyse de l'incident il a été constaté que les champs étaient vides dans la commande ferme ce qui a entrainé un blocage dans l'ESU. J'ai contacté l'ADV GRISAR Severin qui a procédé au renseignement des valeurs manquantes. Le problème est désormais résolu, je procède donc à la clôture de l'incident.;08/04/2026;08/04/2026;✅ Résolu en < 1 jour;;DGRPG V15;Bon usage
+INC001011130165;2604W86674; Cas erroné : doc de vente : 300179186 (HEBEPF33466160226-01) Cas ok : 0300179187 (HEBEPF33466160226-02) Ancien Code opérateur global : HEBEP Nouveau code opérateur global : HEPOC-02-4004-14762VIR Dans le cas erroné en ZOPCARACT_DATA1, on constate que le code opérateur global a de nouveau était écrasé le 03.04.2026 à 5h15, Pouvez vous voir pourquoi COLORIS écrase ce code opérateur global ? c'est suite à automatisme ou suite à action manuel d'un user ? si c'est action manuel pouvez vous nous donner le CUID de ce dernier ?;OUEASLATI Chiraz;Paramétrage COLORIS;Transféré;P4;Analyse d'incident et contact de déposiatire / point prévu le 09/04. point fait le 9/04 &vec la participation de JMB : rien a faire coté param il faut investiguer coté coloris dev ;08/04/2026 00:00;09/04/2026;➡️ Transféré en 1 jour;;HEBEP;Transféré
+INC001011133765;2604W61667;"Proxima a reçu un élément à facturer  référence : COL01000000048669550  code article HBN0000487 sur l'offre COLORIS  OC0000000039 qui correspond a du dégroupage infra. De ce fait Proxima ne peut pas valoriser l'élément 
+
+Données concernée : HBN0000487  sur OC0000000039 
+Résultat attendu souhaité : remettre un bon code article si la commande est bien en degroupage
+Résultat obtenu : bon code article";SAID Mariem;Paramétrage COLORIS;Résolu;P4;après investigation j'ai constaté que les commandes ont été passées sur deux produits différents : la commande d'étude sur HBNRO tandis que la commande ferme sur DGRPG. Par ailleurs nous avons également relevé la présence de deux contrôles au niveau du Bon de Commande qui ne sont pas disponible sur PROD je les ai donc ajoutés. ;07/04/2026 17:36;08/04/2026 17:39;✅ Résolu en 1 jour;;HBNRO;Paramétrage COLORIS
+INC001011133963;2604W61735;"bonjour,
+PROXIMA a reçu plusieurs éléments à facturer qui tombent en erreur car une valeur n'est pas envoyée : 
+ex  : COL01000000043626150 code article DGP0000151
+PROXIMA attend obligatoirement ces 2  champs : 
+Longueur du câble (Ch0 RGA) (m)   valeur : 50   (dans COLORIS : coché obligatoire pour facturer mais pas envoyé)
+Longueur GC (Ch0->Infra Rep) (m)  valeur : 38  ( dans COLORIS : pas coché obligatoire pour facturer mais bien envoyé)
+
+comme la valeur Longueur du câble (Ch0 RGA) (m)  n'est pas envoyée Proxima ne peut pas valoriser l'élément
+en PJ les éléments en erreur dans PROXIMA
+merci par avance de revoir le paramétrage qui permettra d'envoyer la valeur attendue.
+
+
+Données concernée : Longueur du câble (Ch0 RGA) (m)
+Résultat attendu souhaité : envoi de la valeur du champ Longueur du câble (Ch0 RGA) (m)
+Résultat obtenu : Longueur du câble (Ch0 RGA) (m)";SAID Mariem;Paramétrage COLORIS;Résolu;P4;En attente de validation des métiers pour corriger.;07/04/2026 17:38;13/04/2026 00:00;✅ Résolu en 3 jours;;DGRPG V14;Paramétrage COLORIS
+INC001011139609;2604X67965;" => Demandeur : BUVAT JEAN MICHEL (AJBI7462)
+
+ => Titre de la demande : DGRPG - 2 soucis sur la commande EMPL avec Dépose
+
+ => Description de la demande : 
+ 
+2 anomalies détectées suite analyse des gammes OPUS sur l'article DEG EMPL DEPOSE en lien avec la ligne de commande Résiliation Emplacement ... avec Depose et le le champ N° de la commande de résiliation de Dégroupage qui est une donnée obligatoire OPUS:
+1> Sur les 3 commandes F35264130326 - F56387270226 - F63391040226
+    N° de la commande de résiliation de Dégroupage n'a pas été saisi par le pilote ADV, mais la commande est quand même passée En Cours avec une gamme OPUS générée.
+2> Sur les 6 commandes, F05052030426 - F84378300326 - F84271300326 - F34852130326 - F58519020326 - F48616020226
+    N° de la commande de résiliation de Dégroupage a bien été saisi par le pilote ADV, mais la valeur n'a pas été redescendue dans le flux ZLCR en tant que Caractéristiques génériques/N° de la commande de résiliation de Dégr
+
+Données concernée : N° de la commande de résiliation de Dégroupage
+Résultat attendu souhaité : Une valeur saisie avec redescente dans le flux ZLCR en Caractéristiques Génériques
+Résultat obtenu : Absence de Caractéristiques Génériques";KCHAOU Amira;Paramétrage COLORIS;Transféré;P4;"ADV a laissé la DS vide avant la création du flux OPUS.
+Solution: ADV remplit cette DS sur les 11 prestations après on donne le GO à Coloris de renvoyer ces prestations dans le flux OPUS";10/04/2026;13/04/2026 00:00;➡️ Transféré en 1 jour;;DGRPG V16;Transféré
+INC001011140153;2604X77100;"pourriez vous modifier les extrémités de point de livraison Livré en vous referrant au fichier joint ? 
+Attention, la première partie concerne les extrémités A, la seconde concerne les extrémités B.
+Les modifications sont un passage de RGH à RO.";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;J’ai effectué les modifications nécessaires pour les prestations figurant dans la liste;10/04/2026;13/04/2026;✅ Résolu en 1 jour;;;
+INC001011139609;2604X67965;" => Demandeur : BUVAT JEAN MICHEL (AJBI7462)
+
+ => Titre de la demande : DGRPG - 2 soucis sur la commande EMPL avec Dépose
+
+ => Description de la demande : 
+ 
+2 anomalies détectées suite analyse des gammes OPUS sur l'article DEG EMPL DEPOSE en lien avec la ligne de commande Résiliation Emplacement ... avec Depose et le le champ N° de la commande de résiliation de Dégroupage qui est une donnée obligatoire OPUS:
+1> Sur les 3 commandes F35264130326 - F56387270226 - F63391040226
+    N° de la commande de résiliation de Dégroupage n'a pas été saisi par le pilote ADV, mais la commande est quand même passée En Cours avec une gamme OPUS générée.
+2> Sur les 6 commandes, F05052030426 - F84378300326 - F84271300326 - F34852130326 - F58519020326 - F48616020226
+    N° de la commande de résiliation de Dégroupage a bien été saisi par le pilote ADV, mais la valeur n'a pas été redescendue dans le flux ZLCR en tant que Caractéristiques génériques/N° de la commande de résiliation de Dégr
+
+Données concernée : N° de la commande de résiliation de Dégroupage
+Résultat attendu souhaité : Une valeur saisie avec redescente dans le flux ZLCR en Caractéristiques Génériques
+Résultat obtenu : Absence de Caractéristiques Génériques";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;J’ai effectué les modifications nécessaires pour renvoyer le flux avec les nouvelles valeurs.;10/04/2026;13/04/2026;✅ Résolu en 1 jour;;;
+INC001011142244;2604Y55442;Pour le site 70117NVI, je constate que les prestations CFD réglette COL01000000007763309 et COL01000000007763310   DEG MED ne remontent pas dans la synthèse de parc ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"Le problème est que le champ ""numéro de prestation mère"" est vide, ce qui empêche les deux prestations de remonter dans la synthèse de parc.";13/04/2026;13/04/2026;✅ Résolu en < 1 jour;;;
+INC001011133663;2604W60967;Bonjour, pour le site de 48039CNC - CHANAC - Merci de migrer tous les produits du volume 2FTEUP vers 1ERFTEUP. Un seul volume sur ce site, volume 1ERFTEUP. Une fois réalisé la migration des produits supprimer le volume 2FTEUP.;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;INC001011133663:les prestations sous le code volume 2FTEUP ont migrées vers le code volume 1ERFTEUP .;10/04/2026;14/04/2026;✅ Résolu en 2 jours;;;
+INC001011140535;2604X78598;"Bonjour, 
+Je souhaite sur les prestations suivantes que la date_AR soit modifiée (présent dans la table prestation et table entete_commande) 
+je souhaite que la nouvelle date AR soit = à la date MES technique";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;"j'ai modifier la date_ar de toute les prestation est les commandes
+J’ai modifié les dates techniques pour toutes les prestations.
+J’ai également validé avec Damien : le problème est désormais corrigé.
+";10/04/2026;14/04/2026;✅ Résolu en 2 jours;;;
+ INC001011142551;2604Y64629;"CSMFON V2: Nous ne voyons plus les motifs de faisabilité en dessous du 1er choix de la rubrique 2.2 (peu importe quon choisisse faisable en standard, avec travaux ou livraison sur site)  :
+Nous ne pouvons donc pas livrer nos EF actuellement en portefeuille
+Exemple : F82280270326";OUEASLATI Chiraz;Paramétrage COLORIS;Résolu;P4;corrcrtion de parametrage reprise de la liste faisa_etu pour la v2 et création nv champ FAISA_ETU_V3 ;13/04/2026 00:00;14/04/2026;✅ Résolu en 1 jour;;CSMFON V2;Paramétrage COLORIS
+INC001011146412;2604Z32332;"Bonjour,
+Sur une commande F18206140225 qui nous a posé des soucis et que nous avons annulée, il y a une date d'AR au 14/02/2222 et cela a un impact sur le flux OWD. Après echange et tests avec l'ADV, nous n'avons pas réussi a la modifier meme avec un fichier d'injection. pouvez vous mettre la date d'AR au  14/02/2025 et faire un rattrapage du flux OWD. C'est Karine Lafon coté equipe DATA/OWD qui m'a alerté en début de semaine du problème.";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;j'ai modifier la date_ar dans la commande est j'ai forcer le renvoi  a OWD;10/04/2026;16/04/2026;✅ Résolu en 4 jours;;;
+INC001011148885;2604Z78334;Envoi SAV;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;La prestation va être envoyée à Marine ce soir.;16/04/2026;16/04/2026;✅ Résolu en < 1 jour;;;
+INC001011141306;2604Y44251;" Demandeur : MABILEAU HELENE
+ 
+=> Titre de la demande : DGRPG - 2 soucis sur la commande EMPL avec Dépose
+ 
+=> Description de la demande :
+ 
+,Pour les commandes F03582291225 et F03590291225 dans l'ESU sur la prestation résiliation emplacement, la DOR ne peux pas valider la faisabilité car le message d'erreur suivant s'affiche Champ conditionnement invalide";BAFFOUN Mohamed Ali;Paramétrage COLORIS;Résolu;P4;;13/04/2026 00:00;17/04/2026;✅ Résolu en 4 jours;;DGRPG V16;Bon usage
+INC001011145087;2604Z24184;"sur les prestations de lom HEBEP : Etude Lien Optique RO RGH aboutement-V1 et HEBEP : 
+Etude Lien Optique intersalle-V1, la données spécifiques code volume remonte 3 fois et 
+le champs travée ne doit pas remonter. exemple de la commande F67468140426 
+ toutes les col sont concernées à partir de la 7 ème (COL01000000048900101.";DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P4;"Incident corrigé coté paramétrage pour toute les nouvelles commandes  : Test effectué de la part Helène 
+Action suivante : Correction de la commande en cours en base ( action transféré a ZAK) ";14/04/2026;17/04/2016 00:00;✅ Résolu en < 1 jour;;HEBEP;Paramétrage COLORIS
+INC001011149711;2604Z96313;offre ROGCI-RTBM : blocage FAS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;17/04/2026;17/04/2026;✅ Résolu en < 1 jour;;;
+INC001011149840;2604Z96789;Bloquer les FAS de la cde HEBEP F03015170625 mise en service commerciale le 20/04/2026;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;20/04/2026;17/04/2026;✅ Résolu en < 1 jour;;;
+INC001011147466;2604Z62999;"Bonjour,
+Dans le cadre du projet SIRONA, certaines prestations ne génèrent pas de facturation lors du changement dune données spécifique (ex ingénierie).
+Le but de cette OPS est de repasser les commandes à létat MAD et de supprimer les dates de MESC (ligne_commande et prestation) afin que lorsque les commandes seront passées à létat terminée, la facturation soit conforme.
+Déclenchement des mouvements absents avant et régularisation (remboursement et refacturation) pour les prestations qui étaient déjà facturées.
+Cela concerne les FAS et les ABO.
+En PJ , 1 fichier avec les prestations PM et Colonnes Montantes.
+Merci ";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le problème a été corrigé :j'ai fait un retour en arrière sur toutes les commandes afin de facturer les prestations non facturées depuis le début.;20/04/2026;22/04/2026;✅ Résolu en 2 jours;;;
+INC001011153444;2604A96591;"
+Sur le site 64496IRU
+1 seul volume existant le volume 1EDAnnESR
+Merci de migrer l'ensemble des produits du volume 2ERFTEUR vers 1EDAnnESR
+Une fois réaliser supprimer le volume 2ERFTEUR";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Changement du code volume fait;22/04/2026;22/04/2026;✅ Résolu en < 1 jour;;;
+INC001011087099;2603L71508;anomalies V427 Caract non numérique pour tarif sur offre HEB POPFREE;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P3;Reprise du sujet après les échanges avec PROXIMA. Le problème nécessite une évolution conjointe des paramétrages COLORIS et PROXIMA. Ce sujet va continuer d'être traité dans une DT, la mise en oeuvre de l'évolution côté PROXIMA pouvant être longue.;07/04/2026;22/04/2026;✅ Résolu en 11 jours;;HEBEP;Paramétrage COLORIS
+INC001011159276;2604C02245;renvoi en SAV de la COL01000000045209886 ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;La prestation va être envoyée à Marine ce soir.;24/04/2026;24/04/2026;✅ Résolu en < 1 jour;;;
+INC001011158640;2604B91394;"Bonjour, 
+
+Merci de bien vouloir modifier le type de raccordement des prestations se trouvant dans le fichier joint. 
+Est-il possible de faire se changement avant le 1 er mai ? 
+Je suis à votre disposition pour toutes explications. ";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Les modifications sont faites en production.;23/04/2026;24/04/2026;✅ Résolu en 1 jour;;;
+INC001011162350;2604C97501; Demandeur : GRISAR SEVERIN (SZTB8060) => Titre de la demande : Information classe de SR qui ne remonte pas dans la prestation  DGRPG : Résiliation Emplac => Description de la demande :  Bonjour, sur de nombreuses commandes de résiliation, la DOR nous sollicite car ils ne peuvent pas valider la commande de résiliation des DEG MED , la champ classe de SR est vide , dans la prestation DGRPG : Résiliation Emplacement-V15.Pourtant cette information est bien présente dans la prestation de la commande ferme Données concernée : CLASSE DE SR Résultat attendu souhaité : INFORMATION PRESENTE , ici  201 A 300 LPRésultat obtenu : champ vide et bloquant ;KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;j'ai corrigé la recuperation de ce champ;27/04/2026;28/04/2026;✅ Résolu en < 1 jour;;DGRPG V15;Paramétrage COLORIS
+INC001011162737;2604D00771;offre ROGCI-RTBM : blocage FAS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;27/04/2026;27/04/2026;✅ Résolu en < 1 jour;;;
+INC001011162703;2604C99369;Changement Nom et adresse de site Orange dans 2 prestations;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Les modifications sont faites en production.;27/04/2026;27/04/2026;✅ Résolu en < 1 jour;;;
+INC001011164426;2604D38255;"Pour le projet Phileas , suite à une mise à jour de la date contractuelle (date de mes retenue) , cette dernière n'est pas 
+exemple référence coloris COL01000000048147047 
+Date mes retenue intiale : 25/08/2026 : 
+Mise à jour via traitement en masse le 23/02 à 10h41 : date de mes retenue le 11/09/2026
+La date de mes retenue dans les prestations reste au 25/08/2026";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;La date de mes retenues est modifiée pour toutes les prestations de la commande.;28/04/2026;28/04/2026;✅ Résolu en < 1 jour;;;
+INC001011164973;2604D48918;"merci de retirer les montants FAS 1 à 0 sur les commandes COL01000000047260182 - COL01000000045735586.
+Je vous en remercie par avance,";;Support COLORIS;Résolu;P4;Le montant FAS est modifié sur les deux prestations COL01000000047260182 et COL01000000045735586;28/04/2026;28/04/2026;✅ Résolu en < 1 jour;;;
+INC001011167853;2604D94191;Demandeur : GRISAR SEVERIN (SZTB8060) => Titre de la demande : Votre commande N° F26850290426 n'a pas été soumise => Description de la demande :  Bonjour, Après un premier blocage, j'ai tenté de repasser la commande F26850290426.j'ai maintenant le message 0 : ControlColCFR : Une résiliation de type CommandeFaisabiliteResiliation a déjà été passée pour cette prestation d'emplacement 'COL01000000010744034'Alors que je ne retrouve pas de résiliation en cours.N°commande : F26850290426;KCHAOU Amira;Paramétrage COLORIS;Transféré;P3;transferé à l'equipe FCI SN3;29/04/2026;30/04/2026;➡️ Transféré en 1 jour;;DGRPG V16;Transféré
+INC001011169226;2604E27089;"Description de la demande :  Bonjour,la commande F20707240426 est bloqué dans FCI avec ce message d'erreur  Votre commande N° F20707240426 n'a pas été soumisecause : 	-200 : ControlColCFR : Une résiliation de type CommandeFaisabiliteResiliation a déjà été passée pour cette prestation d'emplacement 'COL01000000010745067'N° commande : F20707240426";KCHAOU Amira;Paramétrage COLORIS;Transféré;P3;transferé à l'equipe FCI SN3;30/04/2026;30/04/2026;➡️ Transféré en < 1 jour;;DGRPG V16;Transféré
+INC001011166716;2604D76393;"Bonjour,
+Je suis dans l'incapacité de réaliser la MAD des liens de la commande F72351041225 d'SFR sur le site de MEAUX / 77284MEA.
+Sur ESU, le bouton Valide est visible, mais dès que je complète à partir de la deuxième prestation, l'écran Coloris plante. 
+J'ai essayé d'enregistrer entre temps, avec le bouton renseigner partout et vu avec le pilote DSO, le problème persiste (voir échanges dans la PJ).
+Je reste à votre disposition si vous souhaitez que je vous partage mes difficultés.
+Bien cordialement
+Arthur GOULEY";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Problème corrigé : une anomalie est survenue lors de la validation. Un retour en arrière a été effectué, ce qui a permis de corriger le problème.;30/04/2026;04/05/2026;✅ Résolu en 2 jours;;;
+INC001011167761  ;2604E29547;Titre de la demande : message d erreur dans la dépose d'une commande de resiliation  => Description de la demande :  Bonjour,Apres vérification des éléments fournis par le client pour déposer une commande de résiliation, celui ci est toujours bloqué avec le message d erreur ( copie d ecran en pj).message suivant apparait : - Erreur, toutes les prestations Câble 12 FO doivent être résiliées dans le cas d'une résiliation totale.Erreur, dans le cas d'une résiliation totale, toutes les prestations Energie 48V doivent être résiliées.;KCHAOU Amira;Paramétrage COLORIS;Résolu;P3;les deux controles sont corrigés ;30/04/2026;04/05/2026;✅ Résolu en 2 jours;;HBNRO;Paramétrage COLORIS
+INC001011170023;2604E31190; Demandeur : BERTRAND CHARPENTIER CHRISTELE (ACGO6470) => Titre de la demande : Problèmes sur bon de commande de résliation du produit Coloc de l'offre ITDMX => Description de la demande :  Bonjour, il y a un bug dans la fonction recherche sur le BDC de résiliation des Colocs, pour la partie EXT A (Pop Opérateur), Si vous saisissez exactement la bonne information du POP, la fonction recherche (loupe) ne remonte rien.  Le seul mécanisme qui fonctionne, cest ouvrir la fenêtre de recherche et effectuer une recherche à partir de la ville.  Sur tous les autres champs : Nom du POP, ou Code POP,    la fonction recherche ne fonctionne pas.Par ailleurs, Elle fonctionne parfaitement sur la partie EXT B.Ce bug concerne tous opérateurs et toutes commandes de résiliations de COLOC de l'offre ITDMX. En PJ le détail. Je reste à votre disposition pour vous fa;KCHAOU Amira;Paramétrage COLORIS;Résolu;P3;pas d'action ;30/04/2026;04/05/2026;✅ Résolu en 2 jours;;ITDMX;Bon usage
+INC001011172845;2605F58178 ;"itre de la demande : F31198040526 => Description de la demande :  Bonjour, SFR nous indique qu'il n'a pu déposer sa commande de résiliation F31198040526 qu'en indiquant la COL COL01000000039085548 (cable de collecte 36FO)  en 12FO et en 36 FO (cf PJ) mais lorsque je veux envoyer en livraison la commande j'ai le message : 	-200 : ControlColPrestationResil12FoHbnro : Erreur, toutes les prestations Câble 12 FO doivent être résiliées dans le cas d'une résiliation totale. -  en supprimant le COL COL01000000039085548 au niveau du cable de collecte 12FO, la commande a pu passer.  Pourquoi l'opérateur doit il saisir la COL COL01000000039085548 2 fois ";KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;pas action ;05/05/2026;05/05/2026;✅ Résolu en < 1 jour;;HBNRO;Bon usage
+INC001011169129;2604E29963;Titre de la demande : Depot de commande impossible par le client E megalis Bretagne => Description de la demande :  Bonjour, le client ne peux pas déposer de bon de commande , le contrôle NRA fermé commercialement à été analysé et ne peut pas être un moyen de blocage.Merci de votre prise en charge CordialementNicolas Pasquet =;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P3;Analyse reprise le 05/05 : les contrôles ne gèrent pas le cas des NRA avec dates fermeture commerciale et technique vides. L'adaptation des 5 contrôles concernées a été réalisée.;30/04/2026;06/05/2026;✅ Résolu en 4 jours;;HBNRO;Paramétrage COLORIS
+INC001011167549;2604D91527;"Bonjour, 
+
+Je constate sur quelques commandes 2 champs vides dans la prestation emplacement de la commande ferme
+Date RDV Annexe C 
+Heure RDV Annexe C
+Ces champs sont obligatoire pour la MAD 
+je ne peux pas compléter ces champs, j'ai un message d'erreur 
+Erreur dans l'enregistrement de la prestation. GE0005 : Erreur en recherche dans la table LigneCommande 
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Les champs vides ont été renseignés et le problème est corrigé;30/04/2026;05/05/2026;✅ Résolu en 3 jours;;;
+INC001011168839;2604E17874;"
+Bonjour,
+La commande de résiliation DEG MED référence F38396170226 est MAD mais impossible de la clôturer car la prestation COL01000000002825474 à une donner que je ne peux pas renseigner.
+Sous cette prestation le rang du volume est une donnée obligatoire. Que je rajoute un chiffre ou non, j'ai un message d'erreur erreur dans l'enregistrement de la prestation... voir la copie écran 
+Merci de faire en sorte que cette ligne ne soit plus une donnée bloquante";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Les champs vides ont été renseignés et le problème est corrigé;30/04/2026;05/05/2026;✅ Résolu en 3 jours;;;
+INC001011164979;2604D93890;"Commande : F01673200426 
+Des information aléatoire disparaissent dès lors que je clique sur le bouton de validation de la commande Coloris, ce qui bloque la validation.
+Ici par exemple, les informations qui disparaissent après validation sont le « Code ingénierie optique » et la ligne « Position dans baie »
+Ce soucis d'informations qui disparraissent m'arrive régulierement sur différentes commandes";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le problème provenait du fait que le code volume ne contenait pas le code d’ingénierie optique. Une modification a été apportée au code volume, ce qui a permis de corriger le problème.;30/04/2026;05/05/2026;✅ Résolu en 3 jours;;;
+INC001011173819;2605F74764;Référence : INC001011173819 => Etat : Affecté => Demandeur : FAUCONNIER ISABELLE (ILUG6283) => Titre de la demande : IMPOSSIBLE DE DEPOSER UNE CDE DE RESILIATION message le NRA est fermé => Description de la demande : Bonjour, SFR n'arrive pas a déposer sa commande de résiliation car il a le message : ControlColNRAFTE IMPOSSIBLE: Le NRA est fermé techniquement à moins de 3 mois et le champ Dépose par Orange est à oui et La demande ne peut pas être poursuivie.- Le NRA est fermé techniquement à moins de 3 mois et le champ Dépose par Orange est à oui et La demande ne peut pas être poursuivie. – j'ai essayé de déposer la commande avec les 2 versions j'ai toujours le meme messageDisponibilités : sauf le mercredi aprés midiN° de commande : impossible a saisir dans FCI voir Pj => Société de support : Orange => Entité de support : HD => Groupe affecté : HD - ENTPRO => Groupe propriétaire : HD - ENTPRO => Pr;PIERROT CALLIZO Celia;Paramétrage COLORIS;Résolu;P3;Analyse reprise le 05/05 : les contrôles ne gèrent pas le cas des NRA avec dates fermeture commerciale et technique vides. L'adaptation des 5 contrôles concernées a été réalisée.;06/05/2026 00:00;06/05/2026 00:00;✅ Résolu en < 1 jour;;DGRPG;Paramétrage COLORIS
+INC001011178248;2605G43849;désarchivage de commande;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Rien à faire, car la commande n’est pas archivée;07/05/2026;07/05/2026;✅ Résolu en < 1 jour;;;
+INC001011176652;2605G12550;"Cette commande F17332031121 est à l'état terminé depuis le 7 mars mais elle n'a pas été mise en facturation
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Le problème est que Santafee n’a pas envoyé la date mes commerciaux. C’est pour cette raison que cela n’a pas été facturé;06/05/2026 00:00;07/05/2026;✅ Résolu en 1 jour;;;
+INC001011173421;2605F63819;Résumé : Initialisation du ticket d'incidentDescription : Création d'une demande d'assistance le 05/05/2026 08:45:39 => Référence : INC001011173421 => Etat : Affecté  => Demandeur : POLI MYRIAM (UMPO7401) => Titre de la demande : anomalie N102 dans PROXIMA => Description de la demande :  suite à la correction de la GENERGY INC001011133963 le problème est toujours là. Je refais donc une GENERGY sur le même sujet : PROXIMA a reçu plusieurs éléments à facturer qui tombent en erreur car une valeur n'est pas envoyée : ex  : COL01000000043626150 code article DGP0000151PROXIMA attend obligatoirement ces 2  champs : Longueur du câble (Ch0 RGA) (m)   valeur : 50   ;SAID Mariem;Paramétrage COLORIS;Transféré;P3;pas d'action coté param ;05/05/2026;11/05/2026;➡️ Transféré en 4 jours;;HBNRO;Transféré
+INC001011179064;2605F78709;Titre de la demande : Facturation HBNRO : Commande Ferme Espace RTO avec Faisabilité sur ressources existantes => Description de la demande :  L'équipe facturation (Myriam POLI) m'a remonté des cas d'erreur lorsque la commande de RTO HBNRO à un faisabilité faisable sur ressources existantes. Après un Point avec Laurent Ladrat, nous avons vu que c'est cas ne devait pas être facturé et donc pas de flux envoyé a PROXIMA. PAr exemple COL01000000038839593.Fonctionnalité concernée : FacturationLe résultat souhaité attendu : Ne pas facturer les commandes RTO avec Faisabilité sur ressources existantesLe résultat obtenu : Ne pas facturer les commandes RTO avec Faisabilité sur ressources existantes ;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P3;"Le 13/05 : Réunion prévue avec Aurélie 
+Incident corrigé et testé ";05/05/2026;13/05/2026;✅ Résolu en 6 jours;PCOLORIS-703;HBNRO;Paramétrage COLORIS
+INC001011174881;2605G73102;Titre de la demande : message erreur  => Description de la demande :  Bonjour, il n'est pas possible de terminer les prestations spécifiques même en ayant compléter le devis dans l'entête. Exemple avec la commande : F48409160525 prestation COL01000000045298366 Je mets le descriptif en pièce-jointe. Merci à vous Fonctionnalité concernée : AutreLe résultat souhaité attendu : Passer à terminerLe résultat obtenu : Passer à terminer;DHIFLAOUI Besma;Paramétrage COLORIS;Transféré;P3;Correction faite en base par ZAK : Rattrapage d'une prestation par les DS nécessaires ;08/05/2026;11/05/2026;➡️ Transféré en 1 jour;PCOLORIS-702;HEBEP;Transféré
+INC001011178265;2605G45124; remontées prestations HEBEP vers FCI;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Toutes les commandes sont remontées à FCI;07/05/2026;11/05/2026;✅ Résolu en 1 jour;;;
+INC001011182525;2605H96765;offre GC RIP : envoi en livraison impossible;ZOUARI Wahbi;Paramétrage COLORIS;Résolu;P3;"12_05_SN3 : il s'agit du paramètrage FCI , ticket transféré à l'Eds de  l'équipe Paramétrage coloris .
+13_05_Catalogue : MEP corrective faite";12/05/2026;14/05/2026;✅ Résolu en 2 jours;;GC RIP;Paramétrage COLORIS
+INC001011184923;2605I41969;offre ROGCI-RTBM : blocage FAS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;blocage FAS;13/05/2026;13/05/2026;✅ Résolu en < 1 jour;;;
+INC001011165444;2604D49416;tableau de pilotage non accessible  sur certains serveurs;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;C’était un problème temporaire et il a été résolu après la MEP de mardi dernier;08/05/2026;18/05/2026;✅ Résolu en 6 jours;;;
+INC001011189895;2605K77187;Bloquer les FAS de la cde HEBEP F03022170625 mise en service commerciale le 20/05/2026;TERCHELLAH Rim;Support COLORIS;Résolu;P4;Le blocage FAS a été effectué;20/05/2026 00:00;20/05/2026;✅ Résolu en < 1 jour;;;
+INC001011187619;2605J17162;Description de la demande :  Bonjour, il n'est pas possible de terminer les prestations spécifiques même en ayant compléter le devis dans l'entête. Exemple avec les 3 commandes ci dessous : F48464160525 prestation COL01000000045300528F48473160525 prestation COL01000000045300553F48419160525 prestation COL01000000045298414 Je mets le descriptif en pièce-jointe. Merci à vous Fonctionnalité concernée : AutreLe résultat souhaité attendu : Passer à terminerLe résultat obtenu : Passer à terminer =;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P3;corrigé;15/05/2026 00:00;19/05/2026;✅ Résolu en 2 jours;;HEPOC;Paramétrage COLORIS
+INC001011196076;2605L30574;"Bonjour,
+Dans le cadre d'une Prestation sur Mesure, j'ai besoin de modifier la commande F06430011217.
+Merci de procéder au désarchivage.";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Désarchivage fait;21/05/2026;21/05/2026;✅ Résolu en < 1 jour;;;
+INC001011196187;2605L31982;"Bonjour,
+Dans le cadre d'une Prestation sur Mesure, j'ai besoin de modifier la commande F31117050117
+.
+Merci de procéder au désarchivage";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Désarchivage fait;21/05/2026;21/05/2026;✅ Résolu en < 1 jour;;;
+INC001011192008;2605L52181;" Demandeur : FAUCONNIER ISABELLE (ILUG6283) => Titre de la demande : F50557180526 message d'erreur dans FCI  => Description de la demande :  Bonjour, la commande F50557180526 est bloquée dans FCI avec le message 	- Votre commande N° F50557180526 n'a pas été soumisecause : 	-200 : ControlColCFR : Une résiliation de type CommandeFaisabiliteResiliation a déjà été passée pour cette prestation d'emplacement 'COL01000000010757729' - mais dans COLORIS il n'y a pas de commande de résiliation en coursDisponibilités :";KCHAOU Amira;Paramétrage COLORIS;Résolu;P3;pas d'action coté param ;25/05/2026 00:00;25/05/2026 00:00;✅ Résolu en < 1 jour;;DGRPG V16;Bon usage
+INC001011200671;2605N18420;Message erreur sur nouveau formulaire faisabilite de resiliation F59976260526;ZOUARI Wahbi;Paramétrage COLORIS;Résolu;P3;"29_05_SN3:il s'agit du paramètrage FCI , ticket transféré à l'Eds de  l'équipe Paramétrage coloris .
+29_05_Catalogue : Controle FCI en question est corrigé";26/05/2026 00:00;29/05/2026;✅ Résolu en 3 jours;;RIP;Paramétrage COLORIS
+INC001011195770;2605N95250;Anomalie BDC SNCF_NAT, etude de faisabilite, version V2S0F1;ZOUARI Wahbi;Paramétrage COLORIS;Résolu;P3;"29_05_SN3:il s'agit du paramètrage FCI , ticket transféré à l'Eds de  l'équipe Paramétrage coloris .
+29_05_Catalogue : MEP corrective planifiée pour 01/06";29/05/2026;01/06/2026;✅ Résolu en 1 jour;PCOLORIS-709;SNCF V1;Paramétrage COLORIS
+INC001011195770;2605L50721;Anomalie BDC SNCF_NAT, etude de faisabilite, version V2S0F1;ZOUARI Wahbi;Paramétrage COLORIS;Résolu;P3;"29_05_SN3:il s'agit du paramètrage FCI , ticket transféré à l'Eds de  l'équipe Paramétrage coloris .
+29_05_Catalogue : MEP corrective planifiée pour 01/06";29/05/2026;01/06/2026;✅ Résolu en 1 jour;PCOLORIS-709;SNCF V1;Paramétrage COLORIS
+INC001011204994;2605O43203;Champs adresse devrait etre obligatoire pour le depot de commande du client;GHEBRICHE Marwa;Paramétrage COLORIS;Transféré;P3;29_05_SN3:il s'agit du paramètrage FCI , ticket transféré à l'Eds de  l'équipe Paramétrage coloris .;29/05/2026 00:00;29/05/2026;➡️ Transféré en < 1 jour;;;
+INC001011201179;2605N99884;depot de commande ferme avec message d erreur;GHEBRICHE Marwa;Paramétrage COLORIS;Transféré;P3;29_05_SN3:il s'agit du paramètrage FCI , ticket transféré à l'Eds de  l'équipe Paramétrage coloris .;29/05/2026;29/05/2026;➡️ Transféré en < 1 jour;;;
+INC001011207689;2606P49001;"Bonjour, nous rencontrons un problème sur cette commande FCI quand nous voulons la passer en cours. Nous avons un message d'erreur qui dit qu'il y a déjà une commande de Résiliation sur la prestation  COL01000000010743171 alors que non et ensuite il y a un autre message d'erreur GE0005 voir pj
+cordialement ";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Le problème est désormais résolu.;01/06/2026;01/06/2026;✅ Résolu en < 1 jour;;;
+INC001011201502;2605N49934;le fichier est resté en traitement programmé et n'a pas été traité;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Le problème est désormais résolu.;29/05/2026;02/06/2026;✅ Résolu en 1 jour;;;
+INC001011208677;2606P49035;"Sue la commande F52305190526 j'ai annulé par erreur la mauvaise ligne de commande, puis j'ai fait un retour arrière pour passer la ligne à « en cours » du coup la gamme OPUS nest pas partie.
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;J’ai effectué un retour en arrière sur la commande, puis relancé l’avancement de l’état. Le flux OPUS s’est alors bien envoyé.;01/06/2026;02/06/2026;✅ Résolu en < 1 jour;;;
+INC001011190844;2605K78584;"Bonjour, 
+pour le site 78172CNF, pourriez vous basculer l'ensemble des prestations présentes sur le code volume 1EDAnnESR vers le code volume 2EDFtESP
+
+Opération à réaliser : Opération de service sur le site 78172CNF ";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Changement code volume fait;02/06/2026;03/06/2026;✅ Résolu en 1 jour;;;
+INC001011211685;2606Q04989;"Bonjour, la commande de résiliation totale reste bloquée dans FCI avec le commentaire suivant  Une résiliation de type CommandeFaisabiliteResiliation a déjà été passée pour cette prestation d'emplacement 'COL01000000010746710'.
+Après investigations dans Coloris, il n'y a aucune commande de résiliation sur l'emplacement COL01000000010746710.
+Merci de votre aide.
+Cordialement,
+I.CAZENEUVE";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;La commande est débloquée, mais j’ai créé un bug car ce problème devient récurrent.;03/06/2026;03/06/2026;✅ Résolu en < 1 jour;[COL-11839] [PROD_NCOL] : Blocage lors de l'injection d'une commande CFR dans FCI. - JIRA for Orange;;
+INC001011203530;2605O01225;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS.;03/06/2026;03/06/2026;✅ Résolu en < 1 jour;;;
+INC001011203702;2605O01284;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS.;03/06/2026;03/06/2026;✅ Résolu en < 1 jour;;;
+INC001011203813;2605O07939;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS.;03/06/2026;03/06/2026;✅ Résolu en < 1 jour;;;
+INC001011203723;2605O07918;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;" Les prestations figurant dans ce fichier ont déjà été traitées dans le ticket Genergy INC001011100880, sous le nom « Prestations_Contrasto_BAB-NIORT-ANGOULEME_20260227102350_20260317190019 ».
+";03/06/2026;03/06/2026;✅ Résolu en < 1 jour;;;
+INC001011194263;2605L35288;Demandeur : MICHEL NATHALIE (NEIL6343) => Titre de la demande : REGRESSION PARAMETRAGE => Description de la demande :  Bonjour,je viens de constater une régression (sans doute suite à la MEP du 07 et 08/05/26).La problématique concerne le remplissage des jalons : 1er constat du comportement actuel : lorsqu'un document est ajouté en mode interne les jalons se remplissent. Le comportement normal implique un remplissage des jalons en automatique uniquement à réception d'un document GCB1 en mode entrée.2ème constat du comportement actuel : le mode dynamique des jalons ne fonctionnent pas. Le jalon V12 ne doit pas s'alimenter après le V3...On attend un V4;GARA Kais;Paramétrage COLORIS;Résolu;P3;;21/05/2026;02/06/2026;✅ Résolu en 8 jours;;GCBLO DFT ;Bon usage
+INC001011189810;2605L51917;Description de la demande :  Bonjour, les COL des prestations commande ferme câble de renvoi ne remontent pas dans l'onglet DEPOSE RENVOI - les lignes DGRPG : Résiliation cables de renvoi doivent etre associées a des lignes DGRPG : Commande Ferme Cable der renvoiDisponibilités : excepté le mercredi après midiOpération à réaliser : les COL des commandes fermes doivent remonter pour valider la résiliation;ZOUARI Wahbi;Paramétrage COLORIS;Résolu;P3;Contrôle FCI qui empêche la double saisie de la même prestation a été corrigé pour ne plus permettre la résiliation d'une même prestation;22/05/2026;03/06/2026;✅ Résolu en 8 jours;PCOLORIS-724;DGRPG;Paramétrage COLORIS
+INC001011207844;2606P49888;"ControlColMaxPosRTO SOUS RESERVE: Erreur, l'ajout de positions optiques n'est pas réalisable, il est possible de commander au maximun 3 positions.
+- Erreur, l'ajout de positions optiques n'est pas réalisable, il est possible de commander au maximun 3 positions.
+
+ControlColPrestationTypeRIPHNRO SOUS RESERVE: La prestation saisie n'est pas une prestation de type hébergement
+- La prestation saisie n'est pas une prestation de type hébergement
+
+Ces codes erreurs sont incohérents. Merci de revenir vers moi afin que nous puissions analyser le paramétrage et corriger (plusieurs offres impactées)";SAID Mariem;Paramétrage COLORIS;Résolu;P3;Correction effectuées sur les deux contrôles ;01/06/2026;08/06/2026;✅ Résolu en 5 jours;;Roheb_Monu;Paramétrage COLORIS
+INC001011210759;2606Q00372;Demandeur : PASQUET NICOLAS (ZKMP1646) => Titre de la demande : Suite à ticket INC001011201179. depot de commande ferme par client F20437240426 => Description de la demande :  Le client ne peut pas choisir dans son espace operateur la version 2 du bon de commande lié à son étude .la seule version actuellement disponible et visible sur FCI est la V3.Par conséquent l'operateur est bloqué pour le dépôt de sa commande ferme;ZOUARI Wahbi;Paramétrage COLORIS;Résolu;P3;Le bon de commande « CommandeFerme » V2 a bien été réactivé ce midi, jusqu’au 27/07 (fin du double-run) pour le moment. ;02/06/2026;04/06/2026;✅ Résolu en 1 jour;PCOLORIS-725;CSMFON;Paramétrage COLORIS
+INC001011213626;2606Q51778;Créateur : GENERGY SELF SERVICE USERRésumé : Initialisation du ticket d'incidentDescription : Création d'une demande d'assistance le 03/06/2026 12:13:46 => Référence : INC001011213626 => Etat : Affecté  => Demandeur : GRISAR SEVERIN (SZTB8060) => Titre de la demande : champ Application remise manquant  provoque un  blocage applicatif => Description de la demande :  Bonjour, il n'est pas possible de terminer les prestations spécifiques , j'ai un message d'erreur :SuccessErreur dans l'enregistrement du suivi de la ligne de commande. GE0051 : le type d'article Remise sur frais d'accès au service a un paramètre alors qu'aucun champ spécifique n'est de type paramètre pour la prestation COL01000000043589248j'ai ce problème sur la commande F31374121224, mais je vais l'avoir aussi , probablement sur F48491160525, F48442160525 et F48457160525.Données concernée : Application remise Résultat attendu souhaité : terminée la commande Résultat obtenu : message d'erreur ;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P3;;09/06/2026;16/06/2026;✅ Résolu en 5 jours;;HEPOC;Paramétrage COLORIS
+INC001011215714;2606Q92776;merci d'enlever les FAS 1 du mont devis et mettre 0 pour les commandes COL01000000048224687 - COL01000000047258917.;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;La valeur a été modifiée pour les deux prestations.;04/06/2026;04/06/2026;✅ Résolu en < 1 jour;;;
+INC001011216130;2606R03486;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;" Les prestations figurant dans ce fichier ont déjà été traitées dans le ticket Genergy INC001011203813.
+car le fichier des prestations non existantes ne contenait pas des prestations.";03/06/2026;03/06/2026;✅ Résolu en < 1 jour;;;
+INC001011211220;2606P98858;"Bonjour,
+Suite à un problème détecté pour Corsica, Le timestamp ne se met pas à jour entre Coloris et FCI.
+Le seule moyen de le relancer c'est de prendre les commandes et faire enregistrer dans Coloris pour relancer Le timestamp pour que lopérateur puisse déposer son DFT.
+Pouvez-vous faire une injection en masse avec une reprise suivi du fichier en pièce jointe 
+
+En vous remerciant pour vos actions
+Bien sincèrement ";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Toutes les commandes ont été envoyées à FCI;05/06/2026;05/06/2026;✅ Résolu en < 1 jour;;;
+INC001011213776;2606Q51954;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;05/06/2026;05/06/2026;✅ Résolu en < 1 jour;;;
+INC001011213762;2606Q51994;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;05/06/2026;05/06/2026;✅ Résolu en < 1 jour;;;
+INC001011219298;2606S18635;Changement PDL livré;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Modification effectuée;08/06/2026;10/06/2026;✅ Résolu en 2 jours;;;
+INC001011218373;2606R47447;Modif ligne COM et ligne travaux/dispo;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Modification effectuée;08/06/2026;10/06/2026;✅ Résolu en 2 jours;;;
+INC001011224679;2606T08645;"Enlever FAS 1 et mettre 0
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;La valeur a été modifiée dans la prestation.;10/06/2026;10/06/2026;✅ Résolu en < 1 jour;;;
+INC001011224578;"2606T09100
+";DS remonte dans FCI à tort ;BAFFOUN Mohamed Ali;Paramétrage COLORIS;Résolu;P4;changer le parametrage de remonté FCI ;10/06/2026;11/06/2026;✅ Résolu en 1 jour;PCOLORIS-729;RFRLA;Paramétrage COLORIS
+INC001011224941;2606T44721;DSP LA ROCHELLE - commandes bloquees PRET A ENVOYER - Pb flux entre SFR et Orange ?;ZAKRAOUI Mohamed;Support COLORIS;Transféré;P4;Le ticket a été transféré à l'équipe SN3 FCI;11/06/2026;11/06/2026;➡️ Transféré en < 1 jour;;;
+INC001011225506;2606T20216;Modification Point de livraison livré A;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Modification effectuée;11/06/2026;15/06/2026;✅ Résolu en 1 jour;;;
+INC001011225827;2606T44371;Modif point de livraison extremité A;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Modification effectuée;11/06/2026;15/06/2026;✅ Résolu en 1 jour;;;
+INC001011229424;2606T95675;désarchivage de 2 commandes;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Désarchivage fait;12/06/2026;15/06/2026;✅ Résolu en 1 jour;;;
+INC001011223624;2606T91226;Demandeur : GRISAR SEVERIN (SZTB8060) => Titre de la demande : RESULTAT RECHERCHE OFFRE DGRPG NON COHERENT => Description de la demande : Bonjour, Sur l'offre composée , lorsque je fais une recherche des En cours avec Groupe type de ligne de commande DGRPG Dégroupage , ou sans ce choix je n'ai pas les mêmes résultats pour Stéphanie Fabiano, qui pourtant ne fait que du DGRPG Dégroupage;KCHAOU Amira;Paramétrage COLORIS;Transféré;P4;bug coloris;12/06/2026;17/06/2026;➡️ Transféré en 3 jours;;DGRPG;Transféré
+INC001011229667;2606U01518;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4; Le fichier n’a pas été traité (aucune annulation de prestation COLORIS réalisée) pour cause de prestations inconnues pour CONTRASTO.;17/06/2026;18/06/2026;✅ Résolu en 1 jour;;;
+INC001011229676;2606U01601;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4; Le fichier n’a pas été traité (aucune annulation de prestation COLORIS réalisée) pour cause de prestations inconnues pour CONTRASTO.;17/06/2026;18/06/2026;✅ Résolu en 1 jour;;;
+INC001011236811;2606W05555;Mise à jour extrémité B le point de livraison;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Modification effectuée;18/06/2026;18/06/2026;✅ Résolu en < 1 jour;;;
+INC001011238207;2606W18946;Suite maj paramétrage - remontée vers FCI;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Toutes les commandes ont été envoyées à FCI;19/06/2026;19/06/2026;✅ Résolu en < 1 jour;;;
+INC001011234908;2606V73686;Manque information prestation COL01000000045887980;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P4;Prestation envoyée à Marine;18/06/2026;19/06/2026;✅ Résolu en < 1 jour;;;
+INC001011234900;2606V56724;Commandes non visible en corbeille FCI;ZOUARI Wahbi;Paramétrage COLORIS;Résolu;P3;"17_06_SN3: Ticket transféré à COLORIS 
+22/06_Coloris : Correctif mis en prod";17/06/2026;22/06/2026;✅ Résolu en 2 jours;PCOLORIS-732;RIP Hébergement NRO shelter;Paramétrage COLORIS
+INC001011241670;2606X56922;"=> Demandeur : FABIANO STEPHANIE (WZBG8188)
+
+=> Titre de la demande : champs date de fermeture commerciale qui apparait
+
+=> Description de la demande :
+
+Bonjour, sur la commande de résiliation dégroupage F60446260526, le champs date de fermeture commerciale apparait en données obligatoire alors que nous ne l'avions pas avant voir pj
+Cordialement
+
+Données concernée : champs date de fermeture commerciale
+Résultat attendu souhaité : suppression de ce champs
+Résultat obtenu : suppression de ce champs";KCHAOU Amira;Paramétrage COLORIS;Résolu;P3;Modification effectuée ;22/06/2026;22/06/2026;✅ Résolu en < 1 jour;;DGRPG V14 et V16;Paramétrage COLORIS
+INC001011245993;2606Y57234;Demandeur : RIBIER VALENTIN (SVPB2821) => Titre de la demande : Faisabilité impossible car un champ ne peux pas être rempli => Description de la demande :  Sur la commande : F89357190626Sur la ligne COL01000000049547449 : le champ Code d'ingénierie optique ne peut pas être rempli et empêche la validation de la faisabilité. Disponibilités : Joignable par téléphone, teams ou e-mail.Données concernée : Code d'ingénierie optiqueRésultat attendu souhaité : Ne pas avoir besoin de remplir ce champ pour validerRésultat obtenu : Impossible de valider ;KCHAOU Amira;Paramétrage COLORIS;Résolu;P4;Correction effectuée par ADV;24/06/2026;25/06/2026;✅ Résolu en 1 jour;;HBNRO;Bon usage
+INC001011240732;2606X55257;"bonjour
+commande F23393300625
+manques les COL du csv integré
+impossible de reprendre le csv. Impossible de réintegrer car coloris signale qu'elles sont bien présentent";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Le problème est corrigé, conformément aux vérifications effectuées avec Marie-Laure.;23/06/2026;25/06/2026;✅ Résolu en 2 jours;;;
+;2606Y29413;LINUX/partition virtuelle Vmware/Production;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Le problème est corrigé. Le batch a fonctionné normalement jeudi soir, avec un rattrapage des données des trois derniers jours.;23/06/2026;26/06/2026;✅ Résolu en 2 jours;;;
+;2606Y40652;"OWD nous n'avons pas recu par CFT le fichier attendu hier soir.
+CFT_IDF = COLZZZ02";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;P3;24/06/2026;26/06/2026;✅ Résolu en 1 jour;;;
+INC001011246076;2606Y99797;Absence de prestations COLORIS dans MARINE;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Les prestations ne sont pas paramétrées pour être envoyées à Marine.;26/06/2026;29/06/2026;✅ Résolu en 1 jour;;;
+INC001011241267;2606X51990;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;26/06/2026;30/06/2026;✅ Résolu en 2 jours;;;
+INC001011242958;2606Y01877;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;26/06/2026;30/06/2026;✅ Résolu en 2 jours;;;
+INC001011254561;2606A82734;"Bonjour,
+
+merci d'enlever les FAS 1 à la COL01000000048231384 et les mettre à 0.
+Je vous remercie par avance pour votre action.
+
+Cordialement";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Modification effectuée ;30/06/2026;30/06/2026;✅ Résolu en < 1 jour;;;
+INC001011251971;2606A46684;F96593090326  PAS DE DONNEES SPECIFIQUES sur la prestation emplacement COL0100000004834125;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Le problème a été corrigé;30/06/2026;30/06/2026;✅ Résolu en < 1 jour;;;
+INC001011251907;2606A36260;UTILISATION - LENTEUR TEMPS DE REPONSE ;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Problème détecté. Un bug a déjà été créé pour ce problème sous le numéro COL-11777. Il sera livré dans ce sprint, le 26 juillet.;30/06/2026;30/06/2026;✅ Résolu en < 1 jour;;;
+INC001011255652;2607B10523;Opération à réaliser : Merci de mettre la date de MES retenue au 21/07/2027 pour les prestations suivantes;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Modification effectuée ;01/07/2026;01/07/2026;✅ Résolu en < 1 jour;;;
+INC001011254825;2607B06125;bloquer les FAS sur la commande ferme F97309260626;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Blocage FAS;01/07/2026;01/07/2026;✅ Résolu en < 1 jour;;;
+INC001011254596;2606A84219; Demandeur : CAZENEUVE ISABELLE (HKRQ3612) => Titre de la demande : F85554310326 => Description de la demande :  Bonjour,Sur la commande de résiliation V16 F85554310326, la prestation de la commande ferme de charges spécifiques ne remonte pas.Merci pour votre aide.Cordialement,Isabelle CAZENEUVEOpération à réaliser : Faire remonter la prestation de commande ferme de charges spécifiques;KCHAOU Amira;Paramétrage COLORIS;Transféré;P3;;01/07/2026;01/07/2026;➡️ Transféré en < 1 jour;;DGRPG V16;Transféré
+ INC001011250101;;;DHIFLAOUI Besma;Paramétrage COLORIS;Résolu;P3;anomalie détemessage erreurctée;26/06/2026;02/07/2026;✅ Résolu en 4 jours;;HEPOC;Paramétrage COLORIS
+INC001011255749;2607B10405;Demandeur : FABIANO STEPHANIE (WZBG8188) => Titre de la demande : Problème sur date de MES => Description de la demande : Bonjour, sur ma commande de dépose F01724300626, toutes les lignes de commandes sont à la date de mes au 30/09/2026 sauf la ligne des renvois qui est au 03/09/2026 alors qu'elle devrait être comme les autres lignes.J'ai une autre commande qui avait le même soucis F01639300626cordialement Données concernée : date de mesRésultat attendu souhaité : vérifier si il n'y a pas un bug Résultat obtenu : vérifier si il n'y a pas un bug ;KCHAOU Amira;Paramétrage COLORIS;Résolu;P3;Modification effectuée ;02/07/2026;02/07/2026;✅ Résolu en < 1 jour;;DGRPG V16;Paramétrage COLORIS
+INC001011257686;2607B50200;ROGCI_RTBM : blocage de FAS;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Blocage FAS;02/07/2026;02/07/2026;✅ Résolu en < 1 jour;;;
+INC001011254596;2606A84219; Demandeur : CAZENEUVE ISABELLE (HKRQ3612) => Titre de la demande : F85554310326 => Description de la demande :  Bonjour,Sur la commande de résiliation V16 F85554310326, la prestation de la commande ferme de charges spécifiques ne remonte pas.Merci pour votre aide.Cordialement,Isabelle CAZENEUVEOpération à réaliser : Faire remonter la prestation de commande ferme de charges spécifiques;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Commande réparée.;02/07/2026;02/07/2026;✅ Résolu en < 1 jour;;;
+INC001011251876;2606A46274;Annulation en masse de Prestations CONTRASTO;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;03/07/2026;03/07/2026;✅ Résolu en < 1 jour;;;
+INC001011257104;2607B47132;"Bonjour,
+Sur plusieurs prestations, dès que j'enregistre mes modifications, j'ai un message d'erreur erreur technique. (voir copie écran erreur technique).
+Je constate ce défaut sur 3 commandes :
+- F00310160625 : sur la prestation COL0100000004548885, le champs Modalité d'arrivée du câble en chambre 0, doit passer de Réutilisation d'une pénétration existante en chambre 0, par Utilisation d'une offre GCBLO. (voir copie écran)
+- F00304160625 : sur la prestation COL01000000045488850, le champs Modalité d'arrivée du câble en chambre 0, doit passer de Réutilisation d'une pénétration existante en chambre 0, par Utilisation d'une offre GCBLO. (voir copie écran)
+- F73874080626 :  sur la prestation COL01000000049509061, Position FO sur le câble en pénétration, doit passer de F43, à F4. (voir copie écran commande F73874080626)";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Le problème a été corrigé;02/07/2026;03/07/2026;✅ Résolu en 1 jour;;;
+INC001011260685;2607B97978;désarchivage de commande;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Désarchivage effectué;03/07/2026;06/07/2026;✅ Résolu en 1 jour;;;
+INC001011261754;2607C67636; Renvoyer les commandes contenant des prestations conditionnement d'air à OWD;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;les commandes sont envoyer a raool;07/07/2026;07/07/2026;✅ Résolu en < 1 jour;;;
+INC001011265845;2607D51904;"FAS à retirer lors de la MES
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Le blocage des FAS a été effectué.;08/07/2026;08/07/2026;✅ Résolu en < 1 jour;;;
+INC001011268171;2607D93350;"Bonjour,
+Pour la prestation COL01000000049635027, pouvez-vous modifier le montant de l'acompte à 12 700 à la place de 21 300 ?
+merci pour votre aide. 
+Floriane ";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Modification effectuée ;09/07/2026;09/07/2026;✅ Résolu en < 1 jour;;;
+INC001011259606;2607B83783;"Annulation en masse de Prestations CONTRASTO
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;07/07/2026;09/07/2026;✅ Résolu en 2 jours;;;
+INC001011259613;2607B83929;"Annulation en masse de Prestations CONTRASTO
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;07/07/2026;09/07/2026;✅ Résolu en 2 jours;;;
+INC001011260790;2607B98759;"Annulation en masse de Prestations CONTRASTO
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;07/07/2026;09/07/2026;✅ Résolu en 2 jours;;;
+INC001011260804;2607B99050;"Annulation en masse de Prestations CONTRASTO
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3; Conformément à la demande toutes les prestations listées ont été annulées dans COLORIS. ;07/07/2026;09/07/2026;✅ Résolu en 2 jours;;;
+INC001011270846;2607E39527;Sous notification segment D3 pour la commande F16953100726 Impossible de déposer les annexes.;ZOUARI Wahbi;Paramétrage COLORIS;Transféré;P3;Ticket rendu à Genergy pour transfert à EEP ;10/07/2026;13/07/2026;➡️ Transféré en 1 jour;PCOLORIS-742;;Bon usage
+INC001011276468;2607G25142;Bonjour,  Nous devons mettre en service commerciale à la date du 16/07/2026 la commande F02998170625. Comme vu avec le commercial, pourriez vous bloquer les FAS ?  (meme process que la générgy du mois de février INC001011061556);ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Le blocage des FAS a été effectué.;16/07/2026;16/07/2026;✅ Résolu en < 1 jour;;;
+INC001011277353;2607G25451;"Suite à un problème technique, l'incident INC001011229044 que j'avais déposé le 12/06/26 n'a pas été traité.
+Merci de bien vouloir désarchiver la commande F29631090925 au plus vite svp.
+C'est urgent.
+";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Désarchivage effectué;16/07/2026;16/07/2026;✅ Résolu en < 1 jour;;;
+;2607G29047;Bonjour, nous recevons depuis hier 15 juillet les fichiers par CFT (IDF = COLZZZ02) sur OWD, de plus en plus tard. Réception le 15 juillet à 15h45 attendu à 12h45 Réception le 16 juillet à 3h00 attendu le 15 juillet à 23h50 et Non réception à 15h20 de celui du 16 juillet attendu à 12h45 Pouvez-vous nous faire un retour si vous rencontrez des difficultés de génération/envoi avnt d'investiguer côté Axway. MErci;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;"Oui, cette lenteur est due au rattrapage des commandes GCBLO actuellement en cours. Le volume de données a considérablement augmenté ces trois derniers jours, ce qui allonge le temps de traitement.
+
+C'est la raison pour laquelle vous avez reçu les fichiers avec du retard : le traitement prend actuellement plus de temps que d'habitude.";16/07/2026;16/07/2026;✅ Résolu en < 1 jour;;;
+INC001011277700;2607G28334;"Bonjour, 
+
+merci d'enlever les montants FAS 1 et mettre O à la place pour les commandes COL01000000048224651 - COL01000000048231397 - COL01000000048231838 - COL01000000048232540 - COL01000000048232083 - COL01000000048232209.
+
+Je vous remercie par avance pour vos actions,
+
+Cordialement";ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Modification effectuée ;16/07/2026;16/07/2026;✅ Résolu en < 1 jour;;;
+;2607H42386;[COLORIS] / [SMC3, ARGENT] / [REMCOLL_NOOPI_JOB / ENDED_NOT_OK / JU.COL.DRA.EXP ] : [NOOPI : le job JU.COL.DRA.EXP (WORKFLOW : W.COL.RAO.EXP.X.WS01, RUNID : 1848772605, CLIENTNUM : 1568 ) s est termine dans l etat ENDED_NOT_OK a 01:01:20.];ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;Un problème est survenu lors du déroulement du batch. La cause du problème est un verrou (lock) sur une table.;19/07/2026;19/07/2026;✅ Résolu en < 1 jour;;;
+INC001011279402;2607G73261;Disparition des données spécifiques;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;"Un bug a été créé pour ce problème. Il s'agit du ticket COL-11932.
+
+Par ailleurs, j'ai corrigé la prestation afin que l'ADV puisse poursuivre son traitement.";19/07/2026;21/07/2026;✅ Résolu en 1 jour;;;
+INC001011282123;2607H92233;PAS DE DONNEES SPECIFIQUES sur la prestation emplacement COL01000000010751749;ZAKRAOUI Mohamed;Support COLORIS;Résolu;P3;"Un bug a été créé pour ce problème. Il s'agit du ticket COL-11932.
+
+Par ailleurs, j'ai corrigé la prestation afin que l'ADV puisse poursuivre son traitement.";21/07/2026;21/07/2026;✅ Résolu en < 1 jour;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;

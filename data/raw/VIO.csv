@@ -1,0 +1,488 @@
+﻿ID Ticket GENERGY ;ID Ticket OCEANE;App;Description;Acteur;Périmètre ;Statut;Priorité;Actions réalisés;Date d'ouverture;Date de résolution;Durée de résolution;ID Jira
+INC001010961694;2512K27406;Parc;Problème Marine;Mariem Hammami;Support VIO;Résolu;P3;L’investigation a été effectuée;10/11/2025;11/12/2025 00:00;✅ Résolu en 23 jours;
+INC001010946366;2512H51825;Parc;Dans le cadre d'une mise à jour du SI et du traitement des portabilités, j'aurai besoin d'un recensement de tous les parcs actifs sur les offres de gros : DSL/ DGT et VG et Pour la Porta HD;Akram Sahli ;Support VIO;Résolu;P4;"Nous avons bien pris en compte votre demande concernant l’extraction de l’ensemble des parcs actifs sur les offres de gros : DSL, DGT, VG ainsi que pour la Porta HD. 
+Vous trouverez ci-joint le lien contenant l’ensemble des fichiers demandés. 
+https://tf.orange.com/d/22ba85b2ddcf4b7e93f6/ ";02/12/2025;04/12/2025;✅ Résolu en 2 jours;
+INC001010954206;2512J75412;Parc;J'ai besoin du parc d'accès du client CEGETEL // code ariane OC : 00SFR1 // codes offre : FTTH_ZMD_MO (BRAM), FTTH_ZTD_V, FTTH_ZTD_BD_V, FTTH_ZMD_V (accès passifs) // OI : Orange & RIP orange;Akram Sahli ;Support VIO;Résolu;P3;"Nous avons bien pris en compte votre demande concernant l’extraction de l’ensemble des parcs d'accès du client CEGETEL // code ariane OC : 00SFR1 // codes offre : FTTH_ZMD_MO (BRAM), FTTH_ZTD_V, FTTH_ZTD_BD_V, FTTH_ZMD_V (accès passifs)
+Vous trouverez ci-joint le lien contenant l’ensemble des fichiers demandés.
+https://tf.orange.com/d/cfa26ff479454739bc96/";09/12/2025;10/12/2025;✅ Résolu en 1 jour;
+;2512L11587;Vigie;[VIGIE_VI] / [SMC4, BRONZE, SOX] / [REMCOLL_NOOPI_JOB / ENDED_NOT_OK / JU.VIG.SYN.FOP ] : [NOOPI : le job JU.VIG.SYN.FOP (WORKFLOW : W.VIG.SYN.FOP.D.WS01, RUNID : 1620800468, CLIENTNUM : 1123 ) s est termine dans l etat ENDED_NOT_OK a 00:35:34.];Akram Sahli ;Support VIO;Résolu;P4;"Bonjour,
+L’incident a été rétabli le lendemain.
+La synchronisation des données du 13/12 a bien été effectuée avec succès, sans impact résiduel constaté.";12/12/2025;18/12/2025 00:00;✅ Résolu en 4 jours;
+;2512L01771;Sagic;[SAGIC] / [SMC3, ARGENT] / [OBV_APP_FILE_STRING / MatchingLine / /opt/application/vi1was/current/logs/sagic_servlet.log_SQLException_Servlet ] : [/opt/application/vi1was/current/logs/sagic_servlet.log contain SQLException_Servlet - Historique Observabilite It];Mariem Hammami;Support VIO;Résolu;P3;"Voir avec la MOE si le problème est récurrent. Dans ce cas, ouvrir un ticket JIRA pour correction ; sinon, il s’agit d’un incident ponctuel lié à ProcessCrArtemis lors d’un problème de connexion à la base SAGIC le 12/12.";12/12/2025;19/01/1900;✅ Résolu en < 1 jour;
+;2512K66016;Parc;[PARC VIO] / [SMC4, BRONZE, SOX] / [OBV_APP_FILE / Size / /var/opt/data/flat/viapar/files/extract/PROXIMA_202-.zip ] : [L'indicateur est au dessous du seuil pendant plus de 30m (797) - Historique Observabilite It];Akram Sahli ;Support VIO;Résolu;P3;"Bonjour,
+Après vérification, le volume des données générées semble conforme et ne présente pas d’anomalie particulière.
+Concernant le fichier PROXIMA_20251211_001.parc.zip (taille < 1 Mo), celui-ci a été généré manuellement par l’équipe N3 dans le cadre de tests d’accès";11/12/2025;18/12/2025;✅ Résolu en 5 jours;
+;2512N01311;Fop ;Description initiale du ticket: [FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [OBV_MQS_QUEUE / DepthPercent / OPVIOAS011-OPVIOAS011.QL.FOP.DESCENTE.ERREUR.RECI] : [L'indicateur est au dessus du seuil pendant plus de 2m (100) - Historique Observabilite It];Mariem Hammami;Support VIO;Résolu;P2;"Intervention de l’équipe Infrastructure avec augmentation du MAXDEPTH de la file MQ
+OPVIOAS011.QL.FOP.DESCENTE.ERREUR.RECI de 10 000 à 30 000, permettant la levée de l’alarme.
+Recommandation :
+Compte tenu du dysfonctionnement du module IHM FOP et de l’ancienneté des messages en erreur, il est recommandé de procéder à une suppression manuelle des messages, après accord.";19/12/2025;19/12/2025;✅ Résolu en < 1 jour;
+;2512P58372;Fop ;"
+[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646]
+";Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;26/12/2025;29/12/2025;✅ Résolu en 1 jour;
+;2512O91480;Fop ;"
+[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646]
+";Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;26/12/2025;29/12/2025;✅ Résolu en 1 jour;
+;2512O96520;Fop ;"
+[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646]
+";Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;26/12/2025;29/12/2025;✅ Résolu en 1 jour;
+;2512P64218;Fop ;"
+[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646]
+";Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;29/12/2025;30/12/2025;✅ Résolu en 1 jour;
+;2512P79331;Fop ;"
+[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646]
+";Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;29/12/2025;30/12/2025;✅ Résolu en 1 jour;
+;2512P59443;Fop ;résiloation des GTR;Mariem Hammami;Support VIO;Résolu;P3;"Bonjour thierry, 
+
+Suite à ta demande, je te confirme que je viens de résilier manuellement 120 GTR liées à des accès déjà résiliés avec un type de résiliation 98.
+Je te joins donc l’ID parc ainsi que le support FT des accès concernés.";29/12/2025;30/12/2025;✅ Résolu en 1 jour;
+INC001010954206;2601R59174;Parc;J'ai besoin du parc d'accès du client CEGETEL // code ariane OC : 00SFR1 // codes offre : FTTH_ZMD_MO (BRAM), FTTH_ZTD_V, FTTH_ZTD_BD_V, FTTH_ZMD_V (accès passifs) // OI : Orange & RIP orange;Mariem Hammami;Support VIO;Résolu;P3;"Nous avons bien pris en compte votre demande concernant l’extraction de l’ensemble des parcs d'accès du client CEGETEL // code ariane OC : 00SFR1 // codes offre : FTTH_ZMD_MO (BRAM), FTTH_ZTD_V, FTTH_ZTD_BD_V, FTTH_ZMD_V (accès passifs)
+Vous trouverez ci-joint le lien contenant l’ensemble des fichiers demandés.
+https://tf.orange.com/d/cfa26ff479454739bc96/";06/01/2026;08/01/2026;✅ Résolu en 2 jours;
+;2601T35565;Parc;Mise à jour d'extractions de parcs CEGETEL // code ariane 00SFR1 // codes offres : FTTH_ZMD_MO, FTTH_ZTD_V, FTTH_ZTD_BD_V, FTTH_ZMD_V ). Les fichiers devront être restitués par transfert car parcs très volumineux (cf fichier modèle ci-joint);Mariem Hammami;Support VIO;Résolu;P3;"Je vous confirme que le nécessaire a été fait dans le ticket suivant 2601R59174. J’avais déjà fourni le lien des extractions à @SIRIEIX Laurent OW/OWF/DECO la semaine dernière.
+";12/01/2026;12/01/2026;✅ Résolu en < 1 jour;
+;2601S73988;Parc;Initial ticket description: PROXIMA ne recoit plus la donnee LongueurPB-PTO via les fichiers delta parc;Mariem Hammami;Support VIO;Résolu;P3;"Vu avec Grafic, le champ LONGUEUR_PB_PTO est renseigné par Grafic et n’est pas obligatoire. Il est parfois envoyé avec une valeur et parfois à null. Le comportement est normal côté Grafic ; par conséquent, côté Parc VIO, aucune modification n’est à prévoir.";"
+
+09/01/2026";13/01/2026;✅ Résolu en < 1 jour;
+;2601T21711;Sagic;[SAGIC] / [SMC3, ARGENT] / [REMCOLL_NOOPI_JOB / ENDED_NOT_OK / JU.VI1.MAJ.EDS ] : [NOOPI : le job JU.VI1.MAJ.EDS (WORKFLOW : W.VI1.MAJ.EDS.J.WS01, RUNID : 1651539650, CLIENTNUM : 1123 ) s est termine dans l etat ENDED_NOT_OK a 14:00:08.] ;Akram Sahli ;Support VIO;Résolu;P3;L'exécution de ce job est récente, et celui-ci s'est terminé avec succès (ENDED_OK) le 18/01/2026. Si le problème devait se reproduire, une investigation complémentaire sera nécessaire afin d'anticiper et d'éviter toute difficulté future.;11/01/2026;19/01/2026;✅ Résolu en 5 jours;
+;2601W34141;Sagic;probleme de préfixe à tort dans EKO - nosper 5818787 - ND 0240030004 - commande 403362381;Mariem Hammami;Support VIO;Résolu;P3;SAGIC se comporte conformément au contrat. L’anomalie provient du fichier transmis par Nosper.;11/01/2026;23/01/2026;✅ Résolu en 9 jours;
+; 2601Y22008;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;26/01/2026;26/01/2026;✅ Résolu en < 1 jour;
+;2601Y22217;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;26/01/2026;29/01/2026;✅ Résolu en 3 jours;
+;2602A65664;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;02/02/2026;02/02/2026;✅ Résolu en < 1 jour;
+;2602A65489;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;02/02/2026;02/02/2026;✅ Résolu en < 1 jour;
+;2602C10971;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF02_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF02_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;06/02/2026;06/02/2026;✅ Résolu en < 1 jour;
+;2602C11118;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;06/02/2026;06/02/2026;✅ Résolu en < 1 jour;
+;2602C78379;Fop ;Description initiale du ticket: [FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idCFT_CMD_STR_Transfers_ERROR ] : [CFT : 1 transfert(s) en erreur - dernier: Part=LTN DTSA=SFK IDF=FOPLTN01 IDT=B0909295 Diags=405.];Mariem Hammami;Support VIO;Résolu;P3;"
+
+Bonjour,
+Après investigation , j’ai constaté que le dernier fichier transmis à l’opérateur LTI TELECOM date de 2018.
+
+Depuis cette date, les notifications relatives aux accès ne sont plus envoyées de manière régulière, comme le montre la capture ci-jointe (plusieurs fichiers en statut erreur).
+
+Il est probable que ce dysfonctionnement soit lié à un changement intervenu du côté de l’opérateur, notamment au niveau de leur configuration CFT.";09/02/2026;16/02/2026;✅ Résolu en 5 jours;
+;2602G10915;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;17/02/2026;17/02/2026;✅ Résolu en < 1 jour;
+;2602G12199;Sagic;ND = 0494359821- IC Sagic = 403518982 ;Mariem Hammami;Support VIO;Résolu;P2;"Bonjour,
+
+@Pampa  (@BEN KILANI Radhia SOFRECOM) , Oui, effectivement, j’ai constaté une anomalie qui doit être corrigée.
+Dans le cas contraire, nous risquons de rencontrer le même souci côté Pampa lors de l’extraction des fichiers Porta.
+
+Après analyse de la fonction extraction_porta_pampa (BDD VIGIE), j’ai identifié l’origine de l’anomalie sur la commande 403518982 (PS_EPS).
+
+Actuellement, la valeur retournée provient du ND support (via i_support), ce qui explique la redondance du 0494359820.
+
+Or, fonctionnellement, pour ce type de commande, la liste des ND doit être récupérée depuis f_liste_nd_demande (via f_demande), afin de faire apparaître la séquence complète attendue (0494359821 à 0494359849).
+
+Pour correction, il conviendrait :
+
+de privilégier la récupération du ND depuis f_liste_nd_demande (l2.nd).
+Suite à la correction que je viens d’effectuer dans la requête, j’ai remplacé i.support par l2.nd afin de remonter la séquence correcte:
+SELECT
+
+    i.id_canal,
+
+    i.code_ic,
+
+    l2.nd,
+
+    to_char(i.date_chgt_etat, 'YYYY-MM-DD HH24:MI:SS') AS date_chgt_etat,
+
+    i.etat_commande,
+
+    coalesce(
+
+        to_char(l2.code_reach),
+
+        get_cplt_value(cc.CPLT_SERVICE,'Z0BPQR'),
+
+        to_char(ll.code_reach),
+
+        to_char(cpp.code_reach)
+
+    ) AS code_reach,
+
+    i.code_revendeur,
+
+    oo.code_offre,
+
+    get_cplt_value(cc.CPLT_SERVICE,'TypePorta') AS TypePorta,
+
+    c.code_canal,
+
+    fd.nd_debut,
+
+    fd.nd_fiab,
+
+    fd.nd_tete,
+
+    fd.nombre
+
+FROM s_ic i
+
+    INNER JOIN s_offre oo ON oo.id_offre = i.id_offre
+
+    INNER JOIN s_canal c ON c.id_canal = i.id_canal
+
+    LEFT JOIN s_cplt_ic cc ON cc.code_ic = i.code_ic
+
+    LEFT JOIN F_sequence_SDA fd ON fd.code_ic = i.id_cde_frontal
+
+    LEFT JOIN f_demande dd ON dd.code_ic = i.id_cde_frontal
+
+    LEFT JOIN f_liste_nd_demande l2 ON l2.code_ic = dd.code_ic
+
+    LEFT JOIN f_liste_nd_demande ll ON ll.code_ic = fd.code_ic
+
+    LEFT JOIN f_cplt_portabilite cpp ON cpp.code_ic = i.code_ic
+
+WHERE
+
+    (oo.groupe IN (1400,1401) OR oo.code_offre = 'PSSUP')
+
+    AND upper(oo.code_offre) NOT IN ('PSNG+A','PSNG+R','PSG+A','PSG+R','PSP')
+
+    AND i.etat_commande IN ('EXE','NEX','ANN')
+
+    AND i.id_canal = 3
+
+    AND i.code_ic = 403518982
+
+ 
+
+UNION ALL
+
+ 
+
+SELECT
+
+    i.id_canal,
+
+    i.code_ic,
+
+    I.support, 
+
+    to_char(i.date_chgt_etat, 'YYYY-MM-DD HH24:MI:SS') AS date_chgt_etat,
+
+    i.etat_commande,
+
+    coalesce(
+
+        to_char(l2.code_reach),
+
+        get_cplt_value(cc.CPLT_SERVICE,'Z0BPQR'),
+
+        to_char(ll.code_reach),
+
+        to_char(cpp.code_reach)
+
+    ) AS code_reach,
+
+    i.code_revendeur,
+
+    oo.code_offre,
+
+    get_cplt_value(cc.CPLT_SERVICE,'TypePorta') AS TypePorta,
+
+    c.code_canal,
+
+    fd.nd_debut,
+
+    fd.nd_fiab,
+
+    fd.nd_tete,
+
+    fd.nombre
+
+FROM s_ic i
+
+    INNER JOIN s_offre oo ON oo.id_offre = i.id_offre
+
+    INNER JOIN s_canal c ON c.id_canal = i.id_canal
+
+    LEFT JOIN s_cplt_ic cc ON cc.code_ic = i.code_ic
+
+    LEFT JOIN f_demande_complexe fdc ON fdc.chrono_op = CAST(i.code_ic AS VARCHAR2(15))
+
+    LEFT JOIN f_demande fdd ON fdd.id_ic_cplx = fdc.id_ic_cplx
+
+    LEFT JOIN F_sequence_SDA fd ON fd.code_ic = fdd.code_ic
+
+    LEFT JOIN f_liste_nd_demande l2 ON l2.code_ic = fdd.code_ic
+
+    LEFT JOIN f_liste_nd_demande ll ON ll.code_ic = fd.code_ic
+
+    LEFT JOIN f_cplt_portabilite cpp ON cpp.code_ic = i.code_ic
+
+WHERE
+
+    (oo.groupe IN (1400,1401) OR oo.code_offre = 'PSSUP')
+
+    AND upper(oo.code_offre) NOT IN ('PSNG+A','PSNG+R','PSG+A','PSG+R','PSP')
+
+    AND i.etat_commande IN ('EXE','NEX','ANN')
+
+    AND i.reciprocite = 1
+
+    AND fdc.id_ic_cplx_corr IS NULL
+
+    AND i.code_ic = 403518982;
+
+Merci de vérifier et d’adapter la requête en conséquence.";17/02/2026;18/02/2026;✅ Résolu en 1 jour;
+;2602G11094;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF02_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF02_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;17/02/2026;18/02/2026;✅ Résolu en 1 jour;
+;2602G36008;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF02_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF02_WARN'. 1 <= 1.00 <= 2147483646];Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;18/02/2026;18/02/2026 00:00;✅ Résolu en < 1 jour;
+;2602G36285;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;18/02/2026;18/02/2026;✅ Résolu en < 1 jour;
+;2602G58079;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;18/02/2026;18/02/2026 00:00;✅ Résolu en < 1 jour;
+;2602G11013;Fop ;"[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILESYSTEMS / FreeSpacePercent / idFSA_FLS_var-cache-yum ] : [FSA : FILESYSTEM : Le taux d'espace libre (0 %) du filesystem /var/cache/yum est insuffisant.]
+
+[ RAT2 ] : Attention plusieurs serveurs ou services peuvent être concernés - Voir commentaire
+
+[ RAT2 ] : Attention plusieurs serveurs ou services peuvent être concernés - Voir commentaire";Akram Sahli ;Support VIO;Résolu;P2;"Le batch d’envoi étant un job générique, il n’est pas prévu de le désactiver.
+
+Action recommandée : retirer le partenaire de la configuration afin d’éviter tout déclenchement du job sur ce flux obsolète.
+";17/02/2026;23/02/2026;✅ Résolu en 4 jours;
+;2602I56415;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF02_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF02_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;24/02/2026;24/02/2026;✅ Résolu en < 1 jour;
+;2602I64390;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;24/02/2026;25/02/2026 00:00;✅ Résolu en 1 jour;
+;2602I84588;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646];Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;25/02/2026;25/02/2026;✅ Résolu en < 1 jour;
+;2602D71794;Fop ;commande bloquèe;Mariem Hammami;Support VIO;Résolu;P3;La livraison de la commande a pris plus de temps que prévu, mais elle est désormais correctement exécutée.;17/02/2026;26/02/2026;✅ Résolu en 7 jours;
+;2602J29923;Sagic;etat de commande dans Sagic;Akram Sahli ;Support VIO;Résolu;P4;veuillez trouver ci-joint le fichier CSV contenant l’ensemble des états de commande dans Sagic.;26/02/2026;27/02/2026;✅ Résolu en 1 jour;
+;2602J26654;Fop ;Bonjour, pouvez-vous transmettre l'AR de la commande chrono CT299333 du 0328820805 s'il vous plaît. En vous remerciant par avance, cordialement ;Mariem Hammami;Support VIO;Résolu;P4;répondre par mail;26/02/2026;03/03/2026 00:00;✅ Résolu en 3 jours;
+;2603K70941;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;sujet problème de la clé public côté operateur qui bloque la reception du fichier côté APNF ;03/03/2026;03/03/2026;✅ Résolu en < 1 jour;
+;2603L28442;Fop ;commande dans fop mais pas a l apnf;Mariem Hammami;Support VIO;Résolu;P3;J’ai identifié 7 fichiers absents côté APNF ;04/03/2026;05/03/2026;✅ Résolu en 1 jour;
+;2603M58410;Vigie;[VIGIE_VI] / [SMC4, BRONZE, SOX] / [OBV_CFT_TRANSFERT / MatchingLine / failed ] : [CFT : transfert(s) en erreur : Part=OP73RCFT DTSA= IDF=VIG73R1 IDT=C0900580 Diags= - Historique Observabilite It] ;Mariem Hammami;Support VIO;Résolu;P4;Il s’agit d’un problème de connectivité ou d’indisponibilité du partenaire CFT OP73RCFT au moment du transfert, et non d’un problème applicatif côté VIGIE.;09/03/2026;10/03/2026;✅ Résolu en 1 jour;
+;2603N46542;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;11/03/2026;11/03/2026;✅ Résolu en < 1 jour;
+;2603N41872;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;"
+Il s’agit d’un problème de clé publique côté opérateur, ce qui bloque la réception du fichier en provenance de l’APNF";11/03/2026;11/03/2026;✅ Résolu en < 1 jour;
+;2603N58848;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646];Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;11/03/2026;11/03/2026;✅ Résolu en < 1 jour;
+;2603N58824;Parc;[VAD MOBILE] / [SMC2, OR, SOX] / [REMCOLL_NOOPI_JOB / ENDED_NOT_OK / JU.M22.LEC.EXP] : [NOOPI : le job JU.M22.LEC.EXP (WORKFLOW : W.M22.LEC.EXP.X.BS01, RUNID : 1713051799, CLIENTNUM : 1705 ) s est termine dans l etat ENDED_NOT_OK a 14:00:59.];Akram Sahli ;Support VIO;Résolu;P2;ce ticket ne concerne pas l’application VIO;11/03/2026;12/03/2026 00:00;✅ Résolu en 1 jour;
+;2603L91468;Fop ; commande dans eko mais pas dans fop PS_E;Mariem Hammami;Support VIO;Résolu;P3;"
+J’ai créé une nouvelle commande dans Sagic, puis je l’ai vérifiée dans FOP où elle a bien été générée. Le fichier .port a également été créé correctement.
+
+Ensuite, je suis revenu dans Sagic pour renseigner le ND dans le formulaire 24. La commande est désormais dans l’état « transmise » et suit actuellement son cycle normal de livraison.";06/03/2026;13/03/2026;✅ Résolu en 5 jours;
+;2603P01209;Fop ;DESCRIPTION : [P3] : [FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'.  0 <= 0.00 <= 0];Akram Sahli ;Support VIO;Résolu;P3;"Suite à une supervision sur la transmission des fichiers FT, une erreur CR015 : ""L'opérateur destinataire du fichier MIT n'est pas déclaré dans le SIC APNF"" a été constatée pour l'opérateur concerné. Après vérification des logs, il apparaît que l'opérateur ne reçoit plus les fichiers FT depuis le 27/12. Après échange avec l'équipe métier, il a été confirmé que Parabole ne fait plus de port pour cet opérateur, et qu'en conséquence aucun envoi de fichiers n'est désormais attendu. Le comportement est donc normal et ne nécessite pas d'action supplémentaire.";16/03/2026;16/03/2026;✅ Résolu en < 1 jour;
+;2603P57389;Fop ;"Depuis début 2026, nous ne recevons plus sur notre ftp vos fichiers de retour adsl (commandes, ecrasements, etc...)
+Dans le FOP ils apparaissent bien transmis, mais sur le FTP ils n'y sont pas.";Akram Sahli ;Support VIO;Résolu;P3;"Après analyse, nous avons identifié un problème de paramétrage au niveau de l’id_cle_cryptage, ce qui empêchait la bonne transmission des fichiers vers votre FTP.
+Le paramétrage a été corrigé de notre côté. Nous avons également relancé la génération ainsi que la retransmission des fichiers afin de rétablir la situation.";17/03/2026;19/03/2026;✅ Résolu en 2 jours;
+;2603P54721;Fop ;"[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILESYSTEMS / FreeSpacePercent / idFSA_FLS_oradata-PVIAPAR-u02 ] : [FSA : FILESYSTEM : Le taux d'espace libre (0 %) du filesystem /oradata/PVIAPAR/u02 est insuffisant.]
+[ RAT2 ] : Attention plusieurs serveurs ou services peuvent être concernés - Voir commentaire
+[RAT_BY_HOST] : Attention plusieurs serveurs ou services peuvent être concernés - Voir commentaire";Mariem Hammami;Support VIO;Résolu;P2;"Une action corrective a été réalisée :
+augmentation de la tablespace
+suppression / purge du contenu temporaire
+L’espace disque a été libéré et la situation est revenue à la normale.";17/03/2026;23/03/2026;✅ Résolu en 4 jours;
+;2602J72967;Parc;Clarification sur le champ « LongueurPB-PTO »;Mariem Hammami;Support VIO;Résolu;P4;"Un ticket JIRA VIO-4323 a été créé pour la mise en place du correctif.
+
+Par ailleurs, le fichier de rattrapage a été transmis par mail et reste à valider avec l’équipe Proxima afin de réaliser la correction côté parc VIO.";27/02/2026;23/03/2026;✅ Résolu en 16 jours;VIO-4323
+;2603R70900;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;24/03/2026;24/03/2026;✅ Résolu en < 1 jour;
+;2603K20913;Vigie;"[VIGIE_VI] / [SMC4, BRONZE, SOX] / [OBV_SYS_SYSMON / MatchingLine / system.log_CRITICAL ] : [SysMon Error CRITICAL - Historique Observabilite It]
+[ RAT2 ] : Attention plusieurs serveurs ou services peuvent être concernés - Voir commentaire
+[ RAT2 ] : Attention plusieurs serveurs ou services peuvent être concernés - Voir commentaire";Akram Sahli ;Support VIO;Résolu;P3;"Le serveur SMB est joignable (réseau OK).
+Le point de montage AUTOMATES_SCOT n’est pas actif.
+Le partage P-OWF_AUTOMATES$ est dans le périmètre VIO.
+Une communication officielle (Franck Wouters) indique que les espaces partagés VIO sont passés en lecture seule et seront fermés définitivement le 13/12/2024.
+L’accès local au chemin /opt/application/vigapp/AUTOMATES_SCOT/uipath est bloqué par droits Unix (groupe gpvigapp), ce qui empêche toute validation de contenu côté serveur.";01/03/2026;25/03/2026;✅ Résolu en 17 jours;
+;2603S25677;Fop ;Mauvais traçage des appels de VIO vers l'API RIO depuis MEP du 11/03 (T602248844);Mariem Hammami;Support VIO;Résolu;P3;Problème résolu;25/03/2026;31/03/2026;✅ Résolu en 4 jours;VIO-4389
+;2603S88412;Parc;Extraction OSM FTTH ACESS pour Koesio N., FlexNetwork, DSTNY et NEXERA ;Akram Sahli ;Support VIO;Résolu;P4;"Nous avons généré le fichier au format .pst et .parc conformément au besoin.
+le fichier a été transmis par email.
+Merci de vérifier la bonne réception.";27/03/2026;27/03/2026 00:00;✅ Résolu en < 1 jour;
+;2603T74034;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;30/03/2026;30/03/2026;✅ Résolu en < 1 jour;
+;2603T87692;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;30/03/2026;30/03/2026;✅ Résolu en < 1 jour;
+;2603T95910;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF03_ALARME ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF03_ALARME'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P2;Commande désormais débloquée;30/03/2026;30/03/2026 00:00;✅ Résolu en < 1 jour;
+;2603U16124;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;31/03/2026;31/03/2026;✅ Résolu en < 1 jour;
+;2603U27846;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;31/03/2026;31/03/2026;✅ Résolu en < 1 jour;
+;2603T22200;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;L’envoi des fichiers a bien été effectué.;28/03/2026;31/03/2026;✅ Résolu en 1 jour;
+;2603U35783;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;31/03/2026;31/03/2026 00:00;✅ Résolu en < 1 jour;VIO-4410
+;2604U55426;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;01/04/2026;01/04/2026;✅ Résolu en < 1 jour;
+;2604U66605;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;01/04/2026;01/04/2026 00:00;✅ Résolu en < 1 jour;
+;2604V05254;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;02/04/2026;03/04/2026;✅ Résolu en 1 jour;
+;2604V05491;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;02/04/2026;03/04/2026;✅ Résolu en 1 jour;
+;2604V12541;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;02/04/2026;03/04/2026;✅ Résolu en 1 jour;
+;2604V12736;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;02/04/2026;03/04/2026;✅ Résolu en 1 jour;
+;2604V32145;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;03/04/2026;03/04/2026;✅ Résolu en < 1 jour;
+;2604V32345;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;03/04/2026;03/04/2026;✅ Résolu en < 1 jour;
+;2604V42154;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;03/04/2026;03/04/2026;✅ Résolu en < 1 jour;
+;2604U94712;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;02/04/2026;03/04/2026;✅ Résolu en 1 jour;
+;2604V63934;Fop ;DESCRIPTION : [P3] : [FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'.  0 <= 0.00 <= 0];Mariem Hammami;Support VIO;Résolu;P3;"Le fichier FRTE00SEWA00_MOP-M3_P_SEWA00_20260403071551 n’avait pas été transmis ; je viens de procéder à son envoi";04/04/2026;06/04/2026;✅ Résolu en < 1 jour;
+;2604W40787;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;07/04/2026;07/04/2026 00:00;✅ Résolu en < 1 jour;
+;2604W52483;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;07/04/2026;07/04/2026;✅ Résolu en < 1 jour;
+;2604W60485;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;07/04/2026;07/04/2026;✅ Résolu en < 1 jour;
+;2604W82328;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;08/04/2026;08/04/2026;✅ Résolu en < 1 jour;
+;2604X01536;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;08/04/2026;08/04/2026;✅ Résolu en < 1 jour;
+;2604X23875;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;09/04/2026;09/04/2026;✅ Résolu en < 1 jour;
+;2604W93536;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;08/04/2026;09/04/2026 00:00;✅ Résolu en 1 jour;
+;2604X35678;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;09/04/2026;09/04/2026;✅ Résolu en < 1 jour;
+;2604X35681;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;09/04/2026;09/04/2026;✅ Résolu en < 1 jour;
+;2604X42766;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646];Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;09/04/2026;09/04/2026 00:00;✅ Résolu en < 1 jour;
+;2604X62384;Fop ;sup07;Mariem Hammami;Support VIO;Résolu;P3;fichier rejoué;10/04/2026;10/04/2026;✅ Résolu en < 1 jour;
+;2604X35443;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;fichier rejoué;09/04/2026;10/04/2026;✅ Résolu en 1 jour;
+;2604X42513;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;09/04/2026;10/04/2026;✅ Résolu en 1 jour;
+;2604Y44823;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;13/04/2026;13/04/2026 00:00;✅ Résolu en < 1 jour;
+;2604Y56625;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;13/04/2026;13/04/2026;✅ Résolu en < 1 jour;
+;2604Y64351;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;13/04/2026;13/04/2026;✅ Résolu en < 1 jour;
+;2604Y98595;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;14/04/2026;14/04/2026 00:00;✅ Résolu en < 1 jour;
+;2604Z06255;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;14/04/2026;14/04/2026;✅ Résolu en < 1 jour;
+;2604Y85291;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;14/04/2026;14/04/2026;✅ Résolu en < 1 jour;
+;2604Z26229;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;15/04/2026;15/04/2026;✅ Résolu en < 1 jour;
+;2604Z37239;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;15/04/2026;15/04/2026 00:00;✅ Résolu en < 1 jour;
+;2604Z44320;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;15/04/2026;15/04/2026;✅ Résolu en < 1 jour;
+;2604Z62940;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;16/04/2026;16/04/2026;✅ Résolu en < 1 jour;
+;2604Z73209;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;16/04/2026;16/04/2026;✅ Résolu en < 1 jour;
+;2604Z79972;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;16/04/2026;16/04/2026;✅ Résolu en < 1 jour;
+;2604Z93516;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;L’envoi des fichiers a bien été effectué.;17/04/2026;20/04/2026;✅ Résolu en 1 jour;
+;2604Z97121;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;fichier rejoué;17/04/2026;20/04/2026;✅ Résolu en 1 jour;
+;2604Y39518;Vigie;DESCRIPTION : [P4] : [VIGIE_VI] / [SMC4, BRONZE, SOX] / [OBV_CFT_TRANSFERT / MatchingLine / failed ] : [CFT : transfert(s) en erreur : Part=OP73RCFT DTSA= IDF=VIG73R1 IDT=D1301024 Diags= - Historique Observabilite It];Mariem Hammami;Support VIO;Résolu;P4;"
+Dans le cadre de l’analyse des échecs de transfert CFT (DIAG 405), nous avons réalisé des tests de connectivité depuis notre serveur vers le partenaire.
+
+Résultats des tests :
+
+    Résolution DNS : OK
+    Test de connexion au port 1761 :";13/04/2026;20/04/2026;✅ Résolu en 5 jours;
+;2604B09381;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;21/04/2026;21/04/2026;✅ Résolu en < 1 jour;
+;2604B23810;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;21/04/2026;21/04/2026 00:00;✅ Résolu en < 1 jour;
+;2604C53702;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;Fichier rejoué;25/04/2026;27/04/2026;✅ Résolu en < 1 jour;
+;2604D35071;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;Fichier rejoué;28/04/2026;28/04/2026;✅ Résolu en < 1 jour;
+;2604C01770;Sagic;"La fonctionnalité prise de commande en masse dysfonctionne depuis ce jour. 
+Je parviens à sélectionner un fichier. Mais une fois après avoir validé au lieu que SAGIC traite mon fichier, un message d'erreur apparait après un long moment d'attente. LE voici en pièce jointe.";Mariem Hammami;Support VIO;Résolu;P3;us créée pour correction;28/04/2026;28/04/2026;✅ Résolu en < 1 jour;VIO-4539
+;2605F57589;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;Fichier rejoué;05/05/2026;05/05/2026;✅ Résolu en < 1 jour;
+;2605F98877;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;06/05/2026;06/05/2026;✅ Résolu en < 1 jour;
+;2604E22600;Sagic;activation demandée sur commande cédante mais pas d activation demandée sur attributaire . j en ai encore beaucoup d autres dans le même cas;Mariem Hammami;Support VIO;Résolu;P2;problème résolu;30/04/2026;06/05/2026;✅ Résolu en 4 jours;
+;2605G31741;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;Fichier rejoué;07/05/2026;07/05/2026;✅ Résolu en < 1 jour;
+;2605H96845;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;12/05/2026;12/05/2026 00:00;✅ Résolu en < 1 jour;
+;2605H92220;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;Fichier rejoué;12/05/2026;12/05/2026;✅ Résolu en < 1 jour;
+;2605H97269;Fop ;Dans le cadre de la fermeture du cuivre, je souhaiterai savoir si une commande de MIGRATION (ordre de commande au frontal) pour le DSL et le DGT est bloquée ou non;Akram Sahli ;Support VIO;Résolu;P3;"Le contrôle FCC (rejet HC13), lié à la fermeture commerciale du cuivre, n'est pas configuré sur l'acte de MIGRATION.
+En conséquence, les commandes de migration DSL sont passantes sur les communes fermées au cuivre. L'absence de ce blocage sur le flux Migration est confirmée par le paramétrage actuel des contrôles de comportement dans FOP.";12/05/2026;13/05/2026;✅ Résolu en 1 jour;
+;2605I14364;Sagic;Le fichier contenant les commandes de portabilité du dimanche est réceptionné correctement mais ce fichier est toujours vide.;Mariem Hammami;Support VIO;Résolu;P3;reponse envoyé par mail;12/05/2026;14/05/2026 00:00;✅ Résolu en 2 jours;
+;2605K70580;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;Fichier rejoué;20/05/2026;20/05/2026;✅ Résolu en < 1 jour;
+;2605H98046;Sagic;Demande a traiter en back-office n'arrive pas dans la corbeille 8015 ;Mariem Hammami;Support VIO;Résolu;P3;reponse envoyé par mail;12/05/2026;22/05/2026;✅ Résolu en 8 jours;
+;2605J94649;Fop ;"dans le fichier FRTE00VOIM00_MOP-M3_P_VOIM00_20260427120032_0.portcri il y a une erreur sur le champ 24 concernant la fiabilisation. Il y a beaucoup de numéro et la fiabilisation est dans le champ 14 puis dans le champ 24. 
+En passant du champ 14 au champ 24, le format nest pas correct.
+Le champ 24 devrait être formaté comme le champ 14 « « ND^NDI^SDA#nombre^^SDA#nombre ».";Mariem Hammami;Support VIO;Résolu;P3;reponse envoyé par mail;18/05/2026;22/05/2026;✅ Résolu en 4 jours;
+;2605M96452;Vigie;problème vigie;Akram Sahli ;Support VIO;Résolu;P3;Le problème de l’application Vigie a bien été résolu.;28/05/2026;28/05/2026;✅ Résolu en < 1 jour;
+;2605M96431;Sagic;Erreur a l'execution d'une requete;Mariem Hammami;Support VIO;Résolu;P3;"Bonjour,
+
+Pouvez-vous nous apporter plus de précisions concernant la requête en erreur ?
+
+La demande n’est pas très claire actuellement. Merci de nous transmettre, si possible :
+
+la requête concernée,
+le message d’erreur obtenu,
+ainsi que le contexte d’exécution.";29/05/2026;29/05/2026;✅ Résolu en < 1 jour;
+;2605N51742;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;27/05/2026;29/05/2026;✅ Résolu en 2 jours;
+;2605N65683;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;27/05/2026;29/05/2026;✅ Résolu en 2 jours;
+;2605N73659;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;27/05/2026;29/05/2026;✅ Résolu en 2 jours;
+;2605N96526;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;28/05/2026;29/05/2026;✅ Résolu en 1 jour;
+;2605O08694;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;Commande désormais débloquée;28/05/2026;29/05/2026;✅ Résolu en 1 jour;
+;2605L53090;Fop ;"La commande IC : 404431836 ND support 0534428219 a reçu une demande dannulation qui a été rejetée au FOP HA78.
+Il me semble que le rejet de la demande dannulation nest pas justifié dun point de vue des évolutions du MOP 3.8";Akram Sahli ;Support VIO;Résolu;P4;"Bonjour,
+Analyse commande 404431836 :
+Date de portabilité : 12/05/2026 10:00
+Demande d’annulation : 18/05/2026 12:57
+Écart : +6 jours après la date de portabilité =>  Statut : rejet HA78 « Annulation trop tardive »
+Référence contrat d’interface :
+HA78 appliqué lorsque la demande d’annulation est reçue trop tardivement par rapport à la date de portabilité/exécution
+
+Constat :
+Dans ce cas, la demande intervient après la date de portabilité ⇒ application cohérente du HA78
+Question PO @RAMAROSANDRATANA Ianja Ext OW/OWF/DSI 
+L’USVIO-4056 vise-t-elle uniquement les annulations PNU la veille de la portabilité après 15h
+ou
+également les cas déjà couverts aujourd’hui par HA78 après la date de portabilité ?";22/05/2026;29/05/2026;✅ Résolu en 5 jours;
+;2606P81296;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0];Akram Sahli ;Support VIO;Résolu;P3;Fichier rejoué;02/06/2026 00:00;03/06/2026;✅ Résolu en 1 jour;
+;2606Q00232;Vigie;BI VIGE - [Permission denied] : [CrystalEnterprise.DiskUnmanaged];Mariem Hammami;Support VIO;Résolu;P3;correction effectué par l'equipe infra;02/06/2026 00:00;04/06/2026;✅ Résolu en 2 jours;
+;2605O58129;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idCFT_CMD_STR_Transfers_ERROR ] : [CFT : 1 transfert(s) en erreur - dernier: Part=HERTCP0 DTSA=SFK IDF=FOP07740 IDT=E2915105 Diags=405.];Akram Sahli ;Support VIO;Résolu;P3;Le fichier n'est pas présent sur le serveur et ne peut donc pas être rejoué.;29/05/2026 00:00;05/06/2026;✅ Résolu en 5 jours;
+;2606R28148;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_ALARME ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_ALARME'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P2;fichier rejoué;05/06/2026;05/06/2026;✅ Résolu en < 1 jour;
+;2606R44261;Fop ;"merci de faire monter dans fop le report sans date
+
+ND = 0xxxxxxxxx : 0329294534
+IC Sagic (9 chiffres) : 404453258";Akram Sahli ;Support VIO;Résolu;P3;"Le (CR) est bien remonté au niveau du FOP, mais il est actuellement bloqué à l'état « À traiter = 2 ». Ce blocage est dû au fait que le champ DatePropFT dans la colonne CPLT_CR est vide.
+
+Par ailleurs, nous avons constaté une annulation de commande aujourd'hui.";05/06/2026 00:00;08/06/2026;✅ Résolu en 1 jour;VIO-4605
+;2606T36766;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;11/06/2026;11/06/2026;✅ Résolu en < 1 jour;
+;2606U82478;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;15/06/2026;15/06/2026;✅ Résolu en < 1 jour;
+;2606V14182;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;16/06/2026;17/06/2026;✅ Résolu en 1 jour;
+;2606V26008;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;16/06/2026;17/06/2026;✅ Résolu en 1 jour;
+;2606V34160;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;16/06/2026;17/06/2026;✅ Résolu en 1 jour;
+;2606V56426;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;17/06/2026;17/06/2026;✅ Résolu en < 1 jour;
+;2606V09945;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;16/06/2026 00:00;17/06/2026;✅ Résolu en 1 jour;
+;2606X34367;Vigie;VIGIE_VI] / [SMC4, BRONZE, SOX] / [OBV_CFT_TRANSFERT / MatchingLine / failed ] : [CFT : transfert(s) en erreur : Part=OP73RCFT DTSA= IDF=VIG73R1 IDT=F2200511 Diags= - Historique Observabilite It];Mariem Hammami;Support VIO;Résolu;P4;L’application TRACA a été décommissionné. Il n’y a plus besoin de maintenir les envois et flux vers cette application.c;22/06/2026 00:00;23/06/2026 00:00;✅ Résolu en 1 jour;
+;2606Y41422;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;24/06/2026;24/06/2026;✅ Résolu en < 1 jour;
+;2606Y41212;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;24/06/2026;24/06/2026;✅ Résolu en < 1 jour;
+;2606Y40381;Fop ;Bonjour, la commande chrono 12358213 du 0479449611 est visible dans le FOP, mais pas dans EKO, pouvez vous corriger svp, en vous remerciant par avance, cordialement ;Mariem Hammami;Support VIO;Résolu;P3;"Une analyse vient d’être effectuée dans FOP afin d’identifier les commandes restées bloquées et non transmises. Je viens de retransmettre 79 commandes qui étaient bloquées dans l’état « Transmises » dans FOP depuis le 15/06/2026.
+Par ailleurs, nous devrions normalement recevoir une alarme de supervision pour ce type de commandes bloquées dans FOP. Cependant, comme l’état de ces commandes était « Transmises », elles n’ont pas été détectées comme bloquées par le mécanisme de supervision. C’est pour cette raison qu’aucune alarme n’a été générée.";24/06/2026;24/06/2026;✅ Résolu en < 1 jour;
+;2606Y84492;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF04_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF04_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;25/06/2026;25/06/2026;✅ Résolu en < 1 jour;
+;2606Y84230;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;25/06/2026;25/06/2026;✅ Résolu en < 1 jour;
+;2606T31696;Vigie;[VIGIE_VI] / [SMC4, BRONZE, SOX] / [REMCOLL_NOOPI_JOB / ENDED_NOT_OK / JU.VIG.SYN.FOP ] : [NOOPI : le job JU.VIG.SYN.FOP (WORKFLOW : W.VIG.SYN.FOP.D.WS01, RUNID : 1808218666, CLIENTNUM : 1123 ) s est termine dans l etat ENDED_NOT_OK a 00:35:12.] ;Akram Sahli ;Support VIO;Résolu;P4;nous avons corrigé la synchro sur toutes les tables fop  , reste a investiguer sur les deux tables cr et cr_sagic;10/06/2026;25/06/2026;✅ Résolu en 11 jours;
+;2606Y61505;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;fichier rejoué;24/06/2026;25/06/2026;✅ Résolu en 1 jour;
+;2606Y84491;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;fichier rejoué;25/06/2026;25/06/2026;✅ Résolu en < 1 jour;
+;2606Z04826;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;fichier rejoué;25/06/2026;26/06/2026;✅ Résolu en 1 jour;
+;2606Z26515;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;fichier rejoué;26/06/2026;26/06/2026;✅ Résolu en < 1 jour;
+;2606Y40381;Fop ;"REFU DE CLOTURE DU DEPOSANT
+Merci pour vos explications. Pour les commandes PNU+, pourriez-vous réémettre lordre dactivation dans EKO ? Cela permettra à létape « Transmise vers l'agence ATTENTE - activation demandée (424) » dapparaître dans EKO. Sans cette action, les commandes ne pourront pas avancer.";Mariem Hammami;Support VIO;Résolu;P3;Je te confirme que je viens de transmettre 51 commandes de type PSACTIV vers SAGIC. J’ai supprimé les commandes en doublon (PSACTIV et PNU+) afin que la génération des CR soit correctement établie.;26/06/2026;26/06/2026;✅ Résolu en < 1 jour;
+;2606Z45167;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;26/06/2026;26/06/2026;✅ Résolu en < 1 jour;
+;2606Z38185;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Mariem Hammami;Support VIO;Résolu;P3;fichier rejoué;26/06/2026;26/06/2026;✅ Résolu en < 1 jour;
+;2606Y04275;Sagic;[SAGIC] / [SMC3, ARGENT] / [OBV_CFT_TRANSFERT / MatchingLine / end-procedure ] : [CFT : Procedure(s) de fin de transfert en erreur (Fichiers /tmp/cft*.err) - Historique Observabilite It] ;Akram Sahli ;Support VIO;Résolu;P3;Après analyse sur opvi1ws01, le script .ksh est correct et le blocage provient d'un problème de droits (Permission denied) sur le fichier de log sagic_journal.log, le ticket est donc transféré à l'équipe Dev pour correction.;23/06/2026;03/07/2026;✅ Résolu en 8 jours;
+;2606Z21399;Sagic;[SAGIC] / [SMC3, ARGENT] / [OBV_CFT_TRANSFERT / MatchingLine / end-procedure ] : [CFT : Procedure(s) de fin de transfert en erreur (Fichiers /tmp/cft*.err) - Historique Observabilite It] ;Akram Sahli ;Support VIO;Résolu;P3;Après analyse sur opvi1ws01, le script .ksh est correct et le blocage provient d'un problème de droits (Permission denied) sur le fichier de log sagic_journal.log, le ticket est donc transféré à l'équipe Dev pour correction.;26/06/2026;03/07/2026;✅ Résolu en 5 jours;
+;2607B06151;Sagic;Initial ticket description: Demande reemission CR FINAL sur PNU+ (voir ND ci-dessous) Fichier non genere;Mariem Hammami;Support VIO;Résolu;P3;Je viens de corriger le problème. Un compte rendu a été envoyé pour les quatre commandes PNU+.;01/07/2026 00:00;01/07/2026 00:00;✅ Résolu en < 1 jour;
+;2607B41756;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;02/07/2026;02/07/2026;✅ Résolu en < 1 jour;
+;2607D03414;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;08/07/2026;08/07/2026;✅ Résolu en < 1 jour;
+;2607F09355;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;13/07/2026;13/07/2026;✅ Résolu en < 1 jour;
+;2607D05514;Parc;"Bonjour,
+Il y a environ 200 accès qui n'ont pas de commune ou un assemblage code postal/commune dans le champ commune ce qui nous empêche côté MARINE de récupérer la commune avec le code INSEE nécessaire ensuite pour le SAV. 
+Est-ce qu'il serait possible de nettoyer les données svp ?
+Exemple : VIA01000000172225830 => ""90000 - BELFORT""";Akram Sahli ;Support VIO;Résolu;P3;Le ticket indique qu'environ 200 accès ne disposent pas de la commune, ni d'un assemblage code postal / commune. Toutefois, les informations semblent bien être présentes dans nos données.;07/07/2026;13/07/2026;✅ Résolu en 4 jours;
+;2607F15483;Fop ;problème apnf;Mariem Hammami;Support VIO;Résolu;P3;la demande a été traitée;13/07/2026;13/07/2026;✅ Résolu en < 1 jour;
+;2607F15520;Fop ;problème apnf;Mariem Hammami;Support VIO;Résolu;P3;La commande 0558901118 n'existe ni dans SAGIC ni dans FOP. Merci de nous communiquer le code_ic afin que nous puissions poursuivre les investigations.;13/07/2026;13/07/2026;✅ Résolu en < 1 jour;
+;2607F15568;Fop ;"En date du 9/07, l'envoi et réception des fichiers ne passent pas dans EKO FOP APNF. 
+Plusieurs commandes impactés. Pourriez vous regarder s'il vous plait? 
+il y 'a eu une désynchronisation le 6/07 avec réémission des fichiers en date du 7/07. 
+Exemple de quelques commandes bloquée du 9/07  : 6059209 / 6059210 / 6059236	/ 6059237";Mariem Hammami;Support VIO;Résolu;P3;"
+Bonjour,
+
+Suite à un ticket Océane reçu le 06/07/2026 à 05h09 concernant une réémission de fichiers vers l'APNF, nous avons procédé à la réémission de 119 fichiers à destination de l'APNF.Aucun dysfonctionnement n'a été constaté côté VIO/FOP. Si vous constatez toutefois que certaines commandes sont toujours bloquées côté FOP ou SAGIC, merci de nous communiquer les références concernées (code IC ou support/ND) afin que nous puissions effectuer les vérifications nécessaires.
+
+Cordialement,
+Mariem";13/07/2026 00:00;13/07/2026 00:00;✅ Résolu en < 1 jour;
+;2607F42379;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_FILES / Exists / idWAS_LOG_Log_reemission_fichiers_MOP_log ] : [Alarm #1 of global parameter 'Exists' triggered on 'SW_FILES.idWAS_LOG_Log_reemission_fichiers_MOP_log'. 0 <= 0.00 <= 0] ;Akram Sahli ;Support VIO;Résolu;P3;fichiers rejoués;14/07/2026;14/07/2026;✅ Résolu en < 1 jour;
+;2607D66298;Parc;commandes actives dans FRONTAL OPERATEUR mais resiliees dans GRAFIC;Mariem Hammami;Support VIO;Résolu;P3;"Nous avons échangé avec Damien sur ce sujet. Si les accès sont toujours en service dans VIO, cela signifie que la résiliation n'a pas été correctement effectuée par l'OC. Nous avons déjà rencontré ce type de cas : l'OC recevait un CR ANNUL en statut KO. Dans ce cas, c'est à l'OC de renouveler sa demande de résiliation.
+
+Il ne s'agit donc pas d'un dysfonctionnement du parc VIO. Si besoin, les OC concernés peuvent me solliciter directement afin que nous analysions leur situation.";08/07/2026 00:00;15/07/2026;✅ Résolu en 5 jours;
+;2607F73549;Fop ;Bonjour, le CR concernant le 0237312805 FRTE00BOUY00_MOP-M3_P_BOUY00_20260709100105_1.portcr.pgp n'est pas visible dans EKO et l'APNF pouvez vous svp le réémettre?;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;15/07/2026;15/07/2026;✅ Résolu en < 1 jour;
+;2607F75627;Fop ;Bonjour, le CR concernant le 0387002360 FRTE00LEGO00_MOP-M3_P_LEGO00_20260709100102_0.portcr.pgp n'est pas visible dans EKO et l'APNF pouvez vous svp le réémettre?;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;15/07/2026;15/07/2026;✅ Résolu en < 1 jour;
+;2607F72971;Fop ;"Bonjour, le fichier FRTE00BOUY00_MOP-M3_P_BOUY00_20260709100105_1.portcr n'est pas remonté dans l'APNF. Pouvez-vous, SVP, faire le nécessaire. En vous remerciant par avance.
+ND = 0xxxxxxxxx : 0963657551
+ID Externe = VIA010..xxxx : 405075666";Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;15/07/2026;15/07/2026;✅ Résolu en < 1 jour;
+;2607F75171;Fop ;Bonjour, le CR concernant le 0387262818 FRTE00LEGO00_MOP-M3_P_LEGO00_20260709100102_0.portcr.pgp n'est pas visible dans EKO et l'APNF pouvez vous svp le réémettre?;Akram Sahli ;Support VIO;Résolu;P3;fichier rejoué;15/07/2026;15/07/2026;✅ Résolu en < 1 jour;
+;2607F19749;Sagic;Initial ticket description: 27 commandes de résiliation bloquées;Mariem Hammami;Support VIO;Résolu;P3;"Concernant les 27 commandes signalées comme bloquées à l'état PEC, j'ai effectué les vérifications suivantes :
+
+Les commandes étaient bien à l'état Exécuté dans SAGIC après exécution du CR7.
+En revanche, côté Pamela, elles sont restées bloquées à l'état PEC et n'ont pas été automatiquement passées à l'état LIVRÉE.
+
+Le problème semblait donc provenir du traitement assuré par le robot 42C / Wintask SCOT ROBOTF, chargé de faire évoluer les commandes de PEC vers LIVRÉE.
+
+Après une nouvelle vérification, je constate qu'à 13h32, le Wintask SCOT ROBOTF a repris le traitement et a fait passer les commandes de l'état PEC à LIVRÉE, comme le montre l'historique des commandes.
+
+Les 27 commandes sont désormais à l'état LIVRÉE dans Pamela.";13/07/2026 00:00;15/07/2026;✅ Résolu en 2 jours;
+;2607F94246;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;15/07/2026 00:00;16/07/2026;✅ Résolu en 1 jour;
+;2607G15163;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF07_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF07_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;16/07/2026;16/07/2026;✅ Résolu en < 1 jour;
+;2607G15397;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;16/07/2026;16/07/2026;✅ Résolu en < 1 jour;
+;2607B20783;Sagic;"vérification du transfert  CFT :
+$ cftutil listcat Part=OPCOHCFT,IDF=VI1COH01, IDT=G0115053
+  Date = 01/07/2026   Time = 15:30:22
+Pouvez-vous voir avec le partenaire svp?";Akram Sahli ;Support VIO;Résolu;P3;Après investigation, il a été confirmé que le flux COCHISE (Part=OPCOHCFT / IDF=VI1COH01) est décommissionné et qu'il ne transporte plus de trafic depuis plus d'un an. La MOA a été informée afin qu'elle fasse le nécessaire pour désactiver les envois CFT vers ce partenaire.;01/07/2026;16/07/2026;✅ Résolu en 11 jours;
+;2607H50870;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;20/07/2026;20/07/2026;✅ Résolu en < 1 jour;
+;2607G36438;Sagic;[SAGIC] / [SMC3, ARGENT] / [OBV_CFT_TRANSFERT / MatchingLine / failed ] : [CFT : transfert(s) en erreur : Part=OPCOHCFT DTSA= IDF=VI1COH01 IDT=G1618053 Diags= - Historique Observabilite It] ;Akram Sahli ;Support VIO;Résolu;P3;Après investigation, il a été confirmé que le flux COCHISE (Part=OPCOHCFT / IDF=VI1COH01) est décommissionné et qu'il ne transporte plus de trafic depuis plus d'un an. La MOA a été informée afin qu'elle fasse le nécessaire pour désactiver les envois CFT vers ce partenaire.;16/07/2026 00:00;20/07/2026;✅ Résolu en 2 jours;
+;2607H62903;Sagic;[SAGIC] / [SMC3, ARGENT] / [OBV_CFT_TRANSFERT / MatchingLine / failed ] : [CFT : transfert(s) en erreur : Part=OPCOHCFT DTSA= IDF=VI1COH01 IDT=G2014053 Diags= - Historique Observabilite It] ;Akram Sahli ;Support VIO;Résolu;P3;il a été confirmé que le flux COCHISE (Part=OPCOHCFT / IDF=VI1COH01) est décommissionné et qu'il ne transporte plus de trafic depuis plus d'un an. La MOA a été informée. Je l'ai également relancée afin qu'elle procède aux actions nécessaires pour désactiver les envois CFT vers ce partenaire.;20/07/2026;21/07/2026;✅ Résolu en 1 jour;
+;2607I25600;Sagic;[SAGIC] / [SMC3, ARGENT] / [OBV_CFT_TRANSFERT / MatchingLine / failed ] : [CFT : transfert(s) en erreur : Part=OPCOHCFT DTSA= IDF=VI1COH01 IDT=G2210055 Diags= - Historique Observabilite It] ;Akram Sahli ;Support VIO;Résolu;P3;Il a été confirmé que le flux COCHISE (Part=OPCOHCFT / IDF=VI1COH01) est décommissionné et qu'il ne transporte plus de trafic depuis plus d'un an. La MOA a été informée. Je l'ai également relancée afin qu'elle procède aux actions nécessaires pour désactiver les envois CFT vers ce partenaire.;22/07/2026;22/07/2026;✅ Résolu en < 1 jour;VIO-4647
+;2607I23519;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idFOP_SUPFON_VIOXSUPF06_WARN ] : [Alarm #1 of global parameter 'MatchingLineCount' triggered on 'SW_STRINGS.idFOP_SUPFON_VIOXSUPF06_WARN'. 1 <= 1.00 <= 2147483646] ;Akram Sahli ;Support VIO;Résolu;P3;Commande désormais débloquée;22/07/2026;22/07/2026;✅ Résolu en < 1 jour;
+;2607G36170;Fop ;[FRONTAL_OPERATEUR] / [SMC3, ARGENT, SOX] / [SW_STRINGS / MatchingLineCount / idCFT_CMD_STR_Transfers_ERROR ] : [CFT : 1 transfert(s) en erreur - dernier: Part=EE04J DTSA=SFK IDF=VIOEE002 IDT=G1618102 Diags=406.] ;Akram Sahli ;Support VIO;Résolu;P3;Depuis le 04/07/2026, un dysfonctionnement affecte le flux (Part=EE04J, IDF=VIOEE002) de l'opérateur 00SOCT. Seuls les fichiers FT ADSL envoyés via le canal Fichier Opérateur ne sont plus transmis, alors que les autres domaines fonctionnent normalement. Le dernier envoi réussi date du 02/07/2026 et 28 fichiers sont actuellement en erreur. Les vérifications du paramétrage du Domaine-Opérateur n'ont révélé aucune anomalie pouvant expliquer ce comportement. un mail est envoyé a MOA pour vérifier le paramétrage.;16/07/2026;21/07/2026;✅ Résolu en 3 jours;
+;2607C55340;Vigie;"[VIGIE_VI / [ats_desi_vigie_vi] / [SMC4, BRONZE, SOX] / [ATS-ROBOTS-MIB / StartAlarmService / OWF_VIGIE_VI_MonSi] : [05/07/2026 22:56:49 ; ats-QOS_DESI_EBURO_36 ; StepGen_MonSIp_05_Lancement_Appli ; OWF_VIGIE_VI_MonSi ; MAJOR ; DESI ; VIGIE_VI] ";Mariem Hammami;Support VIO;Résolu;P3;Après analyse, aucun élément anormal n'a été identifié dans les logs Apache (absence d'erreurs, de timeouts ou de redirections). L'activité a repris normalement à partir de 23h45 et aucun nouvel incident n'a été constaté depuis le 05/07/2026. L'incident est considéré comme ponctuel et clôturé en l'absence de récurrence.;05/07/2026;22/07/2026;✅ Résolu en 12 jours;
+;2607D12806;Sagic; [SAGIC] / [SMC3, ARGENT] / [OBV_APP_FILE_STRING / MatchingLine / /opt/application/vi1was/current/logs/sagic_servlet.log_SQLException_Servlet ] : [/opt/application/vi1was/current/logs/sagic_servlet.log contain SQLException_Servlet - Historique Observabilite It] ;Mariem Hammami;Support VIO;Résolu;P3;Investigation réalisée : l'erreur est due à la transmission d'une valeur invalide (87 caractères) dans le champ CODE_AGENCE lors de la sauvegarde de l'habilitation CORREC_CMD pour l'utilisateur 21273 (ORA-12899).;05/07/2026;22/07/2026;✅ Résolu en 12 jours;
+;2607H96826;Fop ; ACCES DEPOT FICHIER ;Mariem Hammami;Support VIO;Résolu;P3;"Je constate que de nouveaux fichiers ont bien été chargés aujourd'hui. Pourriez-vous me confirmer si le problème est désormais résolu de votre côté ?
+";21/07/2026;22/07/2026 00:00;✅ Résolu en 1 jour;
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+;;;;;;;;;;;;
+;;;;;;;;;;;;

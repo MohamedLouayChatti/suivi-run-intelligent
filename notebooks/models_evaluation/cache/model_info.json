@@ -1,0 +1,43 @@
+{
+  "qwen3-embedding:0.6b": {
+    "model_tag": "qwen3-embedding:0.6b",
+    "digest": "ac6da0dfba84a81fdbf",
+    "disk_size_bytes": 639150858,
+    "family": "qwen3",
+    "parameter_size": "595.78M",
+    "quantization_level": "Q8_0",
+    "embedding_dimension": 1024,
+    "max_context_length": 32768,
+    "capabilities": [
+      "tools",
+      "thinking",
+      "embedding"
+    ]
+  },
+  "embeddinggemma:300m": {
+    "model_tag": "embeddinggemma:300m",
+    "digest": "85462619ee721b466c5",
+    "disk_size_bytes": 621875917,
+    "family": "gemma3",
+    "parameter_size": "307.58M",
+    "quantization_level": "BF16",
+    "embedding_dimension": 768,
+    "max_context_length": 2048,
+    "capabilities": [
+      "embedding"
+    ]
+  },
+  "bge-m3": {
+    "model_tag": "bge-m3",
+    "digest": "7907646426070047a77",
+    "disk_size_bytes": 1157672605,
+    "family": "bert",
+    "parameter_size": "566.70M",
+    "quantization_level": "F16",
+    "embedding_dimension": 1024,
+    "max_context_length": 8192,
+    "capabilities": [
+      "embedding"
+    ]
+  }
+}

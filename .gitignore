@@ -78,7 +78,7 @@ CLAUDE.md
 .agents/
 
 # Data
-data/
+#data/
 
 # UV cache
 .uv-cache/
@@ -88,4 +88,4 @@ data/
 storage/
 
 # Notebook experiment artifacts (regenerable / may echo raw ticket content, same as data/)
-notebooks/models_evaluation/cache/
+# notebooks/models_evaluation/cache/
