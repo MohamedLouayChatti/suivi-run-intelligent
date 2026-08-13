@@ -51,6 +51,9 @@ class CreateTicketHandler:
 				assignee_id=ticket.assignee_id,
 				category=ticket.category,
 				functional_team=ticket.functional_team,
+				application=ticket.application,
+				genergy_id=ticket.genergy_id,
+				oceane_id=ticket.oceane_id,
 				occurred_at=ticket.created_at,
 				actor_id=command.actor_id,
 			)

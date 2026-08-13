@@ -47,6 +47,7 @@ class KnowledgeBaseEventHandler(EventHandler):
 			command = GenerateSimilarityResultsCommand(
 				ticket_id=event.ticket_id, description=event.description,
 				application=event.application, created_at=event.occurred_at,
+				genergy_id=event.genergy_id, oceane_id=event.oceane_id,
 			)
 			await handler.handle(command)
 		finally:
