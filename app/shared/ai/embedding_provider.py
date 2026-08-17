@@ -22,6 +22,17 @@ class EmbeddingProvider(ABC):
 	def model_version(self) -> str:
 		raise NotImplementedError
 
+	async def warm_up(self) -> None:
+		"""Resolve and validate whatever provider-side state the first embed() would otherwise
+		resolve lazily -- model availability, the exact build identity behind model_version.
+
+		Defaults to a no-op, so a provider with nothing to resolve implements nothing. Two kinds
+		of caller need it: anything reading model_name/model_version *before* producing an
+		embedding, and any long batch run that would rather fail in the first second than in the
+		twentieth minute. Implementations must be idempotent and safe to call concurrently.
+		"""
+		return None
+
 	@abstractmethod
 	async def embed(self, text: str) -> list[float]:
 		raise NotImplementedError

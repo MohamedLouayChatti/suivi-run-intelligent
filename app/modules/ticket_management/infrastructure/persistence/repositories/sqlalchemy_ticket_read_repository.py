@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
 from app.modules.ticket_management.application.dto.ticket_dto import (
+	TicketContentDTO,
 	TicketDetailDTO,
 	TicketSimilaritySummaryDTO,
 	TicketSummaryDTO,
@@ -90,6 +91,28 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 		return [
 			TicketSimilaritySummaryDTO(id=m.id, title=m.title, status=m.status, resolution_notes=m.resolution_notes)
 			for m in result.all()
+		]
+
+	async def list_ticket_contents(self, *, after_id: UUID | None, limit: int) -> list[TicketContentDTO]:
+		# Selects columns rather than entities: a full-corpus pass has no use for the aggregate,
+		# and loading TicketModel would drag its relationships along behind it.
+		stmt = (
+			select(
+				TicketModel.id, TicketModel.application, TicketModel.description,
+				TicketModel.genergy_id, TicketModel.oceane_id,
+			)
+			.order_by(TicketModel.id)
+			.limit(limit)
+		)
+		if after_id is not None:
+			stmt = stmt.where(TicketModel.id > after_id)
+		rows = (await self.session.execute(stmt)).all()
+		return [
+			TicketContentDTO(
+				id=row.id, application=row.application, description=row.description,
+				genergy_id=row.genergy_id, oceane_id=row.oceane_id,
+			)
+			for row in rows
 		]
 
 	def _build_list_query(self, query: ListTicketsQuery) -> Select[tuple[TicketModel]]:

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.modules.knowledge_base.domain.enums.identifier_type import IdentifierType
 from app.modules.knowledge_base.domain.enums.knowledge_source_type import KnowledgeSourceType
+from app.modules.knowledge_base.infrastructure.embedding_model import EMBEDDING_DIMENSIONS
 from app.modules.ticket_management.domain.enums.application import Application
 from app.shared.database.base import Base
 
@@ -24,9 +25,10 @@ class KnowledgeItemModel(Base):
 	Source-specific columns live in the subtype tables (`ticket_knowledge_items` today,
 	documentation next), which is what keeps a Document from ever carrying a ticket's genergy_id.
 
-	pgvector Vector column lives only here. Vector dimension is left unconstrained until an
-	embedding model is chosen; fixing it and adding the actual HNSW/IVFFlat index is a follow-up
-	migration once that decision is made.
+	pgvector Vector column lives only here, pinned to the chosen model's dimension: pgvector
+	requires a fixed width to build an ANN index at all, and a declared width is also what makes a
+	wrong-model insert fail loudly at the database instead of silently corrupting the corpus. The
+	HNSW index over this column is created in migration a4f61c8b7e05.
 
 	`application` reuses Ticket Management's existing `ticket_application` Postgres enum type
 	(same Python Application enum) rather than declaring a second, duplicate native type.
@@ -36,6 +38,20 @@ class KnowledgeItemModel(Base):
 	__table_args__ = (
 		Index("ix_knowledge_items_source_id", "source_id"),
 		Index("ix_knowledge_items_application", "application"),
+		# HNSW rather than IVFFlat: IVFFlat has to be built against an already-populated table and
+		# re-tuned as the corpus grows, while HNSW is built incrementally and needs no such
+		# maintenance -- which matters for a table that starts at one backfill and then grows one
+		# ticket at a time. `vector_cosine_ops` must match the operator the search port queries
+		# with (`cosine_distance`, i.e. `<=>`); an index built for a different metric is simply
+		# never used. m/ef_construction are pgvector's defaults, stated explicitly so a rebuild
+		# reproduces the same index rather than inheriting whatever a future default becomes.
+		Index(
+			"ix_knowledge_items_embedding_hnsw",
+			"embedding",
+			postgresql_using="hnsw",
+			postgresql_ops={"embedding": "vector_cosine_ops"},
+			postgresql_with={"m": 16, "ef_construction": 64},
+		),
 	)
 	__mapper_args__ = {"polymorphic_on": "source_type"}
 
@@ -47,7 +63,7 @@ class KnowledgeItemModel(Base):
 	application: Mapped[Application] = mapped_column(
 		SAEnum(Application, name="ticket_application"), nullable=False,
 	)
-	embedding: Mapped[list[float]] = mapped_column(Vector(), nullable=False)
+	embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIMENSIONS), nullable=False)
 	embedding_model: Mapped[str] = mapped_column(String(100), nullable=False)
 	embedding_model_version: Mapped[str] = mapped_column(String(50), nullable=False)
 	generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

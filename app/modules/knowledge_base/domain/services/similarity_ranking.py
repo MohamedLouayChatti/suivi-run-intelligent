@@ -4,12 +4,20 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from uuid import UUID
 
-# Retrieval policy. MIN_SIMILARITY_THRESHOLD stays a placeholder until an embedding model is
-# chosen: cosine scores are not comparable across models (on the historical corpus, 0.6 keeps a
-# mean of 6.6 results out of 7 for qwen3-embedding but only 2.9 for embeddinggemma, and leaves
-# embeddinggemma returning nothing at all on 17 of 50 queries). The evaluation notebook
-# calibrates a threshold per model and the winner's value is what belongs here.
-MIN_SIMILARITY_THRESHOLD = 0.6
+# Retrieval policy. MIN_SIMILARITY_THRESHOLD is calibrated, not chosen: cosine scores are not
+# comparable across embedding models, so the number here is only meaningful paired with the model
+# that produced it (bge-m3 -- see infrastructure/embedding_model.py). The evaluation notebook
+# solved it by bisection, as the threshold at which the full pipeline returns 4 results per query
+# on average over the historical corpus -- a purely distributional calibration that reads no
+# relevance judgments, so it cannot tune itself on the data the quality metrics score. Raising
+# that target lowers this number (more results per ticket, noisier); lowering it raises this one.
+#
+# The previous value, 0.6, was an unvalidated placeholder and was wrong for two of the three
+# candidate models: it kept a mean of 6.6 results out of 7 for qwen3-embedding but only 2.9 for
+# embeddinggemma, which returned nothing at all on 17 of 50 queries.
+#
+# Changing the embedding model invalidates this number. Re-calibrate before shipping the swap.
+MIN_SIMILARITY_THRESHOLD = 0.6411
 MAX_RESULTS = 7
 ALGORITHM_VERSION = "v2"
 

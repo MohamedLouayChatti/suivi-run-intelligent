@@ -21,3 +21,6 @@ class SqlAlchemySimilarityResultRepository(SimilarityResultRepository):
 		)
 		for result in results:
 			self.session.add(mapper.similarity_result_to_model(result))
+
+	async def delete_all(self) -> None:
+		await self.session.execute(delete(SimilarityResultModel))

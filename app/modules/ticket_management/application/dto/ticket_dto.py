@@ -57,6 +57,27 @@ class TicketSimilaritySummaryDTO:
 
 
 @dataclass(frozen=True)
+class TicketContentDTO:
+	"""The textual content of a ticket plus the metadata needed to scope and cross-reference it.
+
+	Deliberately narrower than TicketDetailDTO and deliberately named for what it *is* rather than
+	for what any consumer does with it: the whole point of this module owning no knowledge of
+	downstream processing is that a projection of ticket text must not be called, say, an
+	embedding source. Nothing here is specific to any consumer -- it is id, scope, text, and the
+	two external identifiers.
+
+	Paged over rather than fetched whole because the caller is a bulk pass over every ticket ever
+	created, which must not have to hold the entire corpus in memory to run.
+	"""
+
+	id: UUID
+	application: Application
+	description: str
+	genergy_id: str | None
+	oceane_id: str | None
+
+
+@dataclass(frozen=True)
 class TicketDetailDTO:
 	id: UUID; title: str; description: str; application: Application; status: Status; priority: Priority
 	assignee_id: UUID; category: Category; functional_team: FunctionalTeam
