@@ -46,7 +46,9 @@ class SimilaritySearchPort(ABC):
 		value.
 
 		Takes `embedding` only so the returned candidates carry their real cosine similarity;
-		these results bypass the score threshold, they are not scored by it. Unbounded by design:
-		the caller's ranking policy decides how many survive.
+		these results bypass the score threshold, they are not scored by it. Effectively unbounded:
+		the caller's ranking policy, not this call, decides how many survive. An implementation may
+		impose a cap far above what a description can realistically cite, as a guard rather than a
+		policy.
 		"""
 		raise NotImplementedError

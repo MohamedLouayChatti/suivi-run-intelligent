@@ -6,10 +6,31 @@ from uuid import UUID
 
 from app.modules.knowledge_base.domain.entities.knowledge_item import KnowledgeItem
 
+# One page of a full traversal, plus the cursor that resumes it. `None` means the traversal is
+# finished -- distinct from an empty page, which a store is free to return mid-traversal.
+KnowledgeItemPage = tuple[list[KnowledgeItem], UUID | None]
+
 
 class KnowledgeItemRepository(ABC):
+	"""The corpus. Unlike every other repository in this module it is not reached through the
+	UnitOfWork: knowledge items live in a vector store with no transaction shared with Postgres, so
+	presenting it behind a commit/rollback that cannot cover it would be a lie about what happens
+	on failure. Callers take it as a dependency of its own and are written knowing each write lands
+	immediately.
+
+	Writes are upserts keyed by item id, which is what makes an interrupted pass safe to simply
+	re-run.
+	"""
+
 	@abstractmethod
 	async def add(self, item: KnowledgeItem) -> None:
+		raise NotImplementedError
+
+	@abstractmethod
+	async def add_many(self, items: Sequence[KnowledgeItem]) -> None:
+		"""A whole batch in one round trip. The bulk counterpart of `add`, and the reason a backfill
+		costs one write per batch rather than one per ticket -- which matters now that a write is a
+		network call rather than a row staged in an open session."""
 		raise NotImplementedError
 
 	@abstractmethod
@@ -24,11 +45,13 @@ class KnowledgeItemRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
-	async def list_page(self, *, after_id: UUID | None, limit: int) -> list[KnowledgeItem]:
-		"""One page of items, ordered by id, for a full pass over the corpus.
+	async def list_page(self, *, cursor: UUID | None, limit: int) -> KnowledgeItemPage:
+		"""One page of the corpus for a full pass, with the cursor to resume from.
 
-		Keyset rather than LIMIT/OFFSET, for the same reason the ticket-side pass is: rows may be
-		inserted underneath a long traversal, and OFFSET would then skip or repeat items.
+		Cursor-based rather than offset-based, for the same reason the ticket-side pass is: items
+		may be written underneath a long traversal, and an offset would then skip or repeat them.
+		The cursor is the store's own -- passing back what it handed out is what makes complete
+		traversal its guarantee rather than an assumption this module makes about its ordering.
 		"""
 		raise NotImplementedError
 
@@ -40,6 +63,10 @@ class KnowledgeItemRepository(ABC):
 		different models share no comparable coordinate space, so a similarity graph built across
 		a mixed corpus is meaningless while still looking perfectly well-formed. More than one pair
 		here means re-embed before rebuilding.
+
+		Must count exactly, not approximately. The value this is looking for is by nature a rare
+		one -- a handful of stray points left by a half-finished model swap -- and an estimate is
+		free to miss exactly that.
 		"""
 		raise NotImplementedError
 

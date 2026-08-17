@@ -18,11 +18,14 @@ from app.modules.knowledge_base.application.commands.rebuild_similarity_graph.co
 from app.modules.knowledge_base.application.commands.rebuild_similarity_graph.handler import (
 	RebuildSimilarityGraphHandler,
 )
-from app.modules.knowledge_base.infrastructure.persistence.repositories.pgvector_similarity_search import (
-	PgvectorSimilaritySearch,
-)
 from app.modules.knowledge_base.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
 from app.modules.knowledge_base.infrastructure.providers.ollama_embedding_provider import OllamaEmbeddingProvider
+from app.modules.knowledge_base.infrastructure.vector_store.client import close_qdrant_client, get_qdrant_client
+from app.modules.knowledge_base.infrastructure.vector_store.collection import COLLECTION_NAME, ensure_collection
+from app.modules.knowledge_base.infrastructure.vector_store.qdrant_knowledge_item_repository import (
+	QdrantKnowledgeItemRepository,
+)
+from app.modules.knowledge_base.infrastructure.vector_store.qdrant_similarity_search import QdrantSimilaritySearch
 from app.modules.ticket_management.infrastructure.persistence.repositories.sqlalchemy_ticket_read_repository import (
 	SqlAlchemyTicketReadRepository,
 )
@@ -32,8 +35,27 @@ from app.shared.database.session import create_session
 
 logger = logging.getLogger("knowledge_base.backfill")
 
+PROVISION = "provision"
 BACKFILL = "backfill"
 REBUILD = "rebuild"
+
+
+async def run_provision() -> None:
+	"""Creates the Qdrant collection and its payload indexes if they are not already there.
+
+	The vector store's counterpart of `alembic upgrade head`, and the reason it is a stage of this
+	script rather than something the application does on startup: provisioning is a deliberate act
+	with a reviewable outcome, and the API must not depend on an external service being reachable
+	the moment it boots. Idempotent, so it leads every run by default and costs two reads once the
+	collection exists.
+	"""
+	report = await ensure_collection(get_qdrant_client())
+	if report.collection_created:
+		logger.info("Created Qdrant collection %r.", COLLECTION_NAME)
+	else:
+		logger.info("Qdrant collection %r already exists.", COLLECTION_NAME)
+	if report.indexes_created:
+		logger.info("Created payload indexes: %s.", ", ".join(report.indexes_created))
 
 
 async def reset_derived_data() -> None:
@@ -44,12 +66,17 @@ async def reset_derived_data() -> None:
 	is a source of truth, so this destroys no information -- it only costs the time to recompute.
 	The one situation that genuinely requires it is a model change, where every stored vector
 	becomes incomparable with every new one at once.
+
+	Two stores, so two deletions with no transaction spanning them. The order is the safe one: the
+	graph goes first, because a graph pointing at vectors that no longer exist is the state this is
+	trying to leave, whereas a corpus that has briefly lost its graph is simply a corpus awaiting a
+	rebuild -- which is exactly what the next stage does.
 	"""
 	async with SqlAlchemyUnitOfWork() as uow:
 		await uow.similarity_results.delete_all()
-		await uow.knowledge_items.delete_all()
 		await uow.commit()
-	logger.warning("Reset: all knowledge items and similarity results deleted.")
+	await QdrantKnowledgeItemRepository(get_qdrant_client()).delete_all()
+	logger.warning("Reset: all similarity results and knowledge items deleted.")
 
 
 async def run_backfill(batch_size: int) -> None:
@@ -57,7 +84,7 @@ async def run_backfill(batch_size: int) -> None:
 	session = create_session()
 	try:
 		handler = BackfillKnowledgeItemsHandler(
-			uow_factory=SqlAlchemyUnitOfWork,
+			knowledge_items=QdrantKnowledgeItemRepository(get_qdrant_client()),
 			ticket_read_repository=SqlAlchemyTicketReadRepository(session),
 			embedding_provider=provider,
 		)
@@ -75,17 +102,15 @@ async def run_backfill(batch_size: int) -> None:
 
 
 async def run_rebuild(batch_size: int) -> None:
-	session = create_session()
-	try:
-		handler = RebuildSimilarityGraphHandler(
-			uow_factory=SqlAlchemyUnitOfWork,
-			search_port=PgvectorSimilaritySearch(session),
-		)
-		report = await handler.handle(
-			RebuildSimilarityGraphCommand(generated_at=datetime.now(UTC), batch_size=batch_size)
-		)
-	finally:
-		await session.close()
+	qdrant = get_qdrant_client()
+	handler = RebuildSimilarityGraphHandler(
+		uow_factory=SqlAlchemyUnitOfWork,
+		knowledge_items=QdrantKnowledgeItemRepository(qdrant),
+		search_port=QdrantSimilaritySearch(qdrant),
+	)
+	report = await handler.handle(
+		RebuildSimilarityGraphCommand(generated_at=datetime.now(UTC), batch_size=batch_size)
+	)
 
 	logger.info(
 		"Rebuild complete: %d items processed, %d results written, %d sources with no match above "
@@ -97,14 +122,20 @@ async def run_rebuild(batch_size: int) -> None:
 async def run(*, stages: list[str], reset: bool, batch_size: int) -> None:
 	settings = get_settings()
 	logger.info("Embedding endpoint: %s", settings.ollama_host)
-
-	if reset:
-		await reset_derived_data()
+	logger.info("Vector store: %s", settings.qdrant_url)
 
 	started = time.monotonic()
 	try:
-		# Order is not a preference: the graph is derived from the corpus, so rebuilding before
-		# backfilling would compute neighbours over an incomplete corpus and immediately be stale.
+		# Provisioning is unconditional rather than a stage you opt into, even though --only lists
+		# it: everything below reads or writes a collection that has to exist, --reset included, and
+		# it is idempotent and costs two reads once it does. `--only provision` therefore means
+		# "provision and stop", which is the only reason it needs a name at all.
+		await run_provision()
+		if reset:
+			await reset_derived_data()
+		# Backfill before rebuild is not a preference: the graph is derived from the corpus, so
+		# rebuilding first would compute neighbours over an incomplete corpus and be stale the
+		# moment it finished.
 		if BACKFILL in stages:
 			await run_backfill(batch_size)
 		if REBUILD in stages:
@@ -112,27 +143,31 @@ async def run(*, stages: list[str], reset: bool, batch_size: int) -> None:
 	finally:
 		logger.info("Finished in %.1fs", time.monotonic() - started)
 		await engine.dispose()
+		await close_qdrant_client()
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 	parser = argparse.ArgumentParser(
 		prog="python -m app.scripts.seeding.knowledge_base.backfill",
 		description=(
-			"Populate the knowledge base from tickets already in the database, then derive the "
-			"similarity graph. Both stages are safe to re-run: the backfill embeds only what is "
-			"missing, and the rebuild replaces each source's results wholesale."
+			"Provision the Qdrant collection, populate the knowledge base from tickets already in "
+			"the database, then derive the similarity graph. Every stage is safe to re-run: "
+			"provisioning creates only what is missing, the backfill embeds only tickets that have "
+			"no vector yet, and the rebuild replaces each source's results wholesale."
 		),
 		epilog=(
-			"The embedding endpoint comes from OLLAMA_HOST (default http://localhost:11434) and, "
-			"for a hosted endpoint, OLLAMA_API_KEY. To embed on another machine's GPU while the "
-			"database stays here, point OLLAMA_HOST at it -- only the embedding requests cross the "
-			"network. That machine's Ollama must be started with OLLAMA_HOST=0.0.0.0 to accept "
-			"anything other than loopback connections, and must have the model pulled."
+			"Two endpoints are involved. The embedding endpoint comes from OLLAMA_HOST (default "
+			"http://localhost:11434) and, for a hosted endpoint, OLLAMA_API_KEY: to embed on "
+			"another machine's GPU while the database stays here, point OLLAMA_HOST at it -- that "
+			"machine's Ollama must be started with OLLAMA_HOST=0.0.0.0 to accept anything other "
+			"than loopback connections, and must have the model pulled. The vector store comes "
+			"from QDRANT_CLUSTER_ENDPOINT and QDRANT_API_KEY. Similarity results stay in Postgres, "
+			"so DATABASE_URL is still needed for every stage but provisioning."
 		),
 	)
 	parser.add_argument(
-		"--only", choices=[BACKFILL, REBUILD], default=None,
-		help="Run a single stage. Default is both, backfill first.",
+		"--only", choices=[PROVISION, BACKFILL, REBUILD], default=None,
+		help="Run a single stage. Default is all three, in the order listed.",
 	)
 	parser.add_argument(
 		"--reset", action="store_true",
@@ -154,7 +189,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 def main() -> None:
 	logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(name)s | %(message)s")
 	args = parse_args()
-	stages = [args.only] if args.only else [BACKFILL, REBUILD]
+	stages = [args.only] if args.only else [PROVISION, BACKFILL, REBUILD]
 	asyncio.run(run(stages=stages, reset=args.reset, batch_size=args.batch_size))
 
 

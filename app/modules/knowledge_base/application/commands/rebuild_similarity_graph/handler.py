@@ -14,6 +14,7 @@ from app.modules.knowledge_base.application.interfaces.similarity_search_port im
 from app.modules.knowledge_base.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.knowledge_base.domain.entities.knowledge_item import KnowledgeItem
 from app.modules.knowledge_base.domain.entities.similarity_result import SimilarityResult
+from app.modules.knowledge_base.domain.repositories.knowledge_item_repository import KnowledgeItemRepository
 from app.modules.knowledge_base.domain.services.similarity_ranking import (
 	ALGORITHM_VERSION,
 	MAX_RESULTS,
@@ -42,6 +43,11 @@ class RebuildSimilarityGraphHandler:
 	repeated once per historical ticket; emitting it here would tell every future subscriber that
 	800 tickets were just created.
 
+	Reads the corpus from one store and writes the graph to another, so a page is computed in full
+	before any transaction is opened. Searching from inside an open transaction would hold it across
+	a batch's worth of network round trips to the vector store for no benefit -- the graph write is
+	the only thing that needs to be transactional, and it needs to be transactional only per batch.
+
 	The search port is a separate constructor dependency rather than something reached through the
 	UnitOfWork: it is a read, and reads in this codebase stay structurally decoupled from any UoW
 	even when, as here, they happen mid-write.
@@ -50,38 +56,45 @@ class RebuildSimilarityGraphHandler:
 	def __init__(
 		self,
 		uow_factory: Callable[[], UnitOfWork],
+		knowledge_items: KnowledgeItemRepository,
 		search_port: SimilaritySearchPort,
 	) -> None:
 		self.uow_factory = uow_factory
+		self.knowledge_items = knowledge_items
 		self.search_port = search_port
 
 	async def handle(self, command: RebuildSimilarityGraphCommand) -> RebuildReportDTO:
 		await self._assert_single_model_corpus()
 
 		items_processed = results_written = sources_without_results = 0
-		after_id: UUID | None = None
+		cursor: UUID | None = None
 
 		while True:
-			async with self.uow_factory() as uow:
-				page = await uow.knowledge_items.list_page(after_id=after_id, limit=command.batch_size)
-				if not page:
-					break
-				after_id = page[-1].id
+			page, cursor = await self.knowledge_items.list_page(cursor=cursor, limit=command.batch_size)
 
-				for item in page:
-					results = await self._results_for(item, command.generated_at)
-					await uow.similarity_results.replace_for_source(item.source_id, results)
-					items_processed += 1
-					results_written += len(results)
-					if not results:
-						sources_without_results += 1
+			if page:
+				computed = [
+					(item.source_id, await self._results_for(item, command.generated_at))
+					for item in page
+				]
+				async with self.uow_factory() as uow:
+					for source_id, results in computed:
+						await uow.similarity_results.replace_for_source(source_id, results)
+					await uow.commit()
 
-				await uow.commit()
+				items_processed += len(computed)
+				results_written += sum(len(results) for _, results in computed)
+				sources_without_results += sum(1 for _, results in computed if not results)
 
-			logger.info(
-				"Rebuild progress: %d items processed, %d results written, %d sources with no match",
-				items_processed, results_written, sources_without_results,
-			)
+				logger.info(
+					"Rebuild progress: %d items processed, %d results written, %d sources with no match",
+					items_processed, results_written, sources_without_results,
+				)
+
+			# The store's own cursor decides when the traversal is done -- an empty page does not,
+			# since a store is free to return one mid-traversal.
+			if cursor is None:
+				break
 
 		return RebuildReportDTO(
 			items_processed=items_processed, results_written=results_written,
@@ -124,7 +137,6 @@ class RebuildSimilarityGraphHandler:
 		]
 
 	async def _assert_single_model_corpus(self) -> None:
-		async with self.uow_factory() as uow:
-			present = await uow.knowledge_items.distinct_model_versions()
+		present = await self.knowledge_items.distinct_model_versions()
 		if len(present) > 1:
 			raise MixedEmbeddingCorpus(present)

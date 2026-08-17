@@ -4,12 +4,19 @@ from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import Self
 
-from app.modules.knowledge_base.domain.repositories.knowledge_item_repository import KnowledgeItemRepository
 from app.modules.knowledge_base.domain.repositories.similarity_result_repository import SimilarityResultRepository
 
 
 class UnitOfWork(ABC):
-	knowledge_items: KnowledgeItemRepository
+	"""The transactional half of this module, which is the similarity graph and nothing else.
+
+	Knowledge items are deliberately absent. They live in a vector store that shares no transaction
+	with Postgres, so exposing them here would promise a commit/rollback that could not cover them
+	-- and the handlers that write both need to be written knowing the item write is already
+	durable by the time the graph write is attempted. KnowledgeItemRepository is injected alongside
+	this instead, the same way SimilaritySearchPort always has been.
+	"""
+
 	similarity_results: SimilarityResultRepository
 
 	@abstractmethod

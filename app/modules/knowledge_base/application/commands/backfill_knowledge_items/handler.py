@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
 from uuid import UUID, uuid4
 
 from app.modules.knowledge_base.application.commands.backfill_knowledge_items.command import (
@@ -9,8 +8,8 @@ from app.modules.knowledge_base.application.commands.backfill_knowledge_items.co
 )
 from app.modules.knowledge_base.application.dto.backfill_report_dto import BackfillReportDTO
 from app.modules.knowledge_base.application.exceptions import MixedEmbeddingCorpus
-from app.modules.knowledge_base.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.knowledge_base.domain.entities.knowledge_item import TicketKnowledgeItem
+from app.modules.knowledge_base.domain.repositories.knowledge_item_repository import KnowledgeItemRepository
 from app.modules.knowledge_base.domain.services.description_preprocessor import preprocess_description
 from app.modules.ticket_management.application.dto.ticket_dto import TicketContentDTO
 from app.modules.ticket_management.application.interfaces.ticket_read_repository import TicketReadRepository
@@ -30,22 +29,23 @@ class BackfillKnowledgeItemsHandler:
 	searching as it goes would produce a graph that depends on the order the corpus happened to be
 	traversed in. The graph is built afterwards, once, by RebuildSimilarityGraphHandler.
 
-	Resumable and idempotent by construction: it embeds only what has no knowledge item, commits per
+	Resumable and idempotent by construction: it embeds only what has no knowledge item, writes per
 	batch, and pages by ticket id. Re-running it after any interruption -- or after new tickets
 	arrive -- costs one query per batch and does only the work still outstanding.
 
-	Takes a `uow_factory` rather than a UnitOfWork because a full pass is a sequence of independent
-	transactions, not one long one: an interrupted run must keep the batches it already committed,
-	and a transaction must never be held open across a model call.
+	Touches one store only, which is why it takes no UnitOfWork at all: a backfill produces
+	knowledge items and nothing else, and the similarity graph those items imply is built afterwards
+	by a separate pass. A batch is durable as soon as it is written, so an interrupted run keeps
+	everything up to the last completed batch without any transaction to reason about.
 	"""
 
 	def __init__(
 		self,
-		uow_factory: Callable[[], UnitOfWork],
+		knowledge_items: KnowledgeItemRepository,
 		ticket_read_repository: TicketReadRepository,
 		embedding_provider: EmbeddingProvider,
 	) -> None:
-		self.uow_factory = uow_factory
+		self.knowledge_items = knowledge_items
 		self.ticket_read_repository = ticket_read_repository
 		self.embedding_provider = embedding_provider
 
@@ -68,8 +68,7 @@ class BackfillKnowledgeItemsHandler:
 			after_id = page[-1].id
 			tickets_seen += len(page)
 
-			async with self.uow_factory() as uow:
-				existing = await uow.knowledge_items.existing_source_ids([ticket.id for ticket in page])
+			existing = await self.knowledge_items.existing_source_ids([ticket.id for ticket in page])
 			already_embedded += len(existing)
 
 			items = []
@@ -83,10 +82,10 @@ class BackfillKnowledgeItemsHandler:
 				items.append(item)
 
 			if items:
-				async with self.uow_factory() as uow:
-					for item in items:
-						await uow.knowledge_items.add(item)
-					await uow.commit()
+				# One write for the whole batch rather than one per item: a write is a network
+				# round trip now, so the per-item loop this replaced would have made the store,
+				# not the embedding model, the slow part of a long pass.
+				await self.knowledge_items.add_many(items)
 				embedded += len(items)
 
 			logger.info(
@@ -128,8 +127,7 @@ class BackfillKnowledgeItemsHandler:
 		"""Adding to a corpus built by a different model is the one way this pass can do damage,
 		and the damage is invisible afterwards -- hence a check up front rather than a repair later.
 		"""
-		async with self.uow_factory() as uow:
-			present = await uow.knowledge_items.distinct_model_versions()
+		present = await self.knowledge_items.distinct_model_versions()
 		expected = (self.embedding_provider.model_name, self.embedding_provider.model_version)
 		if any(pair != expected for pair in present):
 			raise MixedEmbeddingCorpus(present, expected)

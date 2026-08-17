@@ -50,6 +50,14 @@ class Settings(BaseSettings):
 	# legitimately changes between machines (laptop, GPU box, Ollama Cloud), so it lives here.
 	ollama_host: str = Field(default="http://localhost:11434", validation_alias="OLLAMA_HOST")
 	ollama_api_key: str | None = Field(default=None, validation_alias="OLLAMA_API_KEY")
+	# Endpoint and credential only -- never the collection's vector size or distance metric. Those
+	# are the Qdrant counterpart of a pinned column width and belong with the embedding model they
+	# are locked to, in knowledge_base/infrastructure/embedding_model.py. Optional rather than
+	# required for the same reason the Clerk keys are: an unset endpoint must fail when the
+	# Knowledge Base actually reaches for it, with a message naming the variable, rather than stop
+	# the whole application from booting.
+	qdrant_url: str | None = Field(default=None, validation_alias="QDRANT_CLUSTER_ENDPOINT")
+	qdrant_api_key: str | None = Field(default=None, validation_alias="QDRANT_API_KEY")
 
 	@field_validator("clerk_authorized_parties", "cors_allowed_origins", mode="before")
 	@classmethod

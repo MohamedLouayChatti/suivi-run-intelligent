@@ -10,6 +10,7 @@ from app.modules.knowledge_base.application.interfaces.unit_of_work import UnitO
 from app.modules.knowledge_base.domain.entities.knowledge_item import TicketKnowledgeItem
 from app.modules.knowledge_base.domain.entities.similarity_result import SimilarityResult
 from app.modules.knowledge_base.domain.events.similarity_results_generated import SimilarityResultsGenerated
+from app.modules.knowledge_base.domain.repositories.knowledge_item_repository import KnowledgeItemRepository
 from app.modules.knowledge_base.domain.services.description_preprocessor import preprocess_description
 from app.modules.knowledge_base.domain.services.similarity_ranking import (
 	ALGORITHM_VERSION,
@@ -29,13 +30,24 @@ class GenerateSimilarityResultsHandler:
 
 	Ingestion and query preprocessing cannot drift here: this handler ingests the new ticket and
 	queries with it in the same call, from the same single `preprocess_description` result.
+
+	The two writes land in two different stores with no transaction between them, so their order is
+	a deliberate choice rather than an accident of reading order. The knowledge item goes to the
+	vector store first, and it is durable the moment it is written. If the graph write then fails,
+	the ticket is in the corpus -- findable by every later search -- but has no results row of its
+	own yet, which is a state the module already has a name for (a ticket with no match above the
+	threshold looks identical) and which the rebuild pass repairs. The reverse order fails much
+	worse: a ticket with results but no vector is permanently invisible to everyone else's
+	searches, silently and with nothing to detect it.
 	"""
 
 	def __init__(
-		self, uow: UnitOfWork, embedding_provider: EmbeddingProvider,
-		search_port: SimilaritySearchPort, event_publisher: EventPublisher,
+		self, uow: UnitOfWork, knowledge_items: KnowledgeItemRepository,
+		embedding_provider: EmbeddingProvider, search_port: SimilaritySearchPort,
+		event_publisher: EventPublisher,
 	) -> None:
 		self.uow = uow
+		self.knowledge_items = knowledge_items
 		self.embedding_provider = embedding_provider
 		self.search_port = search_port
 		self.event_publisher = event_publisher
@@ -51,7 +63,11 @@ class GenerateSimilarityResultsHandler:
 			generated_at=command.created_at, identifiers=list(preprocessed.identifiers),
 			genergy_id=command.genergy_id, oceane_id=command.oceane_id,
 		)
-		await self.uow.knowledge_items.add(item)
+		# Durable immediately, unlike the session-staged write this replaced -- so unlike before, the
+		# new ticket is already a searchable candidate by the time the searches below run. It never
+		# shows up in its own results only because both searches exclude it explicitly, which they
+		# always did.
+		await self.knowledge_items.add(item)
 
 		semantic = await self.search_port.find_nearest(
 			embedding, application=command.application, exclude_ticket_id=command.ticket_id, limit=MAX_RESULTS,

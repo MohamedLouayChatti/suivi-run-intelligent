@@ -49,7 +49,7 @@ def rank_candidates(
 ) -> list[RankedCandidate]:
 	"""The single definition of how retrieved candidates become final results.
 
-	Lives in the domain, with no dependency on pgvector, SQLAlchemy or the embedding provider, so
+	Lives in the domain, with no dependency on the vector store, SQLAlchemy or the embedding provider, so
 	the evaluation notebook can apply the exact same policy to numpy-computed candidates instead
 	of reimplementing it. If this function changes, production and the evaluation move together.
 
@@ -60,8 +60,8 @@ def rank_candidates(
 	recovers follow-ups like "Au sujet du ticket INC001010976766", whose target every candidate
 	model ranks beyond position 100.
 
-	`semantic` must already arrive best-first, which is what the vector search's ORDER BY
-	guarantees. With no reference matches -- the common case -- the output is exactly the
+	`semantic` must already arrive best-first, which is what a vector search returning points by
+	descending score guarantees. With no reference matches -- the common case -- the output is exactly the
 	previous behaviour: threshold, then cap at max_results.
 	"""
 	ranked: list[RankedCandidate] = []

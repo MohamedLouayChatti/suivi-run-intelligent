@@ -17,7 +17,7 @@ class KnowledgeItem:
 	completely different set of source-specific fields.
 
 	Only what is genuinely common to every source lives here. Framework-free: `embedding` is a
-	plain list[float], never a pgvector-specific type (that conversion is Infrastructure's
+	plain list[float], never a store-specific vector type (that conversion is Infrastructure's
 	concern).
 
 	`application` stays on the base rather than on the ticket subtype because scoping knowledge
