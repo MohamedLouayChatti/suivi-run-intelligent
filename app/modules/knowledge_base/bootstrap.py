@@ -14,6 +14,7 @@ from app.modules.ticket_management.infrastructure.events.in_memory_event_publish
 from app.shared.events.event_bus import InMemoryEventBus
 from app.shared.events.subscriptions import SubscriptionRegistry
 from app.shared.security.instance_authorization_registry import InstanceAuthorizationRegistry
+from app.workers.worker import job_queue
 
 
 def register_subscriptions(registry: SubscriptionRegistry, event_bus: InMemoryEventBus) -> None:
@@ -42,6 +43,9 @@ def register_subscriptions(registry: SubscriptionRegistry, event_bus: InMemoryEv
 		search_port=QdrantSimilaritySearch(qdrant),
 		embedding_provider=OllamaEmbeddingProvider.from_settings(),
 		event_publisher=InMemoryEventPublisher(event_bus),
+		# The process-wide runner, injected rather than imported inside the handler so a test or a
+		# future worker process can supply a different JobQueue without touching the module.
+		job_queue=job_queue,
 	)
 	registry.subscribe(TicketCreated, handler)
 

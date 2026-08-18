@@ -14,6 +14,7 @@ from app.modules.knowledge_base import bootstrap as knowledge_base_bootstrap
 from app.shared.events.event_bus import InMemoryEventBus
 from app.shared.events.subscriptions import SubscriptionRegistry
 from app.shared.security.instance_authorization_registry import InstanceAuthorizationRegistry
+from app.workers.worker import job_queue
 
 
 @asynccontextmanager
@@ -41,3 +42,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 	knowledge_base_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 
 	yield
+
+	# Background jobs are cancelled rather than drained: everything enqueued today is recomputable
+	# work whose loss a rebuild repairs, and draining would make every shutdown wait on remote
+	# services. Nothing else here needs teardown -- the registries and the bus are plain objects.
+	await job_queue.shutdown()

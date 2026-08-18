@@ -31,10 +31,20 @@ class RefreshNeighborSimilarityHandler:
 	model call per neighbour.
 
 	Runs in its own transaction, separate from the one that wrote the source ticket's own results.
-	Those are committed before this handler is called and must never be put at risk by it -- they
-	are the outcome a reader of the new ticket is waiting for, while this is maintenance on rows
-	nobody is looking at yet. What a failure here means is the caller's decision, not this
-	handler's: in the ticket-creation path it is logged and dropped, since a rebuild repairs it.
+	Those are committed before this handler is ever invoked and must never be put at risk by it --
+	they are the outcome a reader of the new ticket is waiting for, while this is maintenance on
+	rows nobody is looking at yet.
+
+	That same asymmetry is why the ticket-creation path enqueues this as a background job rather
+	than awaiting it: nothing in the request reads what it writes. Nothing here assumes it, though.
+	The handler takes a ticket id and reads everything else from committed state, so it computes the
+	same thing whether it runs immediately, seconds later on a background runner, or from an
+	operator's trigger -- which is what makes it deferrable in the first place rather than merely
+	deferred.
+
+	What a failure means is the caller's decision, not this handler's, so it raises normally: on the
+	background runner `run_job` logs it and stops there, since the neighbours simply keep the results
+	they already had and a rebuild reconciles them.
 	"""
 
 	def __init__(
