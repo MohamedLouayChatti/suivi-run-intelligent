@@ -18,6 +18,7 @@ from app.modules.knowledge_base.application.commands.rebuild_similarity_graph.co
 from app.modules.knowledge_base.application.commands.rebuild_similarity_graph.handler import (
 	RebuildSimilarityGraphHandler,
 )
+from app.modules.knowledge_base.application.services.similarity_computation import SimilarityComputation
 from app.modules.knowledge_base.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
 from app.modules.knowledge_base.infrastructure.providers.ollama_embedding_provider import OllamaEmbeddingProvider
 from app.modules.knowledge_base.infrastructure.vector_store.client import close_qdrant_client, get_qdrant_client
@@ -106,7 +107,7 @@ async def run_rebuild(batch_size: int) -> None:
 	handler = RebuildSimilarityGraphHandler(
 		uow_factory=SqlAlchemyUnitOfWork,
 		knowledge_items=QdrantKnowledgeItemRepository(qdrant),
-		search_port=QdrantSimilaritySearch(qdrant),
+		computation=SimilarityComputation(QdrantSimilaritySearch(qdrant)),
 	)
 	report = await handler.handle(
 		RebuildSimilarityGraphCommand(generated_at=datetime.now(UTC), batch_size=batch_size)

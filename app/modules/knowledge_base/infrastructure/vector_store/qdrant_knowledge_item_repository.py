@@ -66,6 +66,28 @@ class QdrantKnowledgeItemRepository(KnowledgeItemRepository):
 		)
 		return {UUID(record.payload[collection.SOURCE_ID]) for record in records if record.payload}
 
+	async def get_by_source_ids(self, source_ids: Sequence[UUID]) -> list[KnowledgeItem]:
+		if not source_ids:
+			return []
+		records, _ = await self.client.scroll(
+			collection_name=collection.COLLECTION_NAME,
+			scroll_filter=models.Filter(
+				must=[
+					models.FieldCondition(
+						key=collection.SOURCE_ID,
+						match=models.MatchAny(any=[str(source_id) for source_id in source_ids]),
+					)
+				]
+			),
+			with_payload=True,
+			# The one difference from existing_source_ids next door, and the reason both exist: these
+			# items are about to be searched *from*, so the vectors are the whole point rather than an
+			# expensive way to answer a question about ids.
+			with_vectors=True,
+			limit=len(source_ids),
+		)
+		return [payload.point_to_knowledge_item(record) for record in records]
+
 	async def list_page(self, *, cursor: UUID | None, limit: int) -> KnowledgeItemPage:
 		records, next_offset = await self.client.scroll(
 			collection_name=collection.COLLECTION_NAME,

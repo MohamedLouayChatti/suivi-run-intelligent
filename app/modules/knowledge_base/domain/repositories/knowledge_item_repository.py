@@ -45,6 +45,20 @@ class KnowledgeItemRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
+	async def get_by_source_ids(self, source_ids: Sequence[UUID]) -> list[KnowledgeItem]:
+		"""The full items -- vectors included -- behind a known set of source ids.
+
+		The targeted counterpart of `list_page`: the neighbour refresh knows exactly whose results
+		it is about to recompute and needs those tickets' own vectors to search from, where a full
+		pass walks the whole corpus in the store's own order. Distinct from `existing_source_ids`,
+		which answers a membership question and deliberately leaves the vectors on the server.
+
+		Ids with no item are simply absent from the result rather than an error: the caller is
+		asking about a corpus whose contents it does not control.
+		"""
+		raise NotImplementedError
+
+	@abstractmethod
 	async def list_page(self, *, cursor: UUID | None, limit: int) -> KnowledgeItemPage:
 		"""One page of the corpus for a full pass, with the cursor to resume from.
 
