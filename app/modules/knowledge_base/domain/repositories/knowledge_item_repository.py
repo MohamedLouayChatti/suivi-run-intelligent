@@ -85,6 +85,22 @@ class KnowledgeItemRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
+	async def delete_by_source_ids(self, source_ids: Sequence[UUID]) -> None:
+		"""Remove the items for these sources, if they are there.
+
+		The compensating half of `add_many`, and the only reason it exists: a batch import writes
+		its tickets to one store and their vectors to another with no transaction across the two,
+		so the only way it can promise all-or-nothing is to be able to take back what it wrote when
+		the second write fails. Nothing else in this module deletes selectively -- the maintenance
+		passes replace or drop everything.
+
+		Silent about ids with no item, like `get_by_source_ids`: a caller undoing a partial write
+		does not know how much of it landed, and having to find out first would be the same
+		round trip twice.
+		"""
+		raise NotImplementedError
+
+	@abstractmethod
 	async def delete_all(self) -> None:
 		"""Drop the whole corpus, for a model change. Safe to expose because knowledge items are
 		derived data -- they are recomputable in full from the tickets they were built from."""

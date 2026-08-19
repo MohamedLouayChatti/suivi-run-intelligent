@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from uuid import UUID
 
 from app.modules.ticket_management.application.dto.attachment_dto import AttachmentDTO
+from app.modules.ticket_management.application.dto.ticket_identity_key import TicketIdentityKey
 from app.modules.ticket_management.application.dto.ticket_dto import (
 	TicketContentDTO,
 	TicketDetailDTO,
@@ -62,5 +64,20 @@ class TicketReadRepository(ABC):
 		Includes archived tickets. Archival is a soft delete in this module and does not retract
 		what a ticket recorded, so excluding them here would make a bulk pass disagree with the
 		per-ticket path, which sees every ticket at creation and never revisits it.
+		"""
+		raise NotImplementedError
+
+	@abstractmethod
+	async def find_existing_identity_keys(self, keys: Sequence[TicketIdentityKey]) -> set[TicketIdentityKey]:
+		"""Which of `keys` already identify a stored ticket.
+
+		Asked by the batch import before it writes anything, to refuse a file that repeats incidents
+		already in the database -- re-uploading an export is the likeliest way an import goes wrong,
+		and nothing in the schema would stop it: neither external identifier is unique, and both are
+		legitimately absent on plenty of tickets.
+
+		Returns the subset that matched rather than a per-key answer, because the caller has a set of
+		candidates and one question about all of them, and because a key that matched several tickets
+		is no different here from one that matched a single ticket.
 		"""
 		raise NotImplementedError

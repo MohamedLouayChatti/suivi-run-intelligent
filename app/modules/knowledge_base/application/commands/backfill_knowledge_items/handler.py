@@ -1,19 +1,15 @@
 from __future__ import annotations
 
 import logging
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from app.modules.knowledge_base.application.commands.backfill_knowledge_items.command import (
 	BackfillKnowledgeItemsCommand,
 )
 from app.modules.knowledge_base.application.dto.backfill_report_dto import BackfillReportDTO
-from app.modules.knowledge_base.application.exceptions import MixedEmbeddingCorpus
-from app.modules.knowledge_base.domain.entities.knowledge_item import TicketKnowledgeItem
+from app.modules.knowledge_base.application.services.corpus_ingestion import CorpusIngestion
 from app.modules.knowledge_base.domain.repositories.knowledge_item_repository import KnowledgeItemRepository
-from app.modules.knowledge_base.domain.services.description_preprocessor import preprocess_description
-from app.modules.ticket_management.application.dto.ticket_dto import TicketContentDTO
 from app.modules.ticket_management.application.interfaces.ticket_read_repository import TicketReadRepository
-from app.shared.ai.embedding_provider import EmbeddingProvider
 
 logger = logging.getLogger(__name__)
 
@@ -43,18 +39,18 @@ class BackfillKnowledgeItemsHandler:
 		self,
 		knowledge_items: KnowledgeItemRepository,
 		ticket_read_repository: TicketReadRepository,
-		embedding_provider: EmbeddingProvider,
+		ingestion: CorpusIngestion,
 	) -> None:
 		self.knowledge_items = knowledge_items
 		self.ticket_read_repository = ticket_read_repository
-		self.embedding_provider = embedding_provider
+		self.ingestion = ingestion
 
 	async def handle(self, command: BackfillKnowledgeItemsCommand) -> BackfillReportDTO:
-		# Ahead of everything else: this resolves the model and fails immediately if the provider
-		# is unreachable or serving the wrong build, rather than in the twentieth minute of a run.
-		# It is also what makes model_name/model_version readable below.
-		await self.embedding_provider.warm_up()
-		await self._assert_corpus_matches_provider()
+		# Ahead of everything else, and shared with every other path that adds to the corpus: it
+		# resolves the model, fails immediately if the provider is unreachable or serving the wrong
+		# build rather than in the twentieth minute of a run, and refuses to add to a corpus some
+		# other model produced.
+		await self.ingestion.prepare(self.knowledge_items)
 
 		tickets_seen = already_embedded = embedded = skipped_empty_text = 0
 		after_id: UUID | None = None
@@ -75,7 +71,7 @@ class BackfillKnowledgeItemsHandler:
 			for ticket in page:
 				if ticket.id in existing:
 					continue
-				item = await self._embed(ticket, command)
+				item = await self.ingestion.item_for(ticket, command.generated_at)
 				if item is None:
 					skipped_empty_text += 1
 					continue
@@ -97,37 +93,3 @@ class BackfillKnowledgeItemsHandler:
 			tickets_seen=tickets_seen, already_embedded=already_embedded,
 			embedded=embedded, skipped_empty_text=skipped_empty_text,
 		)
-
-	async def _embed(
-		self, ticket: TicketContentDTO, command: BackfillKnowledgeItemsCommand
-	) -> TicketKnowledgeItem | None:
-		"""Returns None for a ticket with nothing left to embed.
-
-		Preprocessing can empty a description outright -- one consisting only of an order reference
-		becomes a bare placeholder. Embedding that would store a vector for "a commande was
-		mentioned", which is a near-neighbour of every other such ticket and of nothing meaningful,
-		so the ticket is left without a knowledge item instead. A later pass picks it up for free if
-		it ever gains real text.
-		"""
-		preprocessed = preprocess_description(ticket.description)
-		if not preprocessed.embedding_text.strip():
-			logger.debug("Skipping ticket %s: nothing left to embed after preprocessing", ticket.id)
-			return None
-
-		embedding = await self.embedding_provider.embed(preprocessed.embedding_text)
-		return TicketKnowledgeItem.create(
-			id=uuid4(), source_id=ticket.id, application=ticket.application, embedding=embedding,
-			embedding_model=self.embedding_provider.model_name,
-			embedding_model_version=self.embedding_provider.model_version,
-			generated_at=command.generated_at, identifiers=list(preprocessed.identifiers),
-			genergy_id=ticket.genergy_id, oceane_id=ticket.oceane_id,
-		)
-
-	async def _assert_corpus_matches_provider(self) -> None:
-		"""Adding to a corpus built by a different model is the one way this pass can do damage,
-		and the damage is invisible afterwards -- hence a check up front rather than a repair later.
-		"""
-		present = await self.knowledge_items.distinct_model_versions()
-		expected = (self.embedding_provider.model_name, self.embedding_provider.model_version)
-		if any(pair != expected for pair in present):
-			raise MixedEmbeddingCorpus(present, expected)

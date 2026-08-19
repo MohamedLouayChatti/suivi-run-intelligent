@@ -8,6 +8,7 @@ dependencies = [
     # of 4.x's persistence or distributed-worker machinery is being waited on. 3.11 is also where
     # the pytz dependency gave way to the standard library's zoneinfo.
     "apscheduler>=3.11.3",
+    "openpyxl>=3.1.5",
     "python-multipart>=0.0.32",
     "qdrant-client>=1.19.0",
 ]
@@ -23,6 +24,11 @@ dev = [
     "nbclient>=0.11.0",
     "nbconvert>=7.17.1",
     "numpy>=2.5.2",
+    # Reads the .xlsx/.xlsm uploads the batch import accepts alongside CSV. Pure Python, so it
+    # needs no C toolchain -- which this development machine does not have, and which is what ruled
+    # pgvector out. Imported lazily, on the one code path that uses it, so a deployment that has
+    # not synced yet still starts and still accepts CSV.
+    "openpyxl>=3.1.5",
     "ollama>=0.6.2",
     "pandas>=3.0.5",
     "psutil>=7.2.2",

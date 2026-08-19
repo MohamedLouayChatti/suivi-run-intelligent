@@ -6,11 +6,18 @@ from fastapi import status
 
 from app.modules.analytics.application.exceptions import UnsupportedInsightsApplication
 from app.modules.audit.application.exceptions import AuditEntryNotFound
-from app.modules.knowledge_base.application.exceptions import RecalculationAlreadyRunning
+from app.modules.knowledge_base.application.exceptions import (
+    BatchImportCorpusWriteFailed,
+    BatchImportFileUnreadable,
+    BatchImportPreflightFailed,
+    BatchImportTooLarge,
+    RecalculationAlreadyRunning,
+)
 from app.modules.notifications.application.exceptions import NotificationNotFound
 from app.modules.ticket_management.application.exceptions import (
     AssigneeNotAuthorized,
     AssigneeNotFound,
+    TicketImportRejected,
     TicketNotFound,
 )
 from app.modules.ticket_management.application.exceptions import AttachmentNotFound as ApplicationAttachmentNotFound
@@ -58,6 +65,17 @@ EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     NotificationNotFound: status.HTTP_404_NOT_FOUND,
     UnsupportedInsightsApplication: status.HTTP_400_BAD_REQUEST,
     RecalculationAlreadyRunning: status.HTTP_409_CONFLICT,
+    # A rejected import is a well-formed request describing data this module will not accept, which
+    # is exactly what 422 is for -- and the same code FastAPI already answers with when a request
+    # body fails validation, so a client handles both the same way.
+    TicketImportRejected: status.HTTP_422_UNPROCESSABLE_CONTENT,
+    BatchImportFileUnreadable: status.HTTP_400_BAD_REQUEST,
+    BatchImportTooLarge: status.HTTP_413_CONTENT_TOO_LARGE,
+    # Not a 500: the request was valid and this module did its part. What failed is the embedding
+    # endpoint or the vector store, which is a dependency being unavailable rather than a defect
+    # here, and the distinction is what tells an operator to retry rather than to report a bug.
+    BatchImportCorpusWriteFailed: status.HTTP_502_BAD_GATEWAY,
+    BatchImportPreflightFailed: status.HTTP_502_BAD_GATEWAY,
 }
 
 

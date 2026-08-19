@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -34,6 +35,15 @@ class SqlAlchemyUserReadRepository(UserReadRepository):
 
 	async def list_users(self, query: ListUsersQuery) -> list[UserDTO]:
 		result = await self.session.scalars(self._base_query().order_by(UserModel.email).limit(query.limit).offset(query.offset))
+		return [mapper.user_model_to_dto(model) for model in result.all()]
+
+	async def find_by_display_names(self, display_names: Sequence[str]) -> list[UserDTO]:
+		if not display_names:
+			return []
+		normalized = {name.strip().lower() for name in display_names}
+		result = await self.session.scalars(
+			self._base_query().where(func.lower(func.btrim(UserModel.display_name)).in_(normalized))
+		)
 		return [mapper.user_model_to_dto(model) for model in result.all()]
 
 	async def get_user_roles(self, user_id: UUID) -> list[RoleDTO]:

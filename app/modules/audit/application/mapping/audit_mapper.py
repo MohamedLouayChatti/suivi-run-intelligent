@@ -21,6 +21,8 @@ from app.modules.ticket_management.domain.events.ticket_reassigned import Ticket
 from app.modules.ticket_management.domain.events.ticket_restored import TicketRestored
 from app.modules.ticket_management.domain.events.ticket_status_changed import TicketStatusChanged
 from app.modules.ticket_management.domain.events.ticket_transferred import TicketTransferred
+from app.modules.ticket_management.domain.events.tickets_import_discarded import TicketsImportDiscarded
+from app.modules.ticket_management.domain.events.tickets_imported import TicketsImported
 
 from app.modules.auth.domain.events.permission_granted_to_user import PermissionGrantedToUser
 from app.modules.auth.domain.events.permission_revoked_from_user import PermissionRevokedFromUser
@@ -61,6 +63,8 @@ class AuditMapper:
 			TicketRestored: self._ticket_restored,
 			JiraDetailsUpdated: self._jira_details_updated,
 			OperationalHighlightChanged: self._operational_highlight_changed,
+			TicketsImported: self._tickets_imported,
+			TicketsImportDiscarded: self._tickets_import_discarded,
 			UserCreated: self._user_created,
 			UserUpdated: self._user_updated,
 			UserActivated: self._user_activated,
@@ -92,6 +96,37 @@ class AuditMapper:
 		)
 
 	# -- Ticket Management -------------------------------------------------
+
+	def _tickets_imported(self, event: TicketsImported) -> AuditEntry:
+		"""One entry for a whole batch, mirroring the one event it publishes.
+
+		The ticket ids are counted rather than listed. A payload holding a thousand UUIDs would be
+		the largest row in this table by an order of magnitude, and what an audit reader is asking
+		is who loaded how much into which application -- the tickets themselves are in the tickets
+		table, where a reader can filter them by the application and the moment recorded here.
+		"""
+		return self._entry(
+			event, module="ticket_management", event_type="TicketsImported",
+			action="ticket.imported", resource_type="ticket",
+			payload={"application": event.application.value, "ticket_count": len(event.ticket_ids)},
+		)
+
+	def _tickets_import_discarded(self, event: TicketsImportDiscarded) -> AuditEntry:
+		"""The compensating entry, recorded rather than allowed to cancel out the import above it.
+
+		Both happened, and an audit log that showed neither would quietly lose the fact that a
+		batch of tickets appeared and was taken away again. `reason` is the failure that forced it,
+		which is the part a reader coming back to this later actually needs.
+		"""
+		return self._entry(
+			event, module="ticket_management", event_type="TicketsImportDiscarded",
+			action="ticket.import_discarded", resource_type="ticket",
+			payload={
+				"application": event.application.value,
+				"ticket_count": len(event.ticket_ids),
+				"reason": event.reason,
+			},
+		)
 
 	def _ticket_created(self, event: TicketCreated) -> AuditEntry:
 		return self._entry(

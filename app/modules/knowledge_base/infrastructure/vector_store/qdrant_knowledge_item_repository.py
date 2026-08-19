@@ -139,6 +139,27 @@ class QdrantKnowledgeItemRepository(KnowledgeItemRepository):
 					pairs.append((record.payload[collection.EMBEDDING_MODEL], version))
 		return pairs
 
+	async def delete_by_source_ids(self, source_ids: Sequence[UUID]) -> None:
+		if not source_ids:
+			return
+		await self.client.delete(
+			collection_name=collection.COLLECTION_NAME,
+			points_selector=models.FilterSelector(
+				filter=models.Filter(
+					must=[
+						models.FieldCondition(
+							key=collection.SOURCE_ID,
+							match=models.MatchAny(any=[str(source_id) for source_id in source_ids]),
+						)
+					]
+				)
+			),
+			# Waited on for the same reason the batch write is: the caller is unwinding a failed
+			# operation and is about to report that nothing survived it, which it can only say once
+			# the store agrees.
+			wait=True,
+		)
+
 	async def delete_all(self) -> None:
 		# Points are removed but the collection and its payload indexes stay: this is "drop the
 		# corpus", not "drop the schema", and re-provisioning after every reset would be an extra

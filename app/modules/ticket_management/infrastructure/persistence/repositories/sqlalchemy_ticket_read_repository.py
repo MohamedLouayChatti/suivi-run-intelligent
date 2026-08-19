@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import UTC, datetime, time
 from uuid import UUID
 
-from sqlalchemy import Select, String, and_, cast, or_, select
+from sqlalchemy import ColumnElement, Select, String, and_, cast, func, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -14,6 +15,7 @@ from app.modules.ticket_management.application.dto.ticket_dto import (
 	TicketSimilaritySummaryDTO,
 	TicketSummaryDTO,
 )
+from app.modules.ticket_management.application.dto.ticket_identity_key import TicketIdentityKey
 from app.modules.ticket_management.application.interfaces.ticket_read_repository import TicketReadRepository
 from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
@@ -25,6 +27,20 @@ from app.modules.ticket_management.infrastructure.persistence.models.comment_mod
 from app.modules.ticket_management.infrastructure.persistence.models.ticket_model import TicketModel
 
 COMPLETED_STATUSES = (Status.CLOSED, Status.TRANSFERRED)
+
+# Postgres has to compare stored tickets the same way the application normalizes the candidate keys
+# it is asking about, so this is the SQL counterpart of `normalize_identity_text` and the two only
+# mean anything as a pair: collapse runs of whitespace, trim the ends, lower-case, and read a NULL
+# identifier as the empty string an absent CSV cell becomes. `lower()` rather than a case-folding
+# collation for exactly that reason -- it is the operation the Python side was written to match.
+# The comparison is deliberately computed rather than indexed: it runs once per import over a
+# corpus of a few thousand rows, and an expression index maintained on every ticket write would
+# cost far more than the scan it saves.
+_KEY_BATCH_SIZE = 500
+
+
+def _normalized(column: ColumnElement[str | None]) -> ColumnElement[str]:
+	return func.lower(func.btrim(func.regexp_replace(func.coalesce(column, ""), r"\s+", " ", "g")))
 
 
 class SqlAlchemyTicketReadRepository(TicketReadRepository):
@@ -165,3 +181,29 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 			stmt = stmt.where(and_(*conditions))
 		return stmt
 
+	async def find_existing_identity_keys(self, keys: Sequence[TicketIdentityKey]) -> set[TicketIdentityKey]:
+		if not keys:
+			return set()
+
+		candidate = tuple_(
+			_normalized(TicketModel.genergy_id),
+			_normalized(TicketModel.oceane_id),
+			_normalized(TicketModel.description),
+		)
+		unique = list({key for key in keys})
+		found: set[TicketIdentityKey] = set()
+		# Chunked because a file may carry thousands of rows and each key spends three bind parameters;
+		# one statement per few hundred keys stays comfortably clear of the parameter ceiling without
+		# turning the check into a query per row.
+		for start in range(0, len(unique), _KEY_BATCH_SIZE):
+			batch = unique[start : start + _KEY_BATCH_SIZE]
+			stmt = select(
+				_normalized(TicketModel.genergy_id),
+				_normalized(TicketModel.oceane_id),
+				_normalized(TicketModel.description),
+			).where(
+				candidate.in_([(key.genergy_id, key.oceane_id, key.description) for key in batch])
+			)
+			for row in (await self.session.execute(stmt)).all():
+				found.add(TicketIdentityKey(genergy_id=row[0], oceane_id=row[1], description=row[2]))
+		return found

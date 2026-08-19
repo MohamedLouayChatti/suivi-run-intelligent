@@ -18,6 +18,7 @@ from app.modules.knowledge_base.application.commands.rebuild_similarity_graph.co
 from app.modules.knowledge_base.application.commands.rebuild_similarity_graph.handler import (
 	RebuildSimilarityGraphHandler,
 )
+from app.modules.knowledge_base.application.services.corpus_ingestion import CorpusIngestion
 from app.modules.knowledge_base.application.services.similarity_computation import SimilarityComputation
 from app.modules.knowledge_base.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork
 from app.modules.knowledge_base.infrastructure.providers.ollama_embedding_provider import OllamaEmbeddingProvider
@@ -87,7 +88,7 @@ async def run_backfill(batch_size: int) -> None:
 		handler = BackfillKnowledgeItemsHandler(
 			knowledge_items=QdrantKnowledgeItemRepository(get_qdrant_client()),
 			ticket_read_repository=SqlAlchemyTicketReadRepository(session),
-			embedding_provider=provider,
+			ingestion=CorpusIngestion(provider),
 		)
 		report = await handler.handle(
 			BackfillKnowledgeItemsCommand(generated_at=datetime.now(UTC), batch_size=batch_size)
