@@ -1,11 +1,11 @@
 "use client"
 
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 
 import { PageBody } from "@/components/app/page"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useTicketDetail } from "@/features/tickets/details/use-ticket-detail"
-import { getSimilarIncidents } from "@/features/tickets/details/mock-similar-incidents"
+import { useSimilarIncidents } from "@/features/tickets/details/use-similar-incidents"
 import { useUserDirectory } from "@/hooks/use-user-directory"
 import { RequirePermission, usePermissions } from "@/lib/auth"
 import { TicketHeader } from "@/features/tickets/details/ticket-header"
@@ -19,10 +19,13 @@ import { SimilarIncidentsCard } from "@/features/tickets/details/similar-inciden
 
 export default function TicketDetailsPage() {
   const params = useParams<{ id: string }>()
-  return <TicketDetailView key={params.id} id={params.id} />
+  // `from` is set by the similar-incidents card when one ticket is opened from another's
+  // suggestions; absent for every other way of reaching this page.
+  const fromTicketId = useSearchParams().get("from")
+  return <TicketDetailView key={params.id} id={params.id} fromTicketId={fromTicketId} />
 }
 
-function TicketDetailView({ id }: { id: string }) {
+function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: string | null }) {
   const {
     ticket,
     isLoading,
@@ -46,6 +49,11 @@ function TicketDetailView({ id }: { id: string }) {
     commentAttachmentError,
   } = useTicketDetail(id)
   const { users } = useUserDirectory()
+  const {
+    incidents: similarIncidents,
+    isLoading: isLoadingSimilarIncidents,
+    isError: similarIncidentsFailed,
+  } = useSimilarIncidents(id)
   const { user: currentUser, hasPermission, isTicketAssignee } = usePermissions()
 
   if (isLoading) {
@@ -67,8 +75,6 @@ function TicketDetailView({ id }: { id: string }) {
       </PageBody>
     )
   }
-
-  const similarIncidents = getSimilarIncidents(ticket.id)
 
   // Mirrors Ticket.reassign's own checks (app/modules/ticket_management/domain/entities/
   // ticket.py) plus ReassignTicketHandler's (application/commands/reassign_ticket/handler.py)
@@ -97,6 +103,7 @@ function TicketDetailView({ id }: { id: string }) {
     <RequirePermission permission="ticket.read">
       <TicketHeader
         ticket={ticket}
+        fromTicketId={fromTicketId}
         users={reassignCandidates}
         canStart={canChangeStatus && ticket.status === "OPEN"}
         canResolve={canChangeStatus && ticket.status === "IN_PROGRESS"}
@@ -152,7 +159,12 @@ function TicketDetailView({ id }: { id: string }) {
           </div>
           <div className="space-y-6 xl:sticky xl:top-6">
             <TicketMetadataCard ticket={ticket} />
-            <SimilarIncidentsCard incidents={similarIncidents} />
+            <SimilarIncidentsCard
+              incidents={similarIncidents}
+              isLoading={isLoadingSimilarIncidents}
+              isError={similarIncidentsFailed}
+              sourceTicketId={ticket.id}
+            />
           </div>
         </div>
       </PageBody>

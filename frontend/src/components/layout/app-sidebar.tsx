@@ -37,11 +37,12 @@ import { usePermissions } from "@/lib/auth";
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { hasPermission } = usePermissions();
+  const { hasPermission, hasAnyPermission } = usePermissions();
 
   function isVisible(item: NavItem): boolean {
     if (!item.requires) return true;
     if (item.requires.permission && !hasPermission(item.requires.permission)) return false;
+    if (item.requires.anyPermission && !hasAnyPermission(item.requires.anyPermission)) return false;
     return true;
   }
 

@@ -11,6 +11,13 @@ interface RequirePermissionProps {
   permission?: string;
   /** Several permission names, all of which must be held — mirrors `require_permissions`. */
   permissions?: readonly string[];
+  /**
+   * Several permission names, at least one of which must be held. For a page that composes
+   * capabilities gated separately on the backend (the Knowledge Base admin page: batch import
+   * and recalculation management), where holding any one of them is reason to reach the page
+   * and each section decides for itself whether to render.
+   */
+  anyPermissions?: readonly string[];
   children: ReactNode;
 }
 
@@ -24,12 +31,18 @@ interface RequirePermissionProps {
  * `audit.read`, …), so granting that permission to another role, or directly to one user, opens
  * the page without any frontend change.
  */
-function RequirePermission({ permission, permissions, children }: RequirePermissionProps) {
-  const { hasPermission, hasAllPermissions } = usePermissions();
+function RequirePermission({
+  permission,
+  permissions,
+  anyPermissions,
+  children,
+}: RequirePermissionProps) {
+  const { hasPermission, hasAllPermissions, hasAnyPermission } = usePermissions();
 
   const allowed =
     (permission === undefined || hasPermission(permission)) &&
-    (permissions === undefined || hasAllPermissions(permissions));
+    (permissions === undefined || hasAllPermissions(permissions)) &&
+    (anyPermissions === undefined || hasAnyPermission(anyPermissions));
 
   if (!allowed) {
     return <AccessDeniedScreen />;

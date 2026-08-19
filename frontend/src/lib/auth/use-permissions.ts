@@ -3,6 +3,7 @@
 import {
   canActOnApplication,
   hasAllPermissions,
+  hasAnyPermission,
   hasPermission,
   isAttachmentUploader,
   isCommentAuthor,
@@ -23,6 +24,7 @@ function usePermissions() {
     isLoading,
     hasPermission: (name: string) => hasPermission(user, name),
     hasAllPermissions: (names: readonly string[]) => hasAllPermissions(user, names),
+    hasAnyPermission: (names: readonly string[]) => hasAnyPermission(user, names),
     isTicketAssignee: (ticket: Parameters<typeof isTicketAssignee>[1]) =>
       isTicketAssignee(user, ticket),
     isCommentAuthor: (comment: Parameters<typeof isCommentAuthor>[1]) =>

@@ -25,6 +25,17 @@ function hasAllPermissions(user: CurrentUser | undefined, names: readonly string
   return names.every((name) => hasPermission(user, name));
 }
 
+/**
+ * At least one of the listed permissions is held. Not a mirror of any single backend check —
+ * `require_permissions` is conjunctive — but of a page that composes several independently
+ * gated capabilities: the Knowledge Base admin page carries batch import and recalculation
+ * management, each with its own permission and its own backend route. Holding either is reason
+ * to see the page; each section then asks for the permission it actually needs.
+ */
+function hasAnyPermission(user: CurrentUser | undefined, names: readonly string[]): boolean {
+  return names.some((name) => hasPermission(user, name));
+}
+
 function isTicketAssignee(
   user: CurrentUser | undefined,
   ticket: { assignee: { id: string } | null }
@@ -54,6 +65,7 @@ function canActOnApplication(user: CurrentUser | undefined, application: Applica
 export {
   hasPermission,
   hasAllPermissions,
+  hasAnyPermission,
   isTicketAssignee,
   isCommentAuthor,
   isAttachmentUploader,

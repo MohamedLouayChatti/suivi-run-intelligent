@@ -927,8 +927,9 @@ export interface paths {
         };
         /**
          * Get Admin Overview
-         * @description Admin-only: the cross-application "all applications" view, never scoped to a
-         *     single application -- see AdminOverviewDTO.
+         * @description The cross-application "all applications" view, never scoped to a single application
+         *     -- see AdminOverviewDTO. Gated by analytics.read_any_application, the same breadth
+         *     permission that lets the other endpoints span every application.
          */
         get: operations["get_admin_overview_analytics_admin_overview_get"];
         put?: never;
@@ -978,6 +979,103 @@ export interface paths {
         get: operations["get_my_activity_trend_analytics_my_activity_trend_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge-base/tickets/{ticket_id}/similar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Similar Incidents */
+        get: operations["get_similar_incidents_knowledge_base_tickets__ticket_id__similar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge-base/recalculation-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Recalculation Schedule */
+        get: operations["get_recalculation_schedule_knowledge_base_recalculation_schedule_get"];
+        /** Update Recalculation Schedule */
+        put: operations["update_recalculation_schedule_knowledge_base_recalculation_schedule_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge-base/recalculation/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Recalculation Now
+         * @description Start a full recalculation now, outside the schedule.
+         *
+         *     202 with no body, because that is what actually happened: the pass was accepted and will run
+         *     in the background, long after this response. Its progress and outcome are in the log, and
+         *     whether one is running is on the schedule endpoint above. A run requested while another is
+         *     already in flight is refused with 409 rather than queued.
+         */
+        post: operations["run_recalculation_now_knowledge_base_recalculation_run_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/knowledge-base/batch-imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Ticket Batch
+         * @description Load a file of tickets, embed them, and rebuild the similarity graph over the enlarged corpus.
+         *
+         *     Accepts a CSV or an Excel workbook (.xlsx/.xlsm, first sheet) with French column headers. Both
+         *     are read into the same records and validated by the same rules -- past the reader, nothing can
+         *     tell which one arrived.
+         *
+         *     The application is a form field rather than a column, because one file belongs to one
+         *     application and a column would let the file contradict the person uploading it.
+         *
+         *     201 with a report, not 202: the tickets and their knowledge base entries are durable by the
+         *     time this returns. Only the graph rebuild outlives the request, which the report says plainly
+         *     rather than implying. A file with a single bad row is rejected whole, with 422 and every
+         *     problem found, and nothing is written.
+         *
+         *     Authorized by its own permission and nothing else. There is no instance to authorize against,
+         *     and no application-assignment check: which application the file belongs to is a property of the
+         *     file, and loading historical incidents in bulk is an administrative act rather than someone
+         *     filing a ticket on their own beat.
+         */
+        post: operations["import_ticket_batch_knowledge_base_batch_imports_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1199,6 +1297,43 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /**
+         * BatchImportRejectedResponse
+         * @description The body of a rejected import: everything wrong with the file, and nothing written.
+         *
+         *     `total_error_count` is separate from the length of `errors` on purpose. A systematically broken
+         *     file can fail on every row, and the list is capped -- reporting the true total is what stops a
+         *     truncated report from reading as a complete one.
+         */
+        BatchImportRejectedResponse: {
+            /** Detail */
+            detail: string;
+            /** Message */
+            message: string;
+            /** Total Error Count */
+            total_error_count: number;
+            /** Errors */
+            errors: components["schemas"]["TicketImportErrorResponse"][];
+        };
+        /**
+         * BatchImportResponse
+         * @description What an accepted import did. Every count is of something that actually happened, except the
+         *     last, which is a request that was accepted -- named `recalculation_enqueued` rather than
+         *     `recalculated` for that reason.
+         */
+        BatchImportResponse: {
+            application: components["schemas"]["Application"];
+            /** Tickets Imported */
+            tickets_imported: number;
+            /** Knowledge Items Written */
+            knowledge_items_written: number;
+            /** Skipped Empty Text */
+            skipped_empty_text: number;
+            /** Recalculation Enqueued */
+            recalculation_enqueued: boolean;
+            /** Sheet Name */
+            sheet_name?: string | null;
+        };
         /** Body_add_attachment_tickets__ticket_id__attachments_post */
         Body_add_attachment_tickets__ticket_id__attachments_post: {
             /** File */
@@ -1206,6 +1341,12 @@ export interface components {
         };
         /** Body_add_comment_attachment_tickets__ticket_id__comments__comment_id__attachments_post */
         Body_add_comment_attachment_tickets__ticket_id__comments__comment_id__attachments_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_import_ticket_batch_knowledge_base_batch_imports_post */
+        Body_import_ticket_batch_knowledge_base_batch_imports_post: {
+            application: components["schemas"]["Application"];
             /** File */
             file: string;
         };
@@ -1423,7 +1564,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "TICKET_ASSIGNED" | "TICKET_PRIORITY_CHANGED" | "TICKET_STATUS_CHANGED" | "COMMENT_ADDED" | "COMMENT_EDITED" | "COMMENT_DELETED" | "ATTACHMENT_ADDED" | "ATTACHMENT_DELETED" | "TICKET_ARCHIVED" | "TICKET_RESTORED" | "TICKET_TRANSFERRED" | "ACCOUNT_ACTIVATED" | "ACCOUNT_DEACTIVATED" | "ROLE_ASSIGNED" | "ROLE_REVOKED" | "PERMISSION_GRANTED" | "PERMISSION_REVOKED" | "ROLE_PERMISSION_GRANTED" | "ROLE_PERMISSION_REVOKED" | "ACCOUNT_CREATED" | "NEW_USER_REGISTERED";
+        NotificationType: "TICKET_ASSIGNED" | "TICKET_PRIORITY_CHANGED" | "TICKET_STATUS_CHANGED" | "COMMENT_ADDED" | "COMMENT_EDITED" | "COMMENT_DELETED" | "ATTACHMENT_ADDED" | "ATTACHMENT_DELETED" | "TICKET_ARCHIVED" | "TICKET_RESTORED" | "TICKET_TRANSFERRED" | "ACCOUNT_ACTIVATED" | "ACCOUNT_DEACTIVATED" | "ROLE_ASSIGNED" | "ROLE_REVOKED" | "PERMISSION_GRANTED" | "PERMISSION_REVOKED" | "ROLE_PERMISSION_GRANTED" | "ROLE_PERMISSION_REVOKED" | "ACCOUNT_CREATED" | "NEW_USER_REGISTERED" | "SIMILARITY_SCHEDULE_UPDATED" | "SIMILARITY_RECALCULATION_FAILED" | "BATCH_IMPORT_FAILED";
         /**
          * Offer
          * @enum {string}
@@ -1469,6 +1610,30 @@ export interface components {
              */
             assignee_id: string;
         };
+        /**
+         * RecalculationScheduleResponse
+         * @description The configured schedule, plus what the scheduler currently makes of it.
+         */
+        RecalculationScheduleResponse: {
+            /** Enabled */
+            enabled: boolean;
+            /** Days Of Week */
+            days_of_week: components["schemas"]["Weekday"][];
+            /** Hour */
+            hour: number;
+            /** Minute */
+            minute: number;
+            /** Timezone */
+            timezone: string;
+            /** Next Run At */
+            next_run_at: string | null;
+            /** Running */
+            running: boolean;
+            /** Updated At */
+            updated_at: string | null;
+            /** Updated By */
+            updated_by: string | null;
+        };
         /** ResolveRequest */
         ResolveRequest: {
             /** Resolution Notes */
@@ -1485,6 +1650,23 @@ export interface components {
             name: string;
             /** Permission Ids */
             permission_ids: string[];
+        };
+        /** SimilarIncidentResponse */
+        SimilarIncidentResponse: {
+            /**
+             * Ticket Id
+             * Format: uuid
+             */
+            ticket_id: string;
+            /** Title */
+            title: string;
+            status: components["schemas"]["Status"];
+            /** Resolution Notes */
+            resolution_notes: string | null;
+            /** Similarity Score */
+            similarity_score: number;
+            /** Rank */
+            rank: number;
         };
         /**
          * Status
@@ -1629,6 +1811,26 @@ export interface components {
          * @enum {string}
          */
         TicketHistoryEventType: "CREATED" | "STATUS_CHANGED" | "PRIORITY_CHANGED" | "REASSIGNED" | "TRANSFERRED" | "ARCHIVED" | "RESTORED" | "JIRA_UPDATED" | "OPERATIONAL_HIGHLIGHT_CHANGED";
+        /**
+         * TicketImportErrorResponse
+         * @description One reason one line of the file was rejected.
+         *
+         *     `line` is the line in the uploaded file, header included, so it matches what the operator sees --
+         *     the row number in the worksheet margin for an Excel upload, and the editor line for a CSV,
+         *     including for the multi-line quoted descriptions these exports are full of.
+         *     `column` and `value` are absent when the problem belongs to the row as a whole rather than to
+         *     one cell.
+         */
+        TicketImportErrorResponse: {
+            /** Line */
+            line: number;
+            /** Message */
+            message: string;
+            /** Column */
+            column?: string | null;
+            /** Value */
+            value?: string | null;
+        };
         /** TicketSummaryResponse */
         TicketSummaryResponse: {
             /**
@@ -1678,6 +1880,29 @@ export interface components {
         UnreadCountResponse: {
             /** Count */
             count: number;
+        };
+        /**
+         * UpdateRecalculationScheduleRequest
+         * @description The whole schedule, not a patch of one -- the fields are meaningless apart from each other.
+         *
+         *     The bounds here duplicate the domain's invariants deliberately: this is the adapter's job (a
+         *     malformed request should be a 422 naming the field, not a domain error), and the domain checks
+         *     them again because HTTP is not the only way a schedule can be built.
+         */
+        UpdateRecalculationScheduleRequest: {
+            /** Enabled */
+            enabled: boolean;
+            /** Days Of Week */
+            days_of_week: components["schemas"]["Weekday"][];
+            /** Hour */
+            hour: number;
+            /** Minute */
+            minute: number;
+            /**
+             * Timezone
+             * @default UTC
+             */
+            timezone: string;
         };
         /**
          * UserDirectoryResponse
@@ -1771,6 +1996,17 @@ export interface components {
             /** Total */
             total: number;
         };
+        /**
+         * Weekday
+         * @description A day of the week, valued as the three-letter code cron vocabulary uses.
+         *
+         *     The values are chosen to be what a cron trigger already accepts, so a configured schedule
+         *     reaches the scheduler without a translation table in between. That is the only concession this
+         *     enum makes to how the schedule is executed -- nothing else in the module depends on the value
+         *     being anything in particular.
+         * @enum {string}
+         */
+        Weekday: "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
     };
     responses: never;
     parameters: never;
@@ -3701,6 +3937,143 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ActivityPointResponse"][];
+                };
+            };
+        };
+    };
+    get_similar_incidents_knowledge_base_tickets__ticket_id__similar_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimilarIncidentResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_recalculation_schedule_knowledge_base_recalculation_schedule_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecalculationScheduleResponse"];
+                };
+            };
+        };
+    };
+    update_recalculation_schedule_knowledge_base_recalculation_schedule_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRecalculationScheduleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecalculationScheduleResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    run_recalculation_now_knowledge_base_recalculation_run_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    import_ticket_batch_knowledge_base_batch_imports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_ticket_batch_knowledge_base_batch_imports_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchImportResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchImportRejectedResponse"];
                 };
             };
         };

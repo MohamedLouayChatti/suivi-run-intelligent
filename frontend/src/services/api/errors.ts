@@ -13,12 +13,35 @@ interface ApiValidationIssue {
 class ApiError extends Error {
   readonly status: number | null;
   readonly issues: ApiValidationIssue[];
+  /**
+   * The backend's own `detail` when it is a type name (`"TicketNotFound"`,
+   * `"BatchImportCorpusWriteFailed"`, …) — every domain/application error answers with one.
+   * Stable across wording changes, so it is what feature code should branch on rather than
+   * matching on `message`.
+   */
+  readonly code: string | null;
+  /**
+   * The raw response body, kept so a feature can read the extra fields its own endpoint
+   * returns. Almost every error in this API is `{ detail }` and nothing more; the batch
+   * import's rejection is the one that carries a whole per-line report, and throwing it
+   * away here would mean the shared client deciding which endpoints are allowed to
+   * explain themselves.
+   */
+  readonly body: unknown;
 
-  constructor(message: string, status: number | null, issues: ApiValidationIssue[] = []) {
+  constructor(
+    message: string,
+    status: number | null,
+    issues: ApiValidationIssue[] = [],
+    code: string | null = null,
+    body: unknown = null,
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.issues = issues;
+    this.code = code;
+    this.body = body;
   }
 }
 
@@ -47,24 +70,35 @@ function extractValidationIssues(detail: unknown): ApiValidationIssue[] {
   }));
 }
 
-/** Backend error bodies are either `{ detail: string }` or FastAPI's 422 `{ detail: ValidationError[] }`. */
+/**
+ * Backend error bodies are `{ detail: string }`, FastAPI's 422 `{ detail: ValidationError[] }`,
+ * or — for the handful of errors whose reader has to act on the specifics — `{ detail, message }`
+ * with a written sentence alongside the type name.
+ */
 interface BackendErrorBody {
   detail?: string | unknown[];
+  message?: string;
 }
 
 function normalizeApiError(error: AxiosError<BackendErrorBody>): ApiError {
   if (!error.response) {
-    return new ApiError("Network error. Please check your connection.", null);
+    return new ApiError("Connexion impossible. Vérifiez votre réseau.", null);
   }
 
   const { status, data } = error.response;
   const detail = data?.detail;
 
   if (Array.isArray(detail)) {
-    return new ApiError("Validation failed.", status, extractValidationIssues(detail));
+    return new ApiError("Requête invalide.", status, extractValidationIssues(detail), null, data);
   }
 
-  return new ApiError(typeof detail === "string" ? detail : error.message, status);
+  const code = typeof detail === "string" ? detail : null;
+  // `message` first when the backend wrote one: it is a sentence meant for the person reading it,
+  // where `detail` is only ever the exception's class name. Falling back to the type name keeps
+  // every other error exactly as it behaved before.
+  const message = data?.message ?? code ?? error.message;
+
+  return new ApiError(message, status, [], code, data);
 }
 
 export { ApiError, normalizeApiError };
