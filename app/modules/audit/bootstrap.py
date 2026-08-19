@@ -34,6 +34,28 @@ from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
 from app.modules.auth.domain.events.user_updated import UserUpdated
 
+from app.modules.knowledge_base.domain.events.similarity_graph_recalculated import SimilarityGraphRecalculated
+from app.modules.knowledge_base.domain.events.similarity_graph_recalculation_failed import (
+	SimilarityGraphRecalculationFailed,
+)
+from app.modules.knowledge_base.domain.events.similarity_recalculation_requested import (
+	SimilarityRecalculationRequested,
+)
+from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_updated import (
+	SimilarityRecalculationScheduleUpdated,
+)
+from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
+
+# Knowledge Base joins the two modules already audited here, and brings the first entries that are
+# not a person acting on a resource: two of its five are outcomes of a background pass with no
+# actor at all. They belong in this log for the same reason the rest do -- something happened that
+# a reader coming back later needs to be able to establish -- and the three that *do* have an actor
+# are every permissioned action that module exposes, none of which left a trace before.
+#
+# SimilarityResultsGenerated is deliberately not among them. It fires once per ticket creation with
+# no actor and no decision behind it, recording that a computation ran; TicketCreated is already
+# written at the same instant, so auditing it too would double this table's growth rate to say
+# something the log already says better.
 AUDITED_EVENT_TYPES = (
 	TicketCreated, TicketStatusChanged, TicketReassigned, PriorityChanged, TicketTransferred,
 	CommentAdded, CommentEdited, CommentDeleted, AttachmentAdded, AttachmentDeleted,
@@ -41,6 +63,8 @@ AUDITED_EVENT_TYPES = (
 	TicketsImported, TicketsImportDiscarded,
 	UserCreated, UserUpdated, UserActivated, UserDeactivated, RoleAssignedToUser, RoleRevokedFromUser,
 	PermissionGrantedToUser, PermissionRevokedFromUser, RolePermissionGranted, RolePermissionRevoked,
+	SimilarityRecalculationScheduleUpdated, SimilarityRecalculationRequested,
+	SimilarityGraphRecalculated, SimilarityGraphRecalculationFailed, TicketBatchImportFailed,
 )
 
 

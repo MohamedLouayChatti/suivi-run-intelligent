@@ -15,6 +15,10 @@ from app.modules.knowledge_base.application.support.recalculation_job import (
 from app.modules.knowledge_base.domain.entities.similarity_recalculation_schedule import (
 	SimilarityRecalculationSchedule,
 )
+from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_updated import (
+	SimilarityRecalculationScheduleUpdated,
+)
+from app.shared.events.event_publisher import EventPublisher
 from app.workers.jobs import JobScheduler
 
 logger = logging.getLogger(__name__)
@@ -37,10 +41,17 @@ class UpdateRecalculationScheduleHandler:
 	no benefit -- the running pass finishes, and the next one starts at the new time.
 	"""
 
-	def __init__(self, uow: UnitOfWork, scheduler: JobScheduler, runner: RecalculationRunner) -> None:
+	def __init__(
+		self,
+		uow: UnitOfWork,
+		scheduler: JobScheduler,
+		runner: RecalculationRunner,
+		event_publisher: EventPublisher,
+	) -> None:
 		self.uow = uow
 		self.scheduler = scheduler
 		self.runner = runner
+		self.event_publisher = event_publisher
 
 	async def handle(self, command: UpdateRecalculationScheduleCommand) -> RecalculationScheduleDTO:
 		# Built through the domain factory, so an impossible time or an unknown timezone is refused
@@ -55,6 +66,24 @@ class UpdateRecalculationScheduleHandler:
 		async with self.uow as uow:
 			await uow.recalculation_schedule.save(schedule)
 			await uow.commit()
+
+		# Published between the commit and the reschedule, and that placement is the deliberate
+		# half of it. The row is what this codebase treats as the truth about when the pass runs --
+		# every startup re-registers the scheduler from it -- so the fact worth announcing is that
+		# the row changed, and it has. Publishing after the reschedule instead would let a
+		# scheduler failure erase the audit record of a change that survived it, which is the worse
+		# of the two ways this can be wrong.
+		await self.event_publisher.publish(
+			SimilarityRecalculationScheduleUpdated(
+				enabled=schedule.enabled,
+				days_of_week=schedule.days_in_week_order(),
+				hour=schedule.hour,
+				minute=schedule.minute,
+				timezone=schedule.timezone,
+				occurred_at=command.updated_at,
+				actor_id=command.actor_id,
+			)
+		)
 
 		await self.scheduler.reschedule(
 			SIMILARITY_RECALCULATION_JOB_NAME,

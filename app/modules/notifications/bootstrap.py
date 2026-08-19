@@ -46,11 +46,29 @@ from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
 
+from app.modules.knowledge_base.domain.events.similarity_graph_recalculation_failed import (
+	SimilarityGraphRecalculationFailed,
+)
+from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_updated import (
+	SimilarityRecalculationScheduleUpdated,
+)
+from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
+
+# Knowledge Base contributes three of its five events, and the two it withholds are the point of
+# the selection. SimilarityRecalculationRequested is an administrator's own button press, and
+# SimilarityGraphRecalculated is a background pass finishing exactly as designed -- routine success
+# is what a notification list must not fill up with, or the failures stop being noticed. Both are
+# in the audit log, which is where a reader goes looking rather than being interrupted.
+#
+# What is here is the inverse: a change nobody can see (the schedule), and two failures that
+# otherwise leave no durable trace at all. Every one of them is routed to the administrators, the
+# only audience that can act on any of it.
 NOTIFIED_EVENT_TYPES = (
 	TicketReassigned, PriorityChanged, TicketStatusChanged, CommentAdded, CommentEdited, CommentDeleted,
 	AttachmentAdded, AttachmentDeleted, TicketArchived, TicketRestored, TicketTransferred,
 	UserActivated, UserDeactivated, RoleAssignedToUser, RoleRevokedFromUser,
 	PermissionGrantedToUser, PermissionRevokedFromUser, RolePermissionGranted, RolePermissionRevoked, UserCreated,
+	SimilarityRecalculationScheduleUpdated, SimilarityGraphRecalculationFailed, TicketBatchImportFailed,
 )
 
 

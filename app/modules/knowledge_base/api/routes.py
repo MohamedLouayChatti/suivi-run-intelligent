@@ -101,7 +101,9 @@ async def run_recalculation_now(
 	whether one is running is on the schedule endpoint above. A run requested while another is
 	already in flight is refused with 409 rather than queued.
 	"""
-	await handler.handle(TriggerSimilarityRecalculationCommand(actor_id=current_user.id))
+	await handler.handle(
+		TriggerSimilarityRecalculationCommand(actor_id=current_user.id, requested_at=datetime.now(UTC))
+	)
 	return Response(status_code=status.HTTP_202_ACCEPTED)
 
 

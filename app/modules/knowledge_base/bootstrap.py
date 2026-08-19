@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import partial
+
 from app.modules.knowledge_base.application.support.recalculation_job import (
 	SIMILARITY_RECALCULATION_JOB_NAME,
 	to_weekly_schedule,
@@ -7,9 +9,11 @@ from app.modules.knowledge_base.application.support.recalculation_job import (
 from app.modules.knowledge_base.domain.entities.similarity_recalculation_schedule import (
 	SimilarityRecalculationSchedule,
 )
+from app.modules.knowledge_base.domain.enums.recalculation_trigger import RecalculationTrigger
 from app.modules.knowledge_base.infrastructure.events.handlers.knowledge_base_event_handler import (
 	KnowledgeBaseEventHandler,
 )
+from app.modules.knowledge_base.infrastructure.events.in_memory_event_publisher import InMemoryEventPublisher
 from app.modules.knowledge_base.infrastructure.jobs.similarity_recalculation_runner import (
 	similarity_recalculation_runner,
 )
@@ -23,7 +27,6 @@ from app.modules.knowledge_base.infrastructure.vector_store.qdrant_knowledge_ite
 )
 from app.modules.knowledge_base.infrastructure.vector_store.qdrant_similarity_search import QdrantSimilaritySearch
 from app.modules.ticket_management.domain.events.ticket_created import TicketCreated
-from app.modules.ticket_management.infrastructure.events.in_memory_event_publisher import InMemoryEventPublisher
 from app.shared.database.session import create_session
 from app.shared.events.event_bus import InMemoryEventBus
 from app.shared.events.subscriptions import SubscriptionRegistry
@@ -40,7 +43,14 @@ def register_subscriptions(registry: SubscriptionRegistry, event_bus: InMemoryEv
 	(SimilarityResultsGenerated) rather than just consume -- it needs an EventPublisher built at
 	subscription time, and the bus is what that publisher wraps. No shared interface enforces a
 	fixed signature across modules' bootstrap.py files, so this is a self-contained addition.
+
+	It is also where the recalculation runner is handed its publisher. The runner is a process-wide
+	singleton created at import time, before any bus exists, so binding is the only way it can get
+	one -- and this is the right moment for it, since it is already where this module's one other
+	relationship with the bus is established.
 	"""
+	similarity_recalculation_runner.bind_event_publisher(InMemoryEventPublisher(event_bus))
+
 	# One instance of each for the process, not one per event. The embedding provider caches the
 	# resolved model build behind an asyncio.Lock, so sharing it means one resolution round trip in
 	# total rather than one per ticket created; the two vector-store collaborators share a single
@@ -79,8 +89,10 @@ async def register_scheduled_jobs(scheduler: JobScheduler) -> None:
 	turned it off.
 
 	What it registers is the runner, not a recalculation composed here: `run` is the same bound
-	method the manual trigger enqueues, which is what makes "scheduled" and "run now" two doors
-	into one operation rather than two operations that resemble each other.
+	method the manual trigger and the batch import enqueue, which is what makes the three of them
+	doors into one operation rather than three operations that resemble each other. The only thing
+	bound here that the other two bind differently is which door this is -- carried onto the events
+	the pass publishes and nowhere near what it computes.
 	"""
 	session = create_session()
 	try:
@@ -90,7 +102,7 @@ async def register_scheduled_jobs(scheduler: JobScheduler) -> None:
 		await session.close()
 
 	await scheduler.register(
-		similarity_recalculation_runner.run,
+		partial(similarity_recalculation_runner.run, RecalculationTrigger.SCHEDULED),
 		name=SIMILARITY_RECALCULATION_JOB_NAME,
 		schedule=to_weekly_schedule(schedule),
 		enabled=schedule.enabled,

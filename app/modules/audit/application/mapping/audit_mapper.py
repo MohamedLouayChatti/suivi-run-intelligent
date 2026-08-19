@@ -35,6 +35,18 @@ from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
 from app.modules.auth.domain.events.user_updated import UserUpdated
 
+from app.modules.knowledge_base.domain.events.similarity_graph_recalculated import SimilarityGraphRecalculated
+from app.modules.knowledge_base.domain.events.similarity_graph_recalculation_failed import (
+	SimilarityGraphRecalculationFailed,
+)
+from app.modules.knowledge_base.domain.events.similarity_recalculation_requested import (
+	SimilarityRecalculationRequested,
+)
+from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_updated import (
+	SimilarityRecalculationScheduleUpdated,
+)
+from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
+
 
 class AuditMapper:
 	"""Translates domain events published elsewhere in the system into AuditEntry records.
@@ -75,6 +87,11 @@ class AuditMapper:
 			PermissionRevokedFromUser: self._permission_revoked_from_user,
 			RolePermissionGranted: self._role_permission_granted,
 			RolePermissionRevoked: self._role_permission_revoked,
+			SimilarityRecalculationScheduleUpdated: self._similarity_recalculation_schedule_updated,
+			SimilarityRecalculationRequested: self._similarity_recalculation_requested,
+			SimilarityGraphRecalculated: self._similarity_graph_recalculated,
+			SimilarityGraphRecalculationFailed: self._similarity_graph_recalculation_failed,
+			TicketBatchImportFailed: self._ticket_batch_import_failed,
 		}
 
 	def to_entry(self, event: DomainEvent) -> AuditEntry | None:
@@ -306,4 +323,116 @@ class AuditMapper:
 			event, module="auth", event_type="RolePermissionRevoked",
 			action="role.permission_revoked", resource_type="role",
 			payload={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
+		)
+
+	# -- Knowledge Base ----------------------------------------------------
+	#
+	# Two resource_type values appear here that no InstanceAuthorizationPolicy is registered
+	# under, which is a deliberate widening of the vocabulary rather than a slip. Every other
+	# resource_type in this file names something a caller can be authorized against one instance
+	# of; a recalculation schedule is a single row with no owner and a similarity graph is the
+	# whole corpus, so neither has an instance to authorize and the module that owns them
+	# registers no policy at all. Naming them anyway is what lets an audit reader filter these
+	# entries the same way they filter every other kind.
+
+	def _similarity_recalculation_schedule_updated(self, event: SimilarityRecalculationScheduleUpdated) -> AuditEntry:
+		"""Who changed when the whole similarity graph gets rebuilt.
+
+		The only database-backed configuration in this system, so this is the only audit entry
+		that records a setting rather than an action on a resource. The whole schedule goes into
+		the payload rather than a diff: reconstructing what changed is reading this entry against
+		the one before it, which is a thing an append-only log is good at, whereas a diff computed
+		at write time would be a second answer free to disagree with the row it describes.
+		"""
+		return self._entry(
+			event, module="knowledge_base", event_type="SimilarityRecalculationScheduleUpdated",
+			action="knowledge_base.recalculation_schedule_updated", resource_type="recalculation_schedule",
+			payload={
+				"enabled": event.enabled,
+				"days_of_week": [day.value for day in event.days_of_week],
+				"hour": event.hour,
+				"minute": event.minute,
+				"timezone": event.timezone,
+			},
+		)
+
+	def _similarity_recalculation_requested(self, event: SimilarityRecalculationRequested) -> AuditEntry:
+		"""An administrator started a full recalculation by hand.
+
+		The payload is empty, and legitimately so: there is nothing to configure about a run, so
+		everything this entry has to say is already in the envelope -- who, and when. It is the
+		only record anywhere of who started a given pass, since the run itself outlives the
+		request that asked for it and carries no actor by the time it reports back.
+		"""
+		return self._entry(
+			event, module="knowledge_base", event_type="SimilarityRecalculationRequested",
+			action="knowledge_base.recalculation_requested", resource_type="similarity_graph",
+			payload={},
+		)
+
+	def _similarity_graph_recalculated(self, event: SimilarityGraphRecalculated) -> AuditEntry:
+		"""A full pass finished, and what it produced.
+
+		These entries are the run history this module was told it would need a second table for.
+		Filtering the log by this event type answers "when did the last rebuild run and what did
+		it find" from rows that were being written anyway, which is why `last_run_at` no longer
+		needs a home of its own.
+
+		`sources_without_results` is worth keeping across runs rather than only logging: one pass
+		where most sources come back empty is expected, but a *trend* of them is the signature of
+		a mis-calibrated threshold, and a trend is exactly what a log line cannot show.
+		"""
+		return self._entry(
+			event, module="knowledge_base", event_type="SimilarityGraphRecalculated",
+			action="knowledge_base.similarity_graph_recalculated", resource_type="similarity_graph",
+			payload={
+				"trigger": event.trigger.value,
+				"items_processed": event.items_processed,
+				"results_written": event.results_written,
+				"sources_without_results": event.sources_without_results,
+				"duration_seconds": round(event.duration_seconds, 3),
+			},
+		)
+
+	def _similarity_graph_recalculation_failed(self, event: SimilarityGraphRecalculationFailed) -> AuditEntry:
+		"""A pass started and did not finish, so the graph everyone reads is still the old one.
+
+		Recorded rather than left to the log because staleness compounds silently: the schedule
+		keeps its next firing, nothing in the API says the graph is out of date, and three failed
+		runs in a row look exactly like three quiet weeks. Read against the successful entries
+		above, this is what makes "how long has the graph actually been stale" answerable.
+		"""
+		return self._entry(
+			event, module="knowledge_base", event_type="SimilarityGraphRecalculationFailed",
+			action="knowledge_base.similarity_graph_recalculation_failed", resource_type="similarity_graph",
+			payload={
+				"trigger": event.trigger.value,
+				"reason": event.reason,
+				"duration_seconds": round(event.duration_seconds, 3),
+			},
+		)
+
+	def _ticket_batch_import_failed(self, event: TicketBatchImportFailed) -> AuditEntry:
+		"""A batch was created and then could not be brought into the knowledge base.
+
+		The entry that closes a real hole in this log. A batch import that succeeds leaves one
+		TicketsImported entry, and one that fails and unwinds cleanly leaves that plus a
+		TicketsImportDiscarded -- but when the unwind itself fails, the discard event is never
+		published, and the log was left showing an import indistinguishable from a successful one
+		while the tickets sat in the database with nothing in the corpus behind them.
+
+		`tickets_discarded` is the field that distinguishes those two, and `ticket_count` says how
+		much was left behind when it is False. Counted rather than listed, for the same reason
+		TicketsImported counts them: the tickets are in the tickets table, filterable by the
+		application and moment recorded here.
+		"""
+		return self._entry(
+			event, module="knowledge_base", event_type="TicketBatchImportFailed",
+			action="knowledge_base.batch_import_failed", resource_type="ticket",
+			payload={
+				"application": event.application.value,
+				"ticket_count": event.ticket_count,
+				"reason": event.reason,
+				"tickets_discarded": event.tickets_discarded,
+			},
 		)

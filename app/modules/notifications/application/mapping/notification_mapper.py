@@ -40,6 +40,15 @@ from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
 
+from app.modules.knowledge_base.domain.enums.weekday import Weekday
+from app.modules.knowledge_base.domain.events.similarity_graph_recalculation_failed import (
+	SimilarityGraphRecalculationFailed,
+)
+from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_updated import (
+	SimilarityRecalculationScheduleUpdated,
+)
+from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
+
 # Only these 6 TransferDestination members correspond to a Ticket Management/Auth
 # Application value -- the other 9 (EEP, CLIP, BANCO, ULYSSE, ACACIA, SANTAFE,
 # PROXIMA, HABILITATION, DEVELOPMENT_TEAM) have no matching user application
@@ -59,6 +68,19 @@ _TRANSFER_DESTINATION_TARGET: dict[TransferDestination, tuple[str, str | None]] 
 	TransferDestination.CONFIG_COLORIS: ("COLORIS", FunctionalTeam.CONFIGURATION.value),
 	TransferDestination.AERO: ("AERO", None),
 	TransferDestination.VIO: ("VIO", None),
+}
+
+# Weekday.value is the three-letter cron code the scheduler consumes, never anything a person was
+# meant to read. Same arrangement as the status labels below: a display-only mapping that lives
+# here because notification text is the only place these are read by a human.
+_WEEKDAY_LABELS_FR: dict[Weekday, str] = {
+	Weekday.MONDAY: "lundi",
+	Weekday.TUESDAY: "mardi",
+	Weekday.WEDNESDAY: "mercredi",
+	Weekday.THURSDAY: "jeudi",
+	Weekday.FRIDAY: "vendredi",
+	Weekday.SATURDAY: "samedi",
+	Weekday.SUNDAY: "dimanche",
 }
 
 # Status.value stays an English constant (it's an API contract value, read by the frontend's
@@ -108,6 +130,9 @@ class NotificationMapper:
 			RolePermissionGranted: self._role_permission_granted,
 			RolePermissionRevoked: self._role_permission_revoked,
 			UserCreated: self._user_created,
+			SimilarityRecalculationScheduleUpdated: self._similarity_schedule_updated,
+			SimilarityGraphRecalculationFailed: self._similarity_recalculation_failed,
+			TicketBatchImportFailed: self._batch_import_failed,
 		}
 
 	async def to_notifications(self, event: DomainEvent) -> list[Notification]:
@@ -389,3 +414,128 @@ class NotificationMapper:
 			metadata={"user_id": str(event.user_id), "email": event.email, "display_name": event.display_name},
 		)
 		return welcome + announcements
+
+	# -- Knowledge Base --------------------------------------------------------
+	#
+	# All three go to the administrators, and none of them carries an action: the pages these
+	# concern are administrative screens with no per-resource route to deep-link into, and
+	# inventing an action type the frontend does not yet interpret would put a dead click target
+	# in the bell. Every Auth notification above is action-less for the same reason.
+	#
+	# Two of the module's five events are deliberately absent. SimilarityRecalculationRequested is
+	# the administrator's own button and needs no bell; SimilarityGraphRecalculated is a routine
+	# background pass finishing as designed, which is precisely what a notification should not be
+	# spent on -- both are recorded in the audit log, where a reader goes looking rather than being
+	# interrupted.
+
+	async def _similarity_schedule_updated(self, event: SimilarityRecalculationScheduleUpdated) -> list[Notification]:
+		"""Tell the other administrators that the rebuild window moved, or stopped.
+
+		The acting administrator is excluded by the shared guard, which is right here: they just
+		set it. Everyone else administering this system has no other way to find out -- the change
+		takes effect on a background pass that runs outside working hours, so its only visible
+		symptom is similar-incident results quietly ceasing to improve, weeks later.
+		"""
+		recipient_ids = await self._recipients.active_admin_user_ids()
+		if event.enabled:
+			days = self._day_list(event.days_of_week)
+			message = (
+				f"Le recalcul complet de la base de connaissances est désormais planifié "
+				f"{days} à {event.hour:02d}:{event.minute:02d} ({event.timezone})."
+			)
+		else:
+			message = (
+				"Le recalcul complet de la base de connaissances a été désactivé. Les incidents "
+				"similaires resteront ceux du dernier calcul effectué."
+			)
+		return self._for_recipients(
+			event, recipient_ids,
+			title="Planification du recalcul modifiée", message=message,
+			type=NotificationType.SIMILARITY_SCHEDULE_UPDATED, action=None,
+			metadata={
+				"enabled": event.enabled,
+				"days_of_week": [day.value for day in event.days_of_week],
+				"hour": event.hour, "minute": event.minute, "timezone": event.timezone,
+			},
+		)
+
+	async def _similarity_recalculation_failed(self, event: SimilarityGraphRecalculationFailed) -> list[Notification]:
+		"""Tell the administrators the graph is stale, because nothing else will.
+
+		The most useful notification in this module's set, and the one whose absence was the real
+		gap: a failed pass leaves the previous graph in place, keeps its next scheduled firing, and
+		changes nothing an engineer can see. Without this, three failed runs in a row look exactly
+		like three quiet weeks, and every similar-incident card keeps answering from a corpus that
+		has moved on.
+
+		actor_id is None on this event, so the shared guard excludes nobody and every active
+		administrator is told -- which is correct: a scheduled pass failing at 20:00 is nobody's
+		action, and the administrator who triggered a manual one is as entitled to know as the rest.
+		"""
+		recipient_ids = await self._recipients.active_admin_user_ids()
+		return self._for_recipients(
+			event, recipient_ids,
+			title="Échec du recalcul de similarité",
+			message=(
+				f"Le recalcul complet de la base de connaissances a échoué ({event.reason}). Les "
+				f"incidents similaires affichés restent ceux du dernier calcul réussi."
+			),
+			type=NotificationType.SIMILARITY_RECALCULATION_FAILED, action=None,
+			metadata={"trigger": event.trigger.value, "reason": event.reason},
+		)
+
+	async def _batch_import_failed(self, event: TicketBatchImportFailed) -> list[Notification]:
+		"""Tell the administrators an import failed, and whether it left anything behind.
+
+		The one place in this mapper where the acting user is notified of their own action, and
+		the exception is deliberate. The shared guard exists so nobody is told what they just did;
+		this tells them what went wrong *afterwards*, and when the compensation itself failed it
+		carries the only durable instruction for repairing it. The uploader does see that in the
+		error response, but a response is read once, by one person, who may well close the tab --
+		and the repair is a backfill rather than another upload, so getting it wrong is expensive.
+		The other administrators are told for the ordinary reason: tickets with no corpus entry are
+		invisible to every similarity search until somebody acts.
+		"""
+		if event.tickets_discarded:
+			message = (
+				f"L'import de {event.ticket_count} ticket(s) {event.application.value} a échoué et "
+				f"a été annulé ({event.reason}). Aucun ticket n'a été conservé."
+			)
+		else:
+			message = (
+				f"L'import de {event.ticket_count} ticket(s) {event.application.value} a échoué "
+				f"({event.reason}) et n'a pas pu être annulé. Ces tickets subsistent en base sans "
+				f"entrée dans la base de connaissances : lancez le backfill pour les rattraper."
+			)
+
+		metadata = {
+			"application": event.application.value, "ticket_count": event.ticket_count,
+			"reason": event.reason, "tickets_discarded": event.tickets_discarded,
+		}
+		recipient_ids = await self._recipients.active_admin_user_ids()
+		notifications = self._for_recipients(
+			event, recipient_ids,
+			title="Échec d'un import de tickets", message=message,
+			type=NotificationType.BATCH_IMPORT_FAILED, action=None, metadata=metadata,
+		)
+		if event.actor_id is not None and event.actor_id not in {n.recipient_id for n in notifications}:
+			notifications.append(
+				self._notification(
+					event, recipient_id=event.actor_id,
+					title="Échec d'un import de tickets", message=message,
+					type=NotificationType.BATCH_IMPORT_FAILED, action=None, metadata=metadata,
+				)
+			)
+		return notifications
+
+	@staticmethod
+	def _day_list(days: tuple[Weekday, ...]) -> str:
+		"""The configured days as French prose: "le mardi et le vendredi", not "tue,fri".
+
+		Each day keeps its own article, which is what makes the recurring reading ("every Tuesday
+		and every Friday") the natural one -- "le mardi et vendredi" reads as a single date.
+		"""
+		labels = [f"le {_WEEKDAY_LABELS_FR[day]}" for day in days]
+		if len(labels) <= 1:
+			return "".join(labels)
+		return f"{', '.join(labels[:-1])} et {labels[-1]}"

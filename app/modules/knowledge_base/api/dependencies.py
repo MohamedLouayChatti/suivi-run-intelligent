@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 
 from app.modules.knowledge_base.application.commands.import_ticket_batch.handler import ImportTicketBatchHandler
 from app.modules.knowledge_base.application.commands.trigger_similarity_recalculation.handler import (
@@ -17,6 +17,7 @@ from app.modules.knowledge_base.application.queries.get_recalculation_schedule.h
 )
 from app.modules.knowledge_base.application.queries.get_similar_incidents.handler import GetSimilarIncidentsHandler
 from app.modules.knowledge_base.application.services.corpus_ingestion import CorpusIngestion
+from app.modules.knowledge_base.infrastructure.events.in_memory_event_publisher import InMemoryEventPublisher
 from app.modules.knowledge_base.infrastructure.jobs.similarity_recalculation_runner import (
 	similarity_recalculation_runner,
 )
@@ -45,7 +46,9 @@ from app.modules.ticket_management.application.commands.discard_imported_tickets
 	DiscardImportedTicketsHandler,
 )
 from app.modules.ticket_management.application.commands.import_tickets.handler import ImportTicketsHandler
-from app.modules.ticket_management.infrastructure.events.in_memory_event_publisher import InMemoryEventPublisher
+from app.modules.ticket_management.infrastructure.events.in_memory_event_publisher import (
+	InMemoryEventPublisher as TicketEventPublisher,
+)
 from app.modules.ticket_management.infrastructure.persistence.unit_of_work import (
 	SqlAlchemyUnitOfWork as TicketUnitOfWork,
 )
@@ -54,6 +57,18 @@ from app.modules.ticket_management.infrastructure.persistence.repositories.sqlal
 )
 from app.shared.database.session import create_session
 from app.workers.worker import job_queue, job_scheduler
+
+
+def get_event_publisher(request: Request) -> InMemoryEventPublisher:
+	"""This module's own publisher over the process-wide bus, resolved per request exactly as
+	Ticket Management resolves its own.
+
+	Its own rather than Ticket Management's, which is what this module used to borrow: composing
+	that module's handlers with that module's publisher (below) is legitimate wiring, but
+	publishing this module's events through another module's Infrastructure is the one import a
+	module boundary forbids outright.
+	"""
+	return InMemoryEventPublisher(request.app.state.event_bus)
 
 
 async def get_similarity_read_repository() -> AsyncIterator[SqlAlchemySimilarityReadRepository]:
@@ -92,21 +107,26 @@ def get_get_recalculation_schedule_handler(
 	return GetRecalculationScheduleHandler(schedules, job_scheduler, similarity_recalculation_runner)
 
 
-def get_update_recalculation_schedule_handler() -> UpdateRecalculationScheduleHandler:
+def get_update_recalculation_schedule_handler(
+	event_publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)],
+) -> UpdateRecalculationScheduleHandler:
 	return UpdateRecalculationScheduleHandler(
-		SqlAlchemyUnitOfWork(), job_scheduler, similarity_recalculation_runner
+		SqlAlchemyUnitOfWork(), job_scheduler, similarity_recalculation_runner, event_publisher
 	)
 
 
-def get_trigger_similarity_recalculation_handler() -> TriggerSimilarityRecalculationHandler:
-	return TriggerSimilarityRecalculationHandler(similarity_recalculation_runner, job_queue)
+def get_trigger_similarity_recalculation_handler(
+	event_publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)],
+) -> TriggerSimilarityRecalculationHandler:
+	return TriggerSimilarityRecalculationHandler(similarity_recalculation_runner, job_queue, event_publisher)
 
 
 def get_import_ticket_batch_handler(
 	ticket_uow: Annotated[TicketUnitOfWork, Depends(get_ticket_unit_of_work)],
-	ticket_event_publisher: Annotated[InMemoryEventPublisher, Depends(get_ticket_event_publisher)],
+	ticket_event_publisher: Annotated[TicketEventPublisher, Depends(get_ticket_event_publisher)],
 	ticket_read_repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_ticket_read_repository)],
 	users: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)],
+	event_publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)],
 ) -> ImportTicketBatchHandler:
 	"""Composes the one operation in this codebase that drives two modules' writes.
 
@@ -123,6 +143,11 @@ def get_import_ticket_batch_handler(
 	everywhere else in this module: both are stateless wrappers over the pooled client, and
 	constructing them does no I/O. The runner and the queue are the process-wide singletons, since
 	a fresh runner would carry a second in-flight flag that knows nothing about the real one.
+
+	Two publishers, deliberately. Ticket Management's handlers publish Ticket Management's events
+	through Ticket Management's own publisher, and this module publishes its own through its own --
+	both wrap the same process-wide bus, so a subscriber cannot tell them apart, but each module
+	keeps announcing through its own adapter rather than borrowing a foreign module's.
 	"""
 	return ImportTicketBatchHandler(
 		import_tickets=ImportTicketsHandler(
@@ -136,4 +161,5 @@ def get_import_ticket_batch_handler(
 		ingestion=CorpusIngestion(OllamaEmbeddingProvider.from_settings()),
 		runner=similarity_recalculation_runner,
 		job_queue=job_queue,
+		event_publisher=event_publisher,
 	)

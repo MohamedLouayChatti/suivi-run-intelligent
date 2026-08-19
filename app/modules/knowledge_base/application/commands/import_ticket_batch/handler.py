@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Sequence
+from functools import partial
 from uuid import UUID
 
 from app.modules.knowledge_base.application.commands.import_ticket_batch.command import (
@@ -22,6 +23,8 @@ from app.modules.knowledge_base.application.interfaces.recalculation_runner impo
 from app.modules.knowledge_base.application.services.corpus_ingestion import CorpusIngestion
 from app.modules.knowledge_base.application.support.recalculation_job import SIMILARITY_RECALCULATION_JOB_NAME
 from app.modules.knowledge_base.domain.entities.knowledge_item import TicketKnowledgeItem
+from app.modules.knowledge_base.domain.enums.recalculation_trigger import RecalculationTrigger
+from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
 from app.modules.knowledge_base.domain.repositories.knowledge_item_repository import KnowledgeItemRepository
 from app.modules.ticket_management.application.commands.discard_imported_tickets.command import (
 	DiscardImportedTicketsCommand,
@@ -32,6 +35,7 @@ from app.modules.ticket_management.application.commands.discard_imported_tickets
 from app.modules.ticket_management.application.commands.import_tickets.command import ImportTicketsCommand
 from app.modules.ticket_management.application.commands.import_tickets.handler import ImportTicketsHandler
 from app.modules.ticket_management.application.dto.ticket_import_dto import TicketImportReportDTO
+from app.shared.events.event_publisher import EventPublisher
 from app.workers.jobs import JobQueue
 
 logger = logging.getLogger(__name__)
@@ -85,6 +89,7 @@ class ImportTicketBatchHandler:
 		ingestion: CorpusIngestion,
 		runner: RecalculationRunner,
 		job_queue: JobQueue,
+		event_publisher: EventPublisher,
 	) -> None:
 		self.import_tickets = import_tickets
 		self.discard_imported_tickets = discard_imported_tickets
@@ -92,6 +97,7 @@ class ImportTicketBatchHandler:
 		self.ingestion = ingestion
 		self.runner = runner
 		self.job_queue = job_queue
+		self.event_publisher = event_publisher
 
 	async def handle(self, command: ImportTicketBatchCommand) -> BatchImportReportDTO:
 		self._reject_oversized_upload(command)
@@ -170,7 +176,9 @@ class ImportTicketBatchHandler:
 		Both halves are remote calls that can fail independently, and both are covered by the same
 		compensation, because from outside they are one failure: the tickets exist and the
 		knowledge base does not know about them. `written` is tracked as the work proceeds rather
-		than inferred at the end, so an unwind removes exactly the points that landed.
+		than inferred at the end, so an unwind covers every point this import may have stored --
+		deliberately "may have" rather than "did", since the failure worth surviving is the one
+		where the store applied a write the client never saw succeed.
 		"""
 		items: list[TicketKnowledgeItem] = []
 		written: list[UUID] = []
@@ -182,14 +190,40 @@ class ImportTicketBatchHandler:
 
 			for start in range(0, len(items), _CORPUS_WRITE_CHUNK):
 				chunk = items[start : start + _CORPUS_WRITE_CHUNK]
-				await self.knowledge_items.add_many(chunk)
+				# Recorded before the write, not after it, and the order is the whole point. A
+				# write that raises has not necessarily failed: `add_many` waits on the store, so a
+				# timeout or a dropped connection can leave a chunk applied server-side while the
+				# client sees an exception. Recording afterwards would omit exactly that chunk from
+				# the unwind, and its vectors would outlive the tickets they describe -- orphaned
+				# points matching a ticket id that no longer exists, which nothing detects and no
+				# backfill removes.
+				#
+				# The cost of being wrong the other way is nothing: the unwind deletes by source id
+				# through a filter, so naming a point that was never stored selects nothing.
 				written.extend(item.source_id for item in chunk)
+				await self.knowledge_items.add_many(chunk)
 		except Exception as error:
 			logger.exception("Batch import of %s failed while populating the corpus.", command.file_name)
-			discarded = await self._unwind(report, command, written, reason=str(error) or type(error).__name__)
-			raise BatchImportCorpusWriteFailed(
-				str(error) or type(error).__name__, tickets_discarded=discarded
-			) from error
+			reason = str(error) or type(error).__name__
+			discarded = await self._unwind(report, command, written, reason=reason)
+			# Announced before the raise, because the raise is the last thing that happens to this
+			# request and the response it becomes is read once, by one person, who may well close
+			# the tab. `discarded` is the field that matters: False means tickets are sitting in the
+			# database with no corpus entry behind them and the repair is a backfill rather than
+			# another upload -- and it is also the case where Ticket Management's own
+			# TicketsImportDiscarded never fires, so without this the audit log would show an
+			# import indistinguishable from one that worked.
+			await self.event_publisher.publish(
+				TicketBatchImportFailed(
+					application=command.application,
+					ticket_count=len(report.ticket_ids),
+					reason=reason,
+					tickets_discarded=discarded,
+					occurred_at=command.imported_at,
+					actor_id=command.actor_id,
+				)
+			)
+			raise BatchImportCorpusWriteFailed(reason, tickets_discarded=discarded) from error
 
 		return len(items), len(report.contents) - len(items)
 
@@ -254,5 +288,7 @@ class ImportTicketBatchHandler:
 				"not include the imported tickets until the next pass."
 			)
 			return False
-		await self.job_queue.enqueue(self.runner.run, name=SIMILARITY_RECALCULATION_JOB_NAME)
+		await self.job_queue.enqueue(
+			partial(self.runner.run, RecalculationTrigger.BATCH_IMPORT), name=SIMILARITY_RECALCULATION_JOB_NAME
+		)
 		return True
