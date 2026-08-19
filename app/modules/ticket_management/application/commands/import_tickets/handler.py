@@ -131,7 +131,12 @@ class ImportTicketsHandler:
 			)
 		if not command.records:
 			raise TicketImportRejected(
-				[TicketImportErrorDTO(line_number=_HEADER_LINE, message="The file contains no ticket rows.")]
+				[
+					TicketImportErrorDTO(
+						line_number=_HEADER_LINE,
+						message="Le fichier ne contient aucune ligne de ticket sous l'en-tête.",
+					)
+				]
 			)
 		return resolved
 
@@ -191,9 +196,11 @@ class ImportTicketsHandler:
 			if record.assignee_name in resolved:
 				continue
 			message = (
-				f"{record.assignee_name} matches more than one user, so the assignee is ambiguous."
+				f"« {record.assignee_name} » correspond à plusieurs utilisateurs : l'acteur est "
+				f"ambigu. Utilisez un nom d'affichage qui ne désigne qu'une seule personne."
 				if record.assignee_name in ambiguous
-				else f"{record.assignee_name} does not match any user in the database."
+				else f"« {record.assignee_name} » ne correspond à aucun utilisateur enregistré. "
+				f"Vérifiez l'orthographe du nom d'affichage."
 			)
 			errors.append(
 				TicketImportErrorDTO(
@@ -238,8 +245,8 @@ class ImportTicketsHandler:
 					TicketImportErrorDTO(
 						line_number=line_number,
 						message=(
-							"This ticket is already in the database: same genergy_id, oceane_id and "
-							"description."
+							"Ce ticket existe déjà en base : mêmes « id genergy », « id oceane » et "
+							"« description »."
 						),
 					)
 				)
@@ -248,8 +255,8 @@ class ImportTicketsHandler:
 					TicketImportErrorDTO(
 						line_number=line_number,
 						message=(
-							f"This row duplicates line {first_seen[key]}: same genergy_id, oceane_id "
-							f"and description."
+							f"Cette ligne fait doublon avec la ligne {first_seen[key]} : mêmes "
+							f"« id genergy », « id oceane » et « description »."
 						),
 					)
 				)

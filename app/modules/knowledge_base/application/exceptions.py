@@ -84,8 +84,9 @@ class BatchImportPreflightFailed(BatchImportError):
 
 	def __init__(self, reason: str) -> None:
 		super().__init__(
-			f"The knowledge base is not reachable, so no import was attempted: {reason}. Nothing was "
-			f"written and the file can be uploaded again once it is back."
+			f"La base de connaissances est injoignable : aucun import n'a été tenté. Rien n'a été "
+			f"écrit, et le fichier pourra être déposé à nouveau dès qu'elle sera de retour. "
+			f"Détail technique : {reason}"
 		)
 		self.reason = reason
 
@@ -101,16 +102,20 @@ class BatchImportCorpusWriteFailed(BatchImportError):
 
 	def __init__(self, reason: str, *, tickets_discarded: bool) -> None:
 		aftermath = (
-			"The imported tickets have been removed, so nothing was kept and the file can be uploaded "
-			"again."
+			"Les tickets importés ont été supprimés : rien n'a été conservé et le fichier peut être "
+			"déposé à nouveau."
 			if tickets_discarded
 			else (
-				"The imported tickets could NOT be removed afterwards and are still in the database "
-				"without their knowledge base entries. Do not re-upload the file: run the knowledge "
-				"base backfill instead, which embeds exactly the tickets that are missing an entry."
+				"Les tickets importés n'ont PAS pu être supprimés ensuite : ils sont toujours en base "
+				"sans leur entrée dans la base de connaissances. Ne redéposez pas le fichier — "
+				"lancez plutôt le backfill de la base de connaissances, qui traite exactement les "
+				"tickets auxquels il manque une entrée."
 			)
 		)
-		super().__init__(f"The knowledge base could not be updated for this import: {reason}. {aftermath}")
+		super().__init__(
+			f"La base de connaissances n'a pas pu être mise à jour pour cet import. {aftermath} "
+			f"Détail technique : {reason}"
+		)
 		self.reason = reason
 		self.tickets_discarded = tickets_discarded
 

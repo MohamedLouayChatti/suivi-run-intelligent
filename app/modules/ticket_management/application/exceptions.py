@@ -53,5 +53,6 @@ class TicketImportRejected(TicketApplicationError):
 		self.total_error_count = len(ordered)
 		self.errors = tuple(ordered[:MAX_REPORTED_IMPORT_ERRORS])
 		super().__init__(
-			f"The file was rejected and nothing was imported: {self.total_error_count} problem(s) found."
+			f"Le fichier a été refusé et aucun ticket n'a été importé : {self.total_error_count} "
+			f"problème(s) détecté(s)."
 		)

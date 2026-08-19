@@ -70,12 +70,12 @@ def read_table(content: bytes, file_name: str) -> ParsedTable:
 	if suffix in CSV_SUFFIXES:
 		if content.startswith(_ZIP_SIGNATURE):
 			raise BatchImportFileUnreadable(
-				"This looks like an Excel workbook saved with a .csv extension. Rename it to .xlsx "
-				"and upload it again."
+				"Ce fichier semble être un classeur Excel enregistré avec l'extension .csv. "
+				"Renommez-le en .xlsx et déposez-le à nouveau."
 			)
 		return _read_csv(content)
 	raise BatchImportFileUnreadable(
-		f"{file_name!r} is not a supported file type. Accepted: "
+		f"« {file_name} » n'est pas un type de fichier accepté. Formats acceptés : "
 		f"{', '.join(sorted(ACCEPTED_SUFFIXES))}."
 	)
 
@@ -85,13 +85,13 @@ def _read_csv(content: bytes) -> ParsedTable:
 		text = content.decode(_ENCODING)
 	except UnicodeDecodeError as error:
 		raise BatchImportFileUnreadable(
-			"The file is not valid UTF-8 text. Save it as CSV UTF-8 and upload it again, or upload "
-			"the Excel workbook itself."
+			"Le fichier n'est pas encodé en UTF-8. Enregistrez-le au format « CSV UTF-8 » puis "
+			"déposez-le à nouveau, ou déposez directement le classeur Excel."
 		) from error
 
 	reader = csv.DictReader(io.StringIO(text, newline=""))
 	if not reader.fieldnames:
-		raise BatchImportFileUnreadable("The file has no header row.")
+		raise BatchImportFileUnreadable("Le fichier ne comporte pas de ligne d'en-tête.")
 
 	columns = tuple((name or "").strip() for name in reader.fieldnames)
 	records: list[TicketImportRecord] = []
@@ -123,8 +123,9 @@ def _read_workbook(content: bytes) -> ParsedTable:
 		from openpyxl import load_workbook
 	except ImportError as error:  # pragma: no cover - depends on the deployment's installed packages
 		raise BatchImportFileUnreadable(
-			"Excel support is not installed in this deployment. Upload a CSV, or install the "
-			"openpyxl dependency (uv sync) to enable .xlsx uploads."
+			"La prise en charge des fichiers Excel n'est pas installée sur ce serveur. Déposez un "
+			"fichier CSV, ou demandez l'installation de la dépendance openpyxl pour activer les "
+			"dépôts .xlsx."
 		) from error
 
 	try:
@@ -134,12 +135,12 @@ def _read_workbook(content: bytes) -> ParsedTable:
 		workbook = load_workbook(io.BytesIO(content), read_only=True, data_only=True)
 	except Exception as error:
 		raise BatchImportFileUnreadable(
-			f"The file could not be opened as an Excel workbook: {error}"
+			f"Le fichier n'a pas pu être ouvert comme un classeur Excel : {error}"
 		) from error
 
 	try:
 		if not workbook.worksheets:
-			raise BatchImportFileUnreadable("The workbook has no sheets.")
+			raise BatchImportFileUnreadable("Le classeur ne contient aucune feuille.")
 		# The first sheet, with the name reported back, so a multi-sheet workbook says which one was
 		# read rather than leaving an operator to guess why half their data is missing.
 		sheet = workbook.worksheets[0]
@@ -170,7 +171,7 @@ def _read_workbook(content: bytes) -> ParsedTable:
 		workbook.close()
 
 	if header is None:
-		raise BatchImportFileUnreadable("The first sheet of the workbook is empty.")
+		raise BatchImportFileUnreadable("La première feuille du classeur est vide.")
 
 	return ParsedTable(columns=header, records=tuple(records), sheet_name=sheet_name)
 

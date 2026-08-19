@@ -80,6 +80,16 @@ def _accepted_values(enum_type: type[Enum]) -> list[str]:
 	return values
 
 
+def _status_label(status: Status) -> str:
+	"""How a status is named in a message about the row that claims it.
+
+	The French spelling first, because that is what the operator typed into the cell, with the
+	stored value alongside so a file written in either vocabulary recognises itself.
+	"""
+	spellings = _ENUM_ALIASES[Status].get(status, ())
+	return f"{spellings[0]} ({status.value})" if spellings else str(status.value)
+
+
 @dataclass(frozen=True)
 class ParsedTicketRecord:
 	"""One record whose cells have been read as the types the aggregate takes.
@@ -140,7 +150,7 @@ class _RecordReader:
 	def required_text(self, column: str) -> str:
 		value = self._cell(column)
 		if not value:
-			self._fail(column, value, f"{column} is required and must not be empty.")
+			self._fail(column, value, f"La colonne « {column} » est obligatoire et ne doit pas être vide.")
 		return value
 
 	def optional_text(self, column: str) -> str | None:
@@ -148,7 +158,7 @@ class _RecordReader:
 
 	def required_enum(self, column: str, enum_type: type[EnumT]) -> EnumT | None:
 		if not self._cell(column):
-			self._fail(column, "", f"{column} is required and must not be empty.")
+			self._fail(column, "", f"La colonne « {column} » est obligatoire et ne doit pas être vide.")
 			return None
 		return self.optional_enum(column, enum_type)
 
@@ -167,8 +177,11 @@ class _RecordReader:
 
 		members = _accepted_values(enum_type)
 		listed = ", ".join(members) if len(members) <= _MAX_LISTED_ENUM_VALUES else ""
-		detail = f" Accepted values: {listed}." if listed else ""
-		self._fail(column, value, f"{value} is not a valid {column}.{detail}")
+		detail = f" Valeurs acceptées : {listed}." if listed else ""
+		self._fail(
+			column, value,
+			f"« {value} » n'est pas une valeur acceptée pour la colonne « {column} ».{detail}",
+		)
 		return None
 
 	def optional_flag(self, column: str) -> bool:
@@ -190,13 +203,14 @@ class _RecordReader:
 			return False
 		self._fail(
 			column, value,
-			f"{column} must be one of oui, non, vrai, faux, true, false -- or empty, which means non.",
+			f"La colonne « {column} » doit contenir oui, non, vrai, faux, true ou false — ou rester "
+			f"vide, ce qui équivaut à non.",
 		)
 		return False
 
 	def required_datetime(self, column: str) -> datetime | None:
 		if not self._cell(column):
-			self._fail(column, "", f"{column} is required and must not be empty.")
+			self._fail(column, "", f"La colonne « {column} » est obligatoire et ne doit pas être vide.")
 			return None
 		return self.optional_datetime(column)
 
@@ -216,8 +230,8 @@ class _RecordReader:
 		except ValueError:
 			self._fail(
 				column, value,
-				f"{value} is not a valid ISO-8601 date or timestamp "
-				f"(for example 2025-10-01 or 2025-10-01T14:30:00Z).",
+				f"« {value} » n'est pas une date ISO-8601 valide "
+				f"(par exemple 2025-10-01 ou 2025-10-01T14:30:00Z).",
 			)
 			return None
 		return parsed if parsed.tzinfo is not None else parsed.replace(tzinfo=UTC)
@@ -229,7 +243,10 @@ class _RecordReader:
 		try:
 			return date.fromisoformat(value)
 		except ValueError:
-			self._fail(column, value, f"{value} is not a valid ISO-8601 date (for example 2025-10-01).")
+			self._fail(
+				column, value,
+				f"« {value} » n'est pas une date ISO-8601 valide (par exemple 2025-10-01).",
+			)
 			return None
 
 	def record_error(self, message: str) -> None:
@@ -349,11 +366,15 @@ def _validate_lifecycle(
 
 	for column, value in forbidden_by_status[status].items():
 		if value is not None:
-			reader.record_error(f"{column} must be empty for a ticket with status {status.value}.")
+			reader.record_error(
+				f"La colonne « {column} » doit rester vide pour un ticket au statut "
+				f"{_status_label(status)}."
+			)
 
 	if status == Status.TRANSFERRED and transferred_to is None:
 		reader.record_error(
-			f"{columns.TRANSFERRED_TO} is required for a ticket with status {Status.TRANSFERRED.value}."
+			f"La colonne « {columns.TRANSFERRED_TO} » est obligatoire pour un ticket au statut "
+			f"{_status_label(Status.TRANSFERRED)}."
 		)
 
 	if status == Status.RESOLVED:
@@ -362,7 +383,8 @@ def _validate_lifecycle(
 	if status == Status.CLOSED:
 		if closed_at is None:
 			reader.record_error(
-				f"{columns.CLOSED_AT} is required for a ticket with status {Status.CLOSED.value}."
+				f"La colonne « {columns.CLOSED_AT} » est obligatoire pour un ticket au statut "
+				f"{_status_label(Status.CLOSED)}."
 			)
 		# A closed ticket reached that state from exactly one of two places, and the file has to
 		# say which: it was resolved, or it was transferred away. Both at once describes no history
@@ -371,8 +393,9 @@ def _validate_lifecycle(
 			for column, value in resolution_columns.items():
 				if value is not None:
 					reader.record_error(
-						f"{column} must be empty for a ticket closed after being transferred: a "
-						f"closed ticket was either resolved or transferred, not both."
+						f"La colonne « {column} » doit rester vide pour un ticket clôturé après un "
+						f"transfert : un ticket clôturé a été soit résolu, soit transféré, jamais "
+						f"les deux."
 					)
 		else:
 			_require_resolution(reader, status, resolved_at, resolution_notes)
@@ -383,13 +406,13 @@ def _require_resolution(
 ) -> None:
 	if resolved_at is None:
 		reader.record_error(
-			f"{columns.RESOLVED_AT} is required for a ticket with status {status.value} that was "
-			f"not transferred."
+			f"La colonne « {columns.RESOLVED_AT} » est obligatoire pour un ticket au statut "
+			f"{_status_label(status)} qui n'a pas été transféré."
 		)
 	if not resolution_notes:
 		reader.record_error(
-			f"{columns.RESOLUTION_NOTES} is required for a ticket with status {status.value} that "
-			f"was not transferred."
+			f"La colonne « {columns.RESOLUTION_NOTES} » est obligatoire pour un ticket au statut "
+			f"{_status_label(status)} qui n'a pas été transféré."
 		)
 
 
@@ -406,8 +429,14 @@ def _validate_chronology(
 	if created_at is None:
 		return
 	if resolved_at is not None and resolved_at < created_at:
-		reader.record_error(f"{columns.RESOLVED_AT} is earlier than {columns.CREATED_AT}.")
+		reader.record_error(
+			f"La colonne « {columns.RESOLVED_AT} » est antérieure à « {columns.CREATED_AT} »."
+		)
 	if closed_at is not None and closed_at < created_at:
-		reader.record_error(f"{columns.CLOSED_AT} is earlier than {columns.CREATED_AT}.")
+		reader.record_error(
+			f"La colonne « {columns.CLOSED_AT} » est antérieure à « {columns.CREATED_AT} »."
+		)
 	if resolved_at is not None and closed_at is not None and closed_at < resolved_at:
-		reader.record_error(f"{columns.CLOSED_AT} is earlier than {columns.RESOLVED_AT}.")
+		reader.record_error(
+			f"La colonne « {columns.CLOSED_AT} » est antérieure à « {columns.RESOLVED_AT} »."
+		)

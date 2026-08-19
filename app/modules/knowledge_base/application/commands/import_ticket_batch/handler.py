@@ -109,8 +109,8 @@ class ImportTicketBatchHandler:
 		parsed = read_table(command.content, command.file_name)
 		if len(parsed.records) > MAX_ROWS:
 			raise BatchImportTooLarge(
-				f"The file has {len(parsed.records)} rows, which is more than the {MAX_ROWS} an "
-				f"import accepts. Split it and upload the parts separately."
+				f"Le fichier contient {len(parsed.records)} lignes, alors qu'un import en accepte au "
+				f"maximum {MAX_ROWS}. Découpez-le et déposez les parties séparément."
 			)
 
 		await self._preflight()
@@ -165,7 +165,7 @@ class ImportTicketBatchHandler:
 	def _reject_oversized_upload(self, command: ImportTicketBatchCommand) -> None:
 		if len(command.content) > MAX_UPLOAD_BYTES:
 			raise BatchImportTooLarge(
-				f"The file is larger than the {MAX_UPLOAD_BYTES // (1024 * 1024)} MB an import accepts."
+				f"Le fichier dépasse les {MAX_UPLOAD_BYTES // (1024 * 1024)} Mo qu'un import accepte."
 			)
 
 	async def _populate_corpus(
