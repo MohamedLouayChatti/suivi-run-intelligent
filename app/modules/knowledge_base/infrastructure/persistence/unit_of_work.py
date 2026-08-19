@@ -6,6 +6,9 @@ from typing import Self
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.knowledge_base.application.interfaces.unit_of_work import UnitOfWork
+from app.modules.knowledge_base.infrastructure.persistence.repositories.sqlalchemy_similarity_recalculation_schedule_repository import (
+	SqlAlchemySimilarityRecalculationScheduleRepository,
+)
 from app.modules.knowledge_base.infrastructure.persistence.repositories.sqlalchemy_similarity_result_repository import (
 	SqlAlchemySimilarityResultRepository,
 )
@@ -16,6 +19,7 @@ class SqlAlchemyUnitOfWork(UnitOfWork):
 	def __init__(self, session: AsyncSession | None = None) -> None:
 		self.session = session or create_session()
 		self.similarity_results = SqlAlchemySimilarityResultRepository(self.session)
+		self.recalculation_schedule = SqlAlchemySimilarityRecalculationScheduleRepository(self.session)
 
 	async def commit(self) -> None:
 		await self.session.commit()

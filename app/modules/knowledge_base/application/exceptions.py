@@ -29,3 +29,16 @@ class MixedEmbeddingCorpus(KnowledgeBaseApplicationError):
 		)
 		self.present = present
 		self.expected = expected
+
+
+class RecalculationAlreadyRunning(KnowledgeBaseApplicationError):
+	"""A full recalculation was requested while one was already in flight.
+
+	A refusal rather than a queued second run, because the pass recomputes the entire graph from
+	the corpus as it currently stands: one that starts immediately after another finishes writes
+	the same rows a second time. Told plainly, an administrator waits; queued silently, they get an
+	acknowledgement for work that will duplicate what is already happening.
+	"""
+
+	def __init__(self) -> None:
+		super().__init__("A full similarity graph recalculation is already running.")

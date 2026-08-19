@@ -6,6 +6,7 @@ from fastapi import status
 
 from app.modules.analytics.application.exceptions import UnsupportedInsightsApplication
 from app.modules.audit.application.exceptions import AuditEntryNotFound
+from app.modules.knowledge_base.application.exceptions import RecalculationAlreadyRunning
 from app.modules.notifications.application.exceptions import NotificationNotFound
 from app.modules.ticket_management.application.exceptions import (
     AssigneeNotAuthorized,
@@ -56,6 +57,7 @@ EXCEPTION_STATUS_CODES: dict[type[DomainError | ApplicationError], int] = {
     AuditEntryNotFound: status.HTTP_404_NOT_FOUND,
     NotificationNotFound: status.HTTP_404_NOT_FOUND,
     UnsupportedInsightsApplication: status.HTTP_400_BAD_REQUEST,
+    RecalculationAlreadyRunning: status.HTTP_409_CONFLICT,
 }
 
 

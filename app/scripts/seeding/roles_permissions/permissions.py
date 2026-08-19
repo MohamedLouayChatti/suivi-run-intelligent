@@ -48,6 +48,8 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("notification.read", "Lire ses propres notifications."),
 	PermissionDefinition("analytics.read", "Lire les indicateurs et statistiques analytiques."),
 	PermissionDefinition("analytics.read_any_application", "Consulter les analyses de toutes les applications (vue transverse)."),
+	PermissionDefinition("knowledge_base.read_recalculation", "Consulter la planification du recalcul complet du graphe de similarité."),
+	PermissionDefinition("knowledge_base.manage_recalculation", "Modifier la planification du recalcul complet du graphe de similarité et le déclencher manuellement."),
 )
 
 PERMISSIONS_BY_NAME = {permission.name: permission for permission in PERMISSION_CATALOG}

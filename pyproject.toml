@@ -3,6 +3,11 @@ name = "suivi-run-intelligent"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
+    # The 3.x line, not the 4.x pre-release. Scheduling here is an in-process AsyncIOScheduler with
+    # no job store: schedules are re-registered at startup from the table that owns them, so none
+    # of 4.x's persistence or distributed-worker machinery is being waited on. 3.11 is also where
+    # the pytz dependency gave way to the standard library's zoneinfo.
+    "apscheduler>=3.11.3",
     "python-multipart>=0.0.32",
     "qdrant-client>=1.19.0",
 ]
