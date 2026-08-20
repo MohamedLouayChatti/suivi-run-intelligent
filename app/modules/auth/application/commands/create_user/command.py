@@ -4,8 +4,6 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from app.modules.auth.domain.value_objects.auth_provider_user_id import AuthProviderUserId
-from app.modules.auth.domain.enums.functional_team import FunctionalTeam
-from app.modules.auth.domain.value_objects.application_assignment import ApplicationAssignment
 
 
 @dataclass(frozen=True)
@@ -15,6 +13,15 @@ class CreateUserCommand:
 	email: str
 	display_name: str
 	avatar_url: str | None = None
-	functional_team: FunctionalTeam = FunctionalTeam.SUPPORT
-	application_assignments: frozenset[ApplicationAssignment] = frozenset()
+	declared_application: str | None = None
+	"""The application the applicant chose for themselves on the signup form, unparsed.
+
+	Raw text rather than an `Application`, and self-declared rather than assigned: a person
+	signing up types this about themselves before anyone has approved them, so it may name
+	an application that does not exist or none at all.  Turning it into an assignment, and
+	deciding what a missing or unusable answer means, is the handler's job -- the same
+	division `ImportTicketsCommand` makes by carrying a file's records as raw text.
+	"""
+	declared_functional_team: str | None = None
+	"""The functional team the applicant chose for themselves, unparsed. See above."""
 	actor_id: UUID | None = None

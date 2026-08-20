@@ -21,6 +21,9 @@ from app.modules.auth.application.interfaces.user_read_repository import UserRea
 
 router = APIRouter(prefix="/auth/webhooks", tags=["auth-webhooks"])
 
+_APPLICATION_METADATA_KEY = "application"
+_FUNCTIONAL_TEAM_METADATA_KEY = "functionalTeam"
+
 
 def _data(payload: dict[str, Any]) -> dict[str, Any]:
 	value = payload.get("data")
@@ -59,9 +62,28 @@ def _display_name(data: dict[str, Any]) -> str:
 	return name or data.get("username") or _provider_user_id(data)
 
 
-def _image_url(data: dict[str, Any]) -> str | None:
-	value = data.get("image_url")
+def _text(value: Any) -> str | None:
 	return value if isinstance(value, str) and value else None
+
+
+def _image_url(data: dict[str, Any]) -> str | None:
+	return _text(data.get("image_url"))
+
+
+def _signup_declaration(data: dict[str, Any]) -> tuple[str | None, str | None]:
+	"""The application and team the applicant chose on the signup form, as they arrived.
+
+	The form writes both into `unsafeMetadata` -- the one bag a client that is still signing
+	up may write to -- and Clerk echoes it back here verbatim under `unsafe_metadata`.  All
+	this knows is where in a Clerk payload to find them and what they are called there; both
+	come back out as the raw strings they went in as.  What they mean, what a missing one
+	implies and which pairs the domain allows are the application layer's to decide, so that
+	the answers do not change with the transport that happened to carry the declaration.
+	"""
+	metadata = data.get("unsafe_metadata")
+	if not isinstance(metadata, dict):
+		return None, None
+	return _text(metadata.get(_APPLICATION_METADATA_KEY)), _text(metadata.get(_FUNCTIONAL_TEAM_METADATA_KEY))
 
 
 async def _local_user_id(
@@ -83,8 +105,14 @@ async def receive_webhook(
 	data = _data(payload)
 	provider_id = _provider_user_id(data)
 	if event_type == "user.created":
-		result = await create_handler.handle(CreateUserCommand(user_id=uuid4(), auth_provider_user_id=AuthProviderUserId(provider_id), email=_email(data), display_name=_display_name(data), avatar_url=_image_url(data)))
+		declared_application, declared_functional_team = _signup_declaration(data)
+		result = await create_handler.handle(CreateUserCommand(user_id=uuid4(), auth_provider_user_id=AuthProviderUserId(provider_id), email=_email(data), display_name=_display_name(data), avatar_url=_image_url(data), declared_application=declared_application, declared_functional_team=declared_functional_team))
 	elif event_type == "user.updated":
+		# Profile fields only: the signup metadata is read once, at creation, and never again.
+		# `unsafeMetadata` stays writable by the signed-in user, so re-applying it here would
+		# let anyone move themselves onto another application -- which is what scopes every
+		# ticket and analytics collection they can read -- and would let a stale declaration
+		# overwrite an administrator's later correction.
 		if local_user_id is None:
 			raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local user was not found.")
 		result = await update_handler.handle(UpdateUserCommand(user_id=local_user_id, email=_email(data), display_name=_display_name(data), avatar_url=_image_url(data)))
