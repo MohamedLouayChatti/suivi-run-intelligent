@@ -30,6 +30,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Rewriting the primary key needs ACCESS EXCLUSIVE, and a *waiting* request for that lock queues
+    # ahead of every new reader -- so a migration blocked behind one idle-in-transaction connection
+    # stops the application from reading this table at all, for as long as it waits. Failing after
+    # five seconds turns that outage into an error message telling you to close the connection.
+    op.execute("SET LOCAL lock_timeout = '5s'")
+
     op.drop_constraint("user_application_assignments_pkey", "user_application_assignments", type_="primary")
     op.create_primary_key(
         "user_application_assignments_pkey", "user_application_assignments", ["user_id", "application"]
