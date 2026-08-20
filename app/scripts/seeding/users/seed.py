@@ -42,11 +42,11 @@ async def _seed_user(uow: SqlAlchemyUnitOfWork, definition: HistoricalUserDefini
 		auth_provider_user_id=AuthProviderUserId(str(uuid4())),
 		email=definition.email,
 		display_name=definition.display_name,
+		role_id=role.id,
 		functional_team=definition.functional_team,
 		application_assignments=application_assignments,
 	)
 	user.deactivate()
-	user.assign_role(role.id)
 
 	await uow.users.add(user)
 

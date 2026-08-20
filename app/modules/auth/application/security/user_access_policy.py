@@ -7,9 +7,9 @@ from app.shared.security.authorization_result import AuthorizationResult
 from app.shared.security.current_user import CurrentUser
 from app.shared.security.instance_authorization_policy import InstanceAuthorizationPolicy
 
-_SELF_OR_READ_ALL_OPERATIONS = frozenset({"read", "read_roles", "read_permissions", "read_revoked_permissions"})
+_SELF_OR_READ_ALL_OPERATIONS = frozenset({"read", "read_role", "read_permissions", "read_revoked_permissions"})
 
-_NEVER_ON_SELF_OPERATIONS = frozenset({"deactivate", "revoke_role", "revoke_permission"})
+_NEVER_ON_SELF_OPERATIONS = frozenset({"deactivate", "set_role", "revoke_permission"})
 
 
 class UserAccessPolicy(InstanceAuthorizationPolicy):
@@ -18,7 +18,7 @@ class UserAccessPolicy(InstanceAuthorizationPolicy):
 	Reads are self-or-`user.read_all`.  The three operations in
 	`_NEVER_ON_SELF_OPERATIONS` are the ones that can strip the actor's own access, and are
 	refused when the actor is the target: without this, the holder of the permission-management
-	permissions can revoke their own last role or deactivate themselves, and -- since roles are
+	permissions can demote their own role or deactivate themselves, and -- since roles are
 	fixed reference data with no creation endpoint -- nothing short of re-running the seeder
 	can restore access.  The rule is deliberately about *self*-targeting only; one
 	administrator locking out another is recoverable by the other administrators.

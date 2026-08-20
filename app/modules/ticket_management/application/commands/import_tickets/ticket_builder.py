@@ -13,6 +13,7 @@ from app.modules.ticket_management.domain.exceptions import (
 	ElementRequired,
 	EmptyDescription,
 	EmptyTitle,
+	FunctionalTeamNotAllowedForApplication,
 	InvalidStatusTransition,
 	JiraIdRequired,
 	OfferRequired,
@@ -51,6 +52,10 @@ _DOMAIN_ERROR_MESSAGES: dict[type[TicketDomainError], str] = {
 	VersionRequired: f"La colonne « {columns.VERSION} » est obligatoire pour un ticket COLORIS.",
 	ElementRequired: f"La colonne « {columns.ELEMENT} » est obligatoire pour un ticket AERO.",
 	VioAppRequired: f"La colonne « {columns.VIO_APP} » est obligatoire pour un ticket VIO.",
+	FunctionalTeamNotAllowedForApplication: (
+		f"La colonne « {columns.FUNCTIONAL_TEAM} » doit valoir « Support » pour un ticket AERO ou "
+		f"VIO : ces applications n'ont pas d'équipe Paramétrage."
+	),
 	ResolutionNotesRequired: (
 		f"La colonne « {columns.RESOLUTION_NOTES} » ne doit pas être vide pour un ticket résolu."
 	),

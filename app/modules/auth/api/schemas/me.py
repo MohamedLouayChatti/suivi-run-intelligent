@@ -19,7 +19,7 @@ class MeResponse(BaseModel):
 	avatar_url: str | None
 	functional_team: FunctionalTeam
 	application_assignments: list[ApplicationAssignmentSchema]
-	roles: list[RoleResponse]
+	role: RoleResponse
 	effective_permissions: list[PermissionResponse]
 
 	@classmethod
@@ -35,6 +35,6 @@ class MeResponse(BaseModel):
 				ApplicationAssignmentSchema(application=x.application, assignment_type=x.assignment_type)
 				for x in profile.application_assignments
 			],
-			roles=[RoleResponse.from_dto(role) for role in profile.roles],
+			role=RoleResponse.from_dto(profile.role),
 			effective_permissions=[PermissionResponse.from_dto(permission) for permission in profile.effective_permissions],
 		)

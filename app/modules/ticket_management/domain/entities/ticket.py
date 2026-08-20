@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 
 from app.modules.ticket_management.domain.entities.attachment import Attachment
 from app.modules.ticket_management.domain.entities.comment import Comment
+from app.modules.ticket_management.domain.constants import SUPPORT_ONLY_APPLICATIONS
 from app.modules.ticket_management.domain.entities.ticket_history_entry import TicketHistoryEntry
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.category import Category
@@ -20,6 +21,7 @@ from app.modules.ticket_management.domain.enums.version import Version
 from app.modules.ticket_management.domain.exceptions import (
 	AssigneeUnchanged, AttachmentNotFound, ChronologicalOrderViolation, CommentNotFound, ConditionalFieldForbidden,
 	DuplicateAttachment, ElementRequired, EmptyComment, EmptyDescription, EmptyTitle,
+	FunctionalTeamNotAllowedForApplication,
 	InvalidAssignee, InvalidStatusTransition, JiraIdRequired, OfferRequired,
 	ResolutionNotesRequired, TicketArchived, TicketClosed, TicketNotArchived,
 	TransferDestinationIsOrigin, TransferDestinationRequired, VersionRequired, VioAppRequired,
@@ -86,6 +88,8 @@ class Ticket:
 		return ticket
 
 	def _validate_conditional_fields(self) -> None:
+		if self.application in SUPPORT_ONLY_APPLICATIONS and self.functional_team != FunctionalTeam.SUPPORT:
+			raise FunctionalTeamNotAllowedForApplication()
 		if self.requires_jira and not self.jira_id:
 			raise JiraIdRequired()
 		if not self.requires_jira and self.jira_id:

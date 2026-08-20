@@ -32,7 +32,7 @@ class SqlAlchemyPermissionReadRepository(PermissionReadRepository):
 	async def get_effective_permissions(self, query: GetEffectivePermissionsQuery) -> list[PermissionDTO]:
 		user = await self.session.scalar(
 			select(UserModel).where(UserModel.id == query.user_id).options(
-				selectinload(UserModel.roles).selectinload(RoleModel.permissions),
+				selectinload(UserModel.role).selectinload(RoleModel.permissions),
 				selectinload(UserModel.direct_permissions),
 				selectinload(UserModel.revoked_permissions),
 			)
@@ -40,7 +40,7 @@ class SqlAlchemyPermissionReadRepository(PermissionReadRepository):
 		if user is None:
 			return []
 		permission_ids = AuthorizationService.combine_permissions(
-			role_permission_ids=(permission.id for role in user.roles for permission in role.permissions),
+			role_permission_ids=(permission.id for permission in user.role.permissions),
 			direct_permission_ids=(permission.id for permission in user.direct_permissions),
 			revoked_permission_ids=(permission.id for permission in user.revoked_permissions),
 		)

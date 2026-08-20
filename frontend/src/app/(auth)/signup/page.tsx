@@ -21,6 +21,7 @@ import {
   applicationOptions,
   functionalTeamLabels,
   functionalTeamOptions,
+  functionalTeamOptionsFor,
 } from "@/features/tickets/constants";
 import { PASSWORD_REQUIREMENTS_TEXT, isPasswordValid } from "@/features/auth/password";
 import { clerkErrorMessage } from "@/features/auth/clerk-error";
@@ -41,6 +42,12 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [application, setApplication] = useState<Application | "">("");
   const [functionalTeam, setFunctionalTeam] = useState<FunctionalTeam | "">("");
+  // AERO and VIO have no Paramétrage team, so picking one of them leaves a single valid
+  // answer here. Chosen for the applicant rather than offered and then rejected, and
+  // re-derived on every render so switching back to FCI/COLORIS reopens the choice.
+  const availableFunctionalTeams = functionalTeamOptionsFor(application);
+  const effectiveFunctionalTeam =
+    availableFunctionalTeams.length === 1 ? availableFunctionalTeams[0] : functionalTeam;
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [code, setCode] = useState("");
@@ -81,7 +88,7 @@ export default function SignupPage() {
         lastName,
         unsafeMetadata: {
           application,
-          functionalTeam,
+          functionalTeam: effectiveFunctionalTeam,
         },
       });
       if (passwordError) {
@@ -227,20 +234,26 @@ export default function SignupPage() {
           <div className="space-y-2">
             <Label>Équipe</Label>
             <Select
-              value={functionalTeam || undefined}
+              value={effectiveFunctionalTeam || undefined}
               onValueChange={(value) => setFunctionalTeam(value as FunctionalTeam)}
+              disabled={availableFunctionalTeams.length === 1}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Sélectionner" />
               </SelectTrigger>
               <SelectContent>
-                {functionalTeamOptions.map((team) => (
+                {availableFunctionalTeams.map((team) => (
                   <SelectItem key={team} value={team}>
                     {functionalTeamLabels[team]}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {availableFunctionalTeams.length === 1 && (
+              <p className="text-xs text-muted-foreground">
+                {application} ne compte qu&apos;une équipe {functionalTeamLabels[availableFunctionalTeams[0]]}.
+              </p>
+            )}
           </div>
         </div>
         <div className="space-y-2">

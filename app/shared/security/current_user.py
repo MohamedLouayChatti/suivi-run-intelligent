@@ -24,8 +24,8 @@ class CurrentUser:
 	display_name: str
 	functional_team: FunctionalTeam
 	application_assignments: frozenset[ApplicationAssignment]
-	role_ids: frozenset[UUID]
-	"""Which roles the caller holds -- membership data, never a capability.
+	role_id: UUID
+	"""Which role the caller holds -- membership data, never a capability.
 
 	Nothing authorizes on this: it exists so `RoleAccessPolicy` can answer "is this the
 	caller's *own* role", the same kind of self-ownership question `UserAccessPolicy` asks
@@ -76,6 +76,6 @@ async def get_current_user(
 		display_name=user.display_name,
 		functional_team=user.functional_team,
 		application_assignments=user.application_assignments,
-		role_ids=frozenset(user.role_ids),
+		role_id=user.role_id,
 		permissions=frozenset(permission.name for permission in effective),
 	)

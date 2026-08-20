@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import Boolean, Index, String, Enum as SAEnum
+from sqlalchemy import Boolean, ForeignKey, String, Enum as SAEnum
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 from app.shared.database.base import Base
 from app.modules.auth.domain.enums.functional_team import FunctionalTeam
 
-from .association_tables import role_permissions, user_direct_permissions, user_revoked_permissions, user_roles
+from .association_tables import role_permissions, user_direct_permissions, user_revoked_permissions
 
 
 class UserModel(Base):
@@ -29,8 +29,15 @@ class UserModel(Base):
 	active: Mapped[bool] = mapped_column(Boolean, nullable=False)
 	avatar_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
 	functional_team: Mapped[FunctionalTeam] = mapped_column(SAEnum(FunctionalTeam, name="auth_functional_team"), nullable=False)
+	# A column rather than the user_roles join table this replaced: one role per user is a
+	# domain invariant, and a schema that still said many-to-many would leave the database
+	# free to hold a state the aggregate refuses to construct.
+	role_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("roles.id"), nullable=False, index=True)
 
-	roles: Mapped[list["RoleModel"]] = relationship(secondary=user_roles, back_populates="users", lazy="selectin")
+	# Loading is left to the queries that actually need the role object (the read repositories
+	# spell it out with selectinload); the write path maps the aggregate from role_id alone and
+	# would otherwise pay for a join it never reads.
+	role: Mapped["RoleModel"] = relationship(back_populates="users", lazy="raise")
 	direct_permissions: Mapped[list["PermissionModel"]] = relationship(
 		secondary=user_direct_permissions, back_populates="direct_users", lazy="selectin"
 	)

@@ -71,7 +71,7 @@ function UsersTable({ users, highlightUserId, onChangeRole, onToggleActive, onSa
 
   const rows = users.filter(
     (u) =>
-      (roleId === "all" || u.role_ids.includes(roleId)) &&
+      (roleId === "all" || u.role_id === roleId) &&
       (query === "" || (u.display_name + u.email).toLowerCase().includes(query.toLowerCase()))
   )
   const selectedUser = users.find((u) => u.id === selectedUserId) ?? null

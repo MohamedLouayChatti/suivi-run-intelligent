@@ -37,14 +37,12 @@ interface UserDetailsSheetProps {
 function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions, onToggleActive }: UserDetailsSheetProps) {
   const { roles } = useRolesList()
   const { permissions } = usePermissionsList()
-  const currentRoleId = user?.role_ids[0] ?? roles[0]?.id ?? ""
+  const currentRoleId = user?.role_id ?? roles[0]?.id ?? ""
   const [roleId, setRoleId] = useState(currentRoleId)
 
-  // A permission is effectively granted if it comes from one of the user's roles or was
+  // A permission is effectively granted if it comes from the user's role or was
   // granted directly, unless it was explicitly revoked — mirrors AuthorizationService.resolve_permissions.
-  const rolePermissionIds = new Set(
-    (user?.role_ids ?? []).flatMap((rid) => roles.find((r) => r.id === rid)?.permission_ids ?? [])
-  )
+  const rolePermissionIds = new Set(roles.find((r) => r.id === user?.role_id)?.permission_ids ?? [])
   const effectivePermissionIds = new Set(
     [...rolePermissionIds, ...(user?.direct_permission_ids ?? [])].filter(
       (id) => !(user?.revoked_permission_ids ?? []).includes(id)

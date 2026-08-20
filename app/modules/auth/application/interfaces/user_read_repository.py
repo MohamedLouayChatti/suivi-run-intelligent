@@ -39,7 +39,11 @@ class UserReadRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
-	async def get_user_roles(self, user_id: UUID) -> list[RoleDTO]:
+	async def get_user_role(self, user_id: UUID) -> RoleDTO | None:
+		"""The one role this user holds, or None when no such user exists.
+
+		None means "no such user", never "no role": a user always holds exactly one.
+		"""
 		raise NotImplementedError
 
 	@abstractmethod

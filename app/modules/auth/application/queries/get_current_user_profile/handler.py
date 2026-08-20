@@ -18,7 +18,9 @@ class GetCurrentUserProfileHandler:
 		if user is None:
 			raise UserNotFound()
 
-		roles = await self.user_read_repository.get_user_roles(query.user_id)
+		role = await self.user_read_repository.get_user_role(query.user_id)
+		if role is None:
+			raise UserNotFound()
 		effective_permissions = await self.permission_read_repository.get_effective_permissions(
 			GetEffectivePermissionsQuery(user_id=query.user_id)
 		)
@@ -30,7 +32,7 @@ class GetCurrentUserProfileHandler:
 			display_name=user.display_name,
 			avatar_url=user.avatar_url,
 			functional_team=user.functional_team,
+			role=role,
 			application_assignments=user.application_assignments,
-			roles=roles,
 			effective_permissions=effective_permissions,
 		)

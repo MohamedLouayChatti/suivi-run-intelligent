@@ -7,7 +7,7 @@ from fastapi import Depends, HTTPException, Request, status
 from typing import Any
 
 from app.modules.auth.application.commands.activate_user.handler import ActivateUserHandler
-from app.modules.auth.application.commands.assign_role.handler import AssignRoleHandler
+from app.modules.auth.application.commands.set_user_role.handler import SetUserRoleHandler
 from app.modules.auth.application.commands.create_role.handler import CreateRoleHandler
 from app.modules.auth.application.commands.create_user.handler import CreateUserHandler
 from app.modules.auth.application.commands.deactivate_user.handler import DeactivateUserHandler
@@ -15,13 +15,12 @@ from app.modules.auth.application.commands.grant_permission_to_role.handler impo
 from app.modules.auth.application.commands.grant_permission_to_user.handler import GrantPermissionToUserHandler
 from app.modules.auth.application.commands.revoke_permission_from_role.handler import RevokePermissionFromRoleHandler
 from app.modules.auth.application.commands.revoke_permission_from_user.handler import RevokePermissionFromUserHandler
-from app.modules.auth.application.commands.revoke_role.handler import RevokeRoleHandler
 from app.modules.auth.application.commands.update_user.handler import UpdateUserHandler
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
 from app.modules.auth.application.queries.get_current_user_profile.handler import GetCurrentUserProfileHandler
 from app.modules.auth.application.queries.get_effective_permissions.handler import GetEffectivePermissionsHandler
 from app.modules.auth.application.queries.get_user.handler import GetUserHandler
-from app.modules.auth.application.queries.get_user_roles.handler import GetUserRolesHandler
+from app.modules.auth.application.queries.get_user_role.handler import GetUserRoleHandler
 from app.modules.auth.application.queries.get_user_direct_permissions.handler import GetUserDirectPermissionsHandler
 from app.modules.auth.application.queries.get_user_revoked_permissions.handler import GetUserRevokedPermissionsHandler
 from app.modules.auth.application.queries.get_role.handler import GetRoleHandler
@@ -116,8 +115,7 @@ def get_update_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uni
 def get_deactivate_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> DeactivateUserHandler: return _command_handler(DeactivateUserHandler, uow, publisher)
 def get_activate_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> ActivateUserHandler: return _command_handler(ActivateUserHandler, uow, publisher)
 def get_create_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)]) -> CreateRoleHandler: return _command_handler(CreateRoleHandler, uow)
-def get_assign_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> AssignRoleHandler: return _command_handler(AssignRoleHandler, uow, publisher)
-def get_revoke_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> RevokeRoleHandler: return _command_handler(RevokeRoleHandler, uow, publisher)
+def get_set_user_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> SetUserRoleHandler: return _command_handler(SetUserRoleHandler, uow, publisher)
 def get_grant_permission_to_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> GrantPermissionToRoleHandler: return _command_handler(GrantPermissionToRoleHandler, uow, publisher)
 def get_revoke_permission_from_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> RevokePermissionFromRoleHandler: return _command_handler(RevokePermissionFromRoleHandler, uow, publisher)
 def get_grant_permission_to_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)], service: Annotated[AuthorizationService, Depends(get_authorization_service)]) -> GrantPermissionToUserHandler: return _command_handler(GrantPermissionToUserHandler, uow, publisher, service)
@@ -127,7 +125,7 @@ def get_revoke_permission_from_user_handler(uow: Annotated[SqlAlchemyUnitOfWork,
 def _read_handler(handler_type, repository): return handler_type(repository)
 def get_user_handler(repo: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]) -> GetUserHandler: return _read_handler(GetUserHandler, repo)
 def get_list_users_handler(repo: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]) -> ListUsersHandler: return _read_handler(ListUsersHandler, repo)
-def get_user_roles_handler(repo: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]) -> GetUserRolesHandler: return _read_handler(GetUserRolesHandler, repo)
+def get_user_role_handler(repo: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]) -> GetUserRoleHandler: return _read_handler(GetUserRoleHandler, repo)
 def get_user_direct_permissions_handler(repo: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]) -> GetUserDirectPermissionsHandler: return _read_handler(GetUserDirectPermissionsHandler, repo)
 def get_user_revoked_permissions_handler(repo: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]) -> GetUserRevokedPermissionsHandler: return _read_handler(GetUserRevokedPermissionsHandler, repo)
 def get_role_handler(repo: Annotated[SqlAlchemyRoleReadRepository, Depends(get_role_read_repository)]) -> GetRoleHandler: return _read_handler(GetRoleHandler, repo)

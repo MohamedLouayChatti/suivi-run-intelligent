@@ -15,7 +15,7 @@ class RoleAccessPolicy(InstanceAuthorizationPolicy):
 
 	Holding a role is treated purely as membership here -- the check is "is this the role I
 	am in", not "is my role privileged".  Reading one's own role leaks nothing: GET /auth/me
-	already returns the caller's roles and effective permissions by name.
+	already returns the caller's role and effective permissions by name.
 	"""
 
 	async def authorize(self, *, current_user: CurrentUser, resource_id: Any, operation: str) -> AuthorizationResult:
@@ -26,6 +26,6 @@ class RoleAccessPolicy(InstanceAuthorizationPolicy):
 		if operation not in _SELF_OR_READ_ALL_OPERATIONS:
 			return AuthorizationResult(False, f"Unknown role operation '{operation}'.")
 
-		if role_id in current_user.role_ids or current_user.has_permission(ROLE_READ_ALL_PERMISSION):
+		if role_id == current_user.role_id or current_user.has_permission(ROLE_READ_ALL_PERMISSION):
 			return AuthorizationResult(True, "")
 		return AuthorizationResult(False, "You can only access your own role information.")

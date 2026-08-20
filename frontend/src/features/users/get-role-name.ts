@@ -4,7 +4,7 @@ type UserResponse = components["schemas"]["UserResponse"]
 type RoleResponse = components["schemas"]["RoleResponse"]
 
 function getRoleName(user: UserResponse, roles: RoleResponse[]): string {
-  return roles.find((r) => user.role_ids.includes(r.id))?.name ?? "—"
+  return roles.find((r) => r.id === user.role_id)?.name ?? "—"
 }
 
 export { getRoleName }

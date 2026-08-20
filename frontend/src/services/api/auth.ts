@@ -31,7 +31,7 @@ interface CurrentUser {
   avatarUrl: string | null;
   functionalTeam: components["schemas"]["FunctionalTeam"];
   applicationAssignments: CurrentUserApplicationAssignment[];
-  roles: CurrentUserRole[];
+  role: CurrentUserRole;
   effectivePermissions: CurrentUserPermission[];
 }
 
@@ -47,7 +47,7 @@ function toCurrentUser(response: MeResponse): CurrentUser {
       application: assignment.application,
       assignmentType: assignment.assignment_type,
     })),
-    roles: response.roles.map((role) => ({ id: role.id, name: role.name })),
+    role: { id: response.role.id, name: response.role.name },
     effectivePermissions: response.effective_permissions.map((permission) => ({
       id: permission.id,
       name: permission.name,

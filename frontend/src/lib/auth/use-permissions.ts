@@ -2,6 +2,7 @@
 
 import {
   canActOnApplication,
+  canManageOthersTickets,
   hasAllPermissions,
   hasAnyPermission,
   hasPermission,
@@ -33,6 +34,8 @@ function usePermissions() {
       isAttachmentUploader(user, attachment),
     canActOnApplication: (application: Parameters<typeof canActOnApplication>[1]) =>
       canActOnApplication(user, application),
+    canManageOthersTickets: (application: Parameters<typeof canManageOthersTickets>[1]) =>
+      canManageOthersTickets(user, application),
   };
 }
 

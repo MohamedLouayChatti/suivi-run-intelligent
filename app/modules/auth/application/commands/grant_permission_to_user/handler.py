@@ -24,13 +24,10 @@ class GrantPermissionToUserHandler:
 		permission = await self.uow.permissions.get_by_id(command.permission_id)
 		if permission is None:
 			raise PermissionNotFound()
-		roles = []
-		for role_id in user.role_ids:
-			role = await self.uow.roles.get_by_id(role_id)
-			if role is None:
-				raise RoleNotFound()
-			roles.append(role)
-		self.authorization_service.ensure_direct_permission_may_be_granted(user, permission.id, roles)
+		role = await self.uow.roles.get_by_id(user.role_id)
+		if role is None:
+			raise RoleNotFound()
+		self.authorization_service.ensure_direct_permission_may_be_granted(user, permission.id, role)
 		user.grant_permission(permission.id)
 		await self.uow.users.update(user)
 		try:

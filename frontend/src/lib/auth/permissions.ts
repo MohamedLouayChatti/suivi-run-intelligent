@@ -1,4 +1,4 @@
-import { getAccessibleApplications } from "@/services/api/auth";
+import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth";
 import type { CurrentUser } from "@/services/api/auth";
 import type { components } from "@/types/api";
 
@@ -9,7 +9,7 @@ type Application = components["schemas"]["Application"];
  * from the backend's instance authorization policies — for hiding UI only, never a substitute
  * for the backend's own enforcement.
  *
- * There is deliberately no `isAdmin` here, and nothing in the frontend reads `user.roles` to
+ * There is deliberately no `isAdmin` here, and nothing in the frontend reads `user.role` to
  * decide what may be done. A role is only a bundle of permissions on the backend, so mapping
  * "role Admin" to a capability would be business logic living in the UI — and it would go
  * stale the moment a permission is granted to another role or directly to one user. Ask for
@@ -62,6 +62,31 @@ function canActOnApplication(user: CurrentUser | undefined, application: Applica
   return user !== undefined && getAccessibleApplications(user).includes(application);
 }
 
+/**
+ * Mirrors `has_primary_application_assignment` — the one application the user runs, as opposed
+ * to the one they back up. A user has at most one of each; the `User` aggregate refuses any
+ * other shape, so there is exactly one answer to compare against here.
+ */
+function isPrimaryApplication(user: CurrentUser | undefined, application: Application): boolean {
+  return user !== undefined && getPrimaryApplication(user) === application;
+}
+
+/**
+ * Mirrors `may_manage_others_tickets` — whether the user may act on a ticket in `application`
+ * that is not assigned to them. Two independent ways to qualify: unrestricted reach anywhere,
+ * or reach confined to the one application they run.
+ */
+function canManageOthersTickets(
+  user: CurrentUser | undefined,
+  application: Application
+): boolean {
+  return (
+    hasPermission(user, "ticket.manage_any") ||
+    (hasPermission(user, "ticket.manage_primary_application") &&
+      isPrimaryApplication(user, application))
+  );
+}
+
 export {
   hasPermission,
   hasAllPermissions,
@@ -70,4 +95,6 @@ export {
   isCommentAuthor,
   isAttachmentUploader,
   canActOnApplication,
+  isPrimaryApplication,
+  canManageOthersTickets,
 };

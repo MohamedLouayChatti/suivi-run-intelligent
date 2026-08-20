@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 from app.shared.database.base import Base
 
-from .association_tables import role_permissions, user_roles
+from .association_tables import role_permissions
 
 
 class RoleModel(Base):
@@ -26,6 +26,14 @@ class RoleModel(Base):
 	permissions: Mapped[list["PermissionModel"]] = relationship(
 		secondary=role_permissions, back_populates="roles", lazy="selectin"
 	)
+	# Never read -- it exists only to give UserModel.role a back reference. Left un-loadable
+	# on purpose: now that the link is a column on users, eager-loading this side would make
+	# fetching one user pull in every other user sharing their role.
+	#
+	# passive_deletes="all" keeps `lazy="raise"` from turning a role deletion into an error about
+	# lazy loading: SQLAlchemy neither loads nor rewrites the users on delete, so the seeder can
+	# drop a role nobody holds, and dropping one people *do* hold fails as the foreign key
+	# violation it actually is rather than by silently orphaning them.
 	users: Mapped[list["UserModel"]] = relationship(
-		secondary=user_roles, back_populates="roles", lazy="selectin"
+		back_populates="role", lazy="raise", passive_deletes="all"
 	)

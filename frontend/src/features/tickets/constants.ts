@@ -28,6 +28,17 @@ const functionalTeamLabels: Record<FunctionalTeam, string> = {
 
 const functionalTeamOptions: FunctionalTeam[] = ["SUPPORT", "CONFIGURATION"]
 
+// AERO and VIO are staffed by Support alone — they have no Paramétrage team, which is the same
+// fact the transfer destinations encode by giving each of them one entry where FCI and COLORIS
+// get one per team. The backend refuses the other combination outright (both on the User and on
+// the Ticket), so this list only stops a form from offering a choice that would be rejected.
+const supportOnlyApplications: Application[] = ["AERO", "VIO"]
+
+function functionalTeamOptionsFor(application: Application | ""): FunctionalTeam[] {
+  if (application !== "" && supportOnlyApplications.includes(application)) return ["SUPPORT"]
+  return functionalTeamOptions
+}
+
 const categoryOptions: Category[] = [
   "Bug",
   "Anomalie applicatif",
@@ -295,6 +306,8 @@ export {
   completedStatusOptions,
   functionalTeamLabels,
   functionalTeamOptions,
+  functionalTeamOptionsFor,
+  supportOnlyApplications,
   categoryOptions,
   versionOptions,
   elementOptions,

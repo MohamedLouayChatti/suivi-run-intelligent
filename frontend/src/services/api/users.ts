@@ -35,13 +35,11 @@ async function deactivateUser(userId: string): Promise<UserResponse> {
   return data
 }
 
-async function assignRole(userId: string, roleId: string): Promise<UserResponse> {
-  const { data } = await httpClient.post<UserResponse>(`/auth/users/${userId}/roles/${roleId}`)
-  return data
-}
-
-async function revokeRole(userId: string, roleId: string): Promise<UserResponse> {
-  const { data } = await httpClient.delete<UserResponse>(`/auth/users/${userId}/roles/${roleId}`)
+/** PUT /auth/users/:id/role/:roleId — sets the user's one role, replacing whatever they held.
+ * A single call rather than the revoke-then-assign pair this used to need: a user holds
+ * exactly one role, so changing it is one request. */
+async function setUserRole(userId: string, roleId: string): Promise<UserResponse> {
+  const { data } = await httpClient.put<UserResponse>(`/auth/users/${userId}/role/${roleId}`)
   return data
 }
 
@@ -92,8 +90,7 @@ export {
   listUserDirectory,
   activateUser,
   deactivateUser,
-  assignRole,
-  revokeRole,
+  setUserRole,
   listRoles,
   listPermissions,
   grantPermissionToUser,

@@ -5,8 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   activateUser,
   deactivateUser,
-  assignRole,
-  revokeRole,
+  setUserRole,
   grantPermissionToUser,
   revokePermissionFromUser,
 } from "@/services/api/users"
@@ -28,14 +27,8 @@ function useUsersAdmin() {
     else activate.mutate(userId)
   }
 
-  // The admin UI presents role assignment as a single-select dropdown, while the backend
-  // models roles as many-to-many with separate assign/revoke endpoints — revoke whatever the
-  // user currently holds and assign the newly picked one to preserve that single-select UX.
-  async function changeRole(userId: string, roleId: string, currentRoleIds: string[]) {
-    await Promise.all(currentRoleIds.filter((id) => id !== roleId).map((id) => revokeRole(userId, id)))
-    if (!currentRoleIds.includes(roleId)) {
-      await assignRole(userId, roleId)
-    }
+  async function changeRole(userId: string, roleId: string) {
+    await setUserRole(userId, roleId)
     afterMutation()
   }
 

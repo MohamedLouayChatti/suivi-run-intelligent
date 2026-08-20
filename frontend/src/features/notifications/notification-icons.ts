@@ -33,6 +33,9 @@ const notificationTypeIcons: Record<NotificationType, LucideIcon> = {
   ACCOUNT_DEACTIVATED: UserX,
   ACCOUNT_CREATED: UserCheck,
   NEW_USER_REGISTERED: UserPlus,
+  ROLE_CHANGED: ShieldCheck,
+  // Historical types, kept so notifications written before roles became single-valued still
+  // render an icon; nothing produces either any more.
   ROLE_ASSIGNED: ShieldCheck,
   ROLE_REVOKED: ShieldCheck,
   PERMISSION_GRANTED: ShieldCheck,

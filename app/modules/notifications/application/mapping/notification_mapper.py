@@ -32,10 +32,9 @@ from app.modules.ticket_management.domain.events.ticket_transferred import Ticke
 
 from app.modules.auth.domain.events.permission_granted_to_user import PermissionGrantedToUser
 from app.modules.auth.domain.events.permission_revoked_from_user import PermissionRevokedFromUser
-from app.modules.auth.domain.events.role_assigned_to_user import RoleAssignedToUser
+from app.modules.auth.domain.events.user_role_changed import UserRoleChanged
 from app.modules.auth.domain.events.role_permission_granted import RolePermissionGranted
 from app.modules.auth.domain.events.role_permission_revoked import RolePermissionRevoked
-from app.modules.auth.domain.events.role_revoked_from_user import RoleRevokedFromUser
 from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
@@ -123,8 +122,7 @@ class NotificationMapper:
 			TicketTransferred: self._ticket_transferred,
 			UserActivated: self._user_activated,
 			UserDeactivated: self._user_deactivated,
-			RoleAssignedToUser: self._role_assigned,
-			RoleRevokedFromUser: self._role_revoked,
+			UserRoleChanged: self._user_role_changed,
 			PermissionGrantedToUser: self._permission_granted,
 			PermissionRevokedFromUser: self._permission_revoked,
 			RolePermissionGranted: self._role_permission_granted,
@@ -326,26 +324,22 @@ class NotificationMapper:
 			metadata={"user_id": str(event.user_id)},
 		)
 
-	async def _role_assigned(self, event: RoleAssignedToUser) -> list[Notification]:
-		role_name = await self._recipients.get_role_name(event.role_id)
+	async def _user_role_changed(self, event: UserRoleChanged) -> list[Notification]:
+		role_name = await self._recipients.get_role_name(event.new_role_id)
 		if role_name is None:
 			return []
+		# One notification naming only the role the recipient now holds. What they no longer
+		# hold is not something they can act on, and the "attribué"/"retiré" pair this replaced
+		# announced a single administrative change twice.
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Rôle attribué", message=f'Le rôle « {role_name} » vous a été attribué.',
-			type=NotificationType.ROLE_ASSIGNED, action=None,
-			metadata={"user_id": str(event.user_id), "role_id": str(event.role_id)},
-		)
-
-	async def _role_revoked(self, event: RoleRevokedFromUser) -> list[Notification]:
-		role_name = await self._recipients.get_role_name(event.role_id)
-		if role_name is None:
-			return []
-		return self._for_recipients(
-			event, [event.user_id],
-			title="Rôle retiré", message=f'Le rôle « {role_name} » a été retiré de votre compte.',
-			type=NotificationType.ROLE_REVOKED, action=None,
-			metadata={"user_id": str(event.user_id), "role_id": str(event.role_id)},
+			title="Rôle modifié", message=f'Votre rôle est désormais « {role_name} ».',
+			type=NotificationType.ROLE_CHANGED, action=None,
+			metadata={
+				"user_id": str(event.user_id),
+				"previous_role_id": str(event.previous_role_id),
+				"role_id": str(event.new_role_id),
+			},
 		)
 
 	async def _permission_granted(self, event: PermissionGrantedToUser) -> list[Notification]:

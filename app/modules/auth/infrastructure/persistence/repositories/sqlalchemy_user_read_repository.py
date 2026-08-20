@@ -46,9 +46,9 @@ class SqlAlchemyUserReadRepository(UserReadRepository):
 		)
 		return [mapper.user_model_to_dto(model) for model in result.all()]
 
-	async def get_user_roles(self, user_id: UUID) -> list[RoleDTO]:
+	async def get_user_role(self, user_id: UUID) -> RoleDTO | None:
 		model = await self._load_user(user_id)
-		return [] if model is None else [mapper.role_model_to_dto(role) for role in model.roles]
+		return None if model is None else mapper.role_model_to_dto(model.role)
 
 	async def get_user_direct_permissions(self, user_id: UUID) -> list[PermissionDTO]:
 		model = await self._load_user(user_id)
@@ -60,7 +60,7 @@ class SqlAlchemyUserReadRepository(UserReadRepository):
 
 	def _base_query(self) -> Select[tuple[UserModel]]:
 		return select(UserModel).options(
-			selectinload(UserModel.roles).selectinload(RoleModel.permissions),
+			selectinload(UserModel.role).selectinload(RoleModel.permissions),
 			selectinload(UserModel.direct_permissions),
 			selectinload(UserModel.revoked_permissions),
 			selectinload(UserModel.application_assignments),

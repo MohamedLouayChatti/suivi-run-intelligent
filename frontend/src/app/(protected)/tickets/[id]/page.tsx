@@ -54,7 +54,7 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
     isLoading: isLoadingSimilarIncidents,
     isError: similarIncidentsFailed,
   } = useSimilarIncidents(id)
-  const { user: currentUser, hasPermission, isTicketAssignee } = usePermissions()
+  const { user: currentUser, hasPermission, isTicketAssignee, canManageOthersTickets } = usePermissions()
 
   if (isLoading) {
     return (
@@ -92,9 +92,10 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
   // Mirrors Ticket._transition_to's allowed map and the explicit checks in resume()/close()
   // (app/modules/ticket_management/domain/entities/ticket.py) — every status-changing action
   // also requires the ticket to be unarchived, since all of them go through _ensure_mutable.
-  // Mirrors TicketAccessPolicy's _ASSIGNEE_OR_MANAGE_ANY_OPERATIONS: the assignee, or anyone
-  // holding the breadth permission to act on tickets they are not assigned to.
-  const canManage = isTicketAssignee(ticket) || hasPermission("ticket.manage_any")
+  // Mirrors TicketAccessPolicy's _ASSIGNEE_OR_MANAGER_OPERATIONS: the assignee, or anyone whose
+  // permissions widen that to tickets they are not assigned to — everywhere, or within the one
+  // application they run.
+  const canManage = isTicketAssignee(ticket) || canManageOthersTickets(ticket.application)
   const mutable = ticket.archived_at === null
   const canChangeStatus = mutable && hasPermission("ticket.change_status") && isTicketAssignee(ticket)
   const isResolvedOrTransferred = ticket.status === "RESOLVED" || ticket.status === "TRANSFERRED"

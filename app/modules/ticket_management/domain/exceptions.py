@@ -106,3 +106,7 @@ class AssigneeRequired(TicketDomainError):
 
 class ChronologicalOrderViolation(TicketDomainError):
 	pass
+
+
+class FunctionalTeamNotAllowedForApplication(TicketDomainError):
+	"""An AERO or VIO ticket was given a functional team other than Support."""

@@ -38,10 +38,9 @@ from app.modules.ticket_management.domain.events.ticket_transferred import Ticke
 
 from app.modules.auth.domain.events.permission_granted_to_user import PermissionGrantedToUser
 from app.modules.auth.domain.events.permission_revoked_from_user import PermissionRevokedFromUser
-from app.modules.auth.domain.events.role_assigned_to_user import RoleAssignedToUser
+from app.modules.auth.domain.events.user_role_changed import UserRoleChanged
 from app.modules.auth.domain.events.role_permission_granted import RolePermissionGranted
 from app.modules.auth.domain.events.role_permission_revoked import RolePermissionRevoked
-from app.modules.auth.domain.events.role_revoked_from_user import RoleRevokedFromUser
 from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
@@ -66,7 +65,7 @@ from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import 
 NOTIFIED_EVENT_TYPES = (
 	TicketReassigned, PriorityChanged, TicketStatusChanged, CommentAdded, CommentEdited, CommentDeleted,
 	AttachmentAdded, AttachmentDeleted, TicketArchived, TicketRestored, TicketTransferred,
-	UserActivated, UserDeactivated, RoleAssignedToUser, RoleRevokedFromUser,
+	UserActivated, UserDeactivated, UserRoleChanged,
 	PermissionGrantedToUser, PermissionRevokedFromUser, RolePermissionGranted, RolePermissionRevoked, UserCreated,
 	SimilarityRecalculationScheduleUpdated, SimilarityGraphRecalculationFailed, TicketBatchImportFailed,
 )

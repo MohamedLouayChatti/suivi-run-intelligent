@@ -33,10 +33,7 @@ function UsersPageContent() {
         <UsersTable
           users={users}
           highlightUserId={highlightUserId}
-          onChangeRole={(userId, roleId) => {
-            const user = users.find((u) => u.id === userId)
-            if (user) changeRole(userId, roleId, user.role_ids)
-          }}
+          onChangeRole={changeRole}
           onToggleActive={(userId) => {
             const user = users.find((u) => u.id === userId)
             if (user) toggleActive(userId, user.active)

@@ -127,7 +127,7 @@ function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved,
         </div>
         <div className="space-y-2">
           <Label htmlFor="role">Rôle</Label>
-          <Input id="role" defaultValue={user.roles[0]?.name ?? "—"} readOnly className="bg-surface" />
+          <Input id="role" defaultValue={user.role.name} readOnly className="bg-surface" />
         </div>
         <div className="space-y-2">
           <Label htmlFor="primary-app">Application principale</Label>

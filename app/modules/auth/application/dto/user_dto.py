@@ -16,10 +16,10 @@ class UserDTO:
 	email: str
 	display_name: str
 	active: bool
+	role_id: UUID
 	avatar_url: str | None = None
 	functional_team: FunctionalTeam = FunctionalTeam.SUPPORT
 	application_assignments: frozenset[ApplicationAssignment] = field(default_factory=frozenset)
-	role_ids: set[UUID] = field(default_factory=set)
 	direct_permission_ids: set[UUID] = field(default_factory=set)
 	revoked_permission_ids: set[UUID] = field(default_factory=set)
 
@@ -31,10 +31,10 @@ class UserDTO:
 			email=user.email,
 			display_name=user.display_name,
 			active=user.active,
+			role_id=user.role_id,
 			avatar_url=user.avatar_url,
 			functional_team=user.functional_team,
 			application_assignments=frozenset(user.application_assignments),
-			role_ids=set(user.role_ids),
 			direct_permission_ids=set(user.direct_permission_ids),
 			revoked_permission_ids=set(user.revoked_permission_ids),
 		)

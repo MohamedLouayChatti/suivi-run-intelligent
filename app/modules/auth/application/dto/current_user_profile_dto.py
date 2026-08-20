@@ -18,6 +18,6 @@ class CurrentUserProfileDTO:
 	display_name: str
 	avatar_url: str | None
 	functional_team: FunctionalTeam
+	role: RoleDTO
 	application_assignments: frozenset[ApplicationAssignment] = field(default_factory=frozenset)
-	roles: list[RoleDTO] = field(default_factory=list)
 	effective_permissions: list[PermissionDTO] = field(default_factory=list)

@@ -32,7 +32,7 @@ function ProtectedShell({ children }: { children: React.ReactNode }) {
         <SidebarInset>
           <SiteHeader
             userName={displayName}
-            userRole={user?.roles[0]?.name ?? ""}
+            userRole={user?.role.name ?? ""}
             userInitials={initials(displayName)}
             userAvatarUrl={user?.avatarUrl ?? undefined}
             onLogout={logout}

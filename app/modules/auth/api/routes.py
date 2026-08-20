@@ -6,19 +6,19 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, Depends, Query, status
 
 from app.modules.auth.api.dependencies import (
-	get_activate_user_handler, get_assign_role_handler, get_create_role_handler,
+	get_activate_user_handler, get_create_role_handler,
 	get_create_user_handler, get_current_user_profile_handler, get_deactivate_user_handler,
 	get_grant_permission_to_role_handler, get_grant_permission_to_user_handler,
 	get_list_permissions_handler, get_list_roles_handler, get_list_users_handler,
 	get_permission_handler, get_revoke_permission_from_role_handler,
-	get_revoke_permission_from_user_handler, get_revoke_role_handler,
-	get_role_handler, get_role_permissions_handler, get_update_user_handler,
-	get_user_direct_permissions_handler, get_user_handler, get_user_roles_handler,
+	get_revoke_permission_from_user_handler, get_role_handler,
+	get_role_permissions_handler, get_set_user_role_handler, get_update_user_handler,
+	get_user_direct_permissions_handler, get_user_handler, get_user_role_handler,
 	get_user_revoked_permissions_handler,
 )
 from app.modules.auth.api.schemas import MeResponse, PermissionResponse, RoleCreateRequest, RoleResponse, UserCreateRequest, UserDirectoryResponse, UserResponse, UserUpdateRequest
 from app.modules.auth.application.commands.activate_user.handler import ActivateUserHandler
-from app.modules.auth.application.commands.assign_role.handler import AssignRoleHandler
+from app.modules.auth.application.commands.set_user_role.handler import SetUserRoleHandler
 from app.modules.auth.application.commands.create_role.handler import CreateRoleHandler
 from app.modules.auth.application.commands.create_user.handler import CreateUserHandler
 from app.modules.auth.application.commands.deactivate_user.handler import DeactivateUserHandler
@@ -26,7 +26,6 @@ from app.modules.auth.application.commands.grant_permission_to_role.handler impo
 from app.modules.auth.application.commands.grant_permission_to_user.handler import GrantPermissionToUserHandler
 from app.modules.auth.application.commands.revoke_permission_from_role.handler import RevokePermissionFromRoleHandler
 from app.modules.auth.application.commands.revoke_permission_from_user.handler import RevokePermissionFromUserHandler
-from app.modules.auth.application.commands.revoke_role.handler import RevokeRoleHandler
 from app.modules.auth.application.commands.update_user.handler import UpdateUserHandler
 from app.modules.auth.application.queries.get_current_user_profile.handler import GetCurrentUserProfileHandler
 from app.modules.auth.application.queries.get_permission.handler import GetPermissionHandler
@@ -35,12 +34,12 @@ from app.modules.auth.application.queries.get_role_permissions.handler import Ge
 from app.modules.auth.application.queries.get_user.handler import GetUserHandler
 from app.modules.auth.application.queries.get_user_direct_permissions.handler import GetUserDirectPermissionsHandler
 from app.modules.auth.application.queries.get_user_revoked_permissions.handler import GetUserRevokedPermissionsHandler
-from app.modules.auth.application.queries.get_user_roles.handler import GetUserRolesHandler
+from app.modules.auth.application.queries.get_user_role.handler import GetUserRoleHandler
 from app.modules.auth.application.queries.list_permissions.handler import ListPermissionsHandler
 from app.modules.auth.application.queries.list_roles.handler import ListRolesHandler
 from app.modules.auth.application.queries.list_users.handler import ListUsersHandler
 from app.modules.auth.application.commands.activate_user.command import ActivateUserCommand
-from app.modules.auth.application.commands.assign_role.command import AssignRoleCommand
+from app.modules.auth.application.commands.set_user_role.command import SetUserRoleCommand
 from app.modules.auth.application.commands.create_role.command import CreateRoleCommand
 from app.modules.auth.application.commands.create_user.command import CreateUserCommand
 from app.modules.auth.application.commands.deactivate_user.command import DeactivateUserCommand
@@ -48,7 +47,6 @@ from app.modules.auth.application.commands.grant_permission_to_role.command impo
 from app.modules.auth.application.commands.grant_permission_to_user.command import GrantPermissionToUserCommand
 from app.modules.auth.application.commands.revoke_permission_from_role.command import RevokePermissionFromRoleCommand
 from app.modules.auth.application.commands.revoke_permission_from_user.command import RevokePermissionFromUserCommand
-from app.modules.auth.application.commands.revoke_role.command import RevokeRoleCommand
 from app.modules.auth.application.commands.update_user.command import UpdateUserCommand
 from app.modules.auth.application.queries.get_current_user_profile.query import GetCurrentUserProfileQuery
 from app.modules.auth.application.queries.get_permission.query import GetPermissionQuery
@@ -57,7 +55,7 @@ from app.modules.auth.application.queries.get_role_permissions.query import GetR
 from app.modules.auth.application.queries.get_user.query import GetUserQuery
 from app.modules.auth.application.queries.get_user_direct_permissions.query import GetUserDirectPermissionsQuery
 from app.modules.auth.application.queries.get_user_revoked_permissions.query import GetUserRevokedPermissionsQuery
-from app.modules.auth.application.queries.get_user_roles.query import GetUserRolesQuery
+from app.modules.auth.application.queries.get_user_role.query import GetUserRoleQuery
 from app.modules.auth.application.queries.list_permissions.query import ListPermissionsQuery
 from app.modules.auth.application.queries.list_roles.query import ListRolesQuery
 from app.modules.auth.application.queries.list_users.query import ListUsersQuery
@@ -102,9 +100,9 @@ async def deactivate_user(user_id: UUID, current_user: Annotated[CurrentUser, De
 	return UserResponse.from_dto(await handler.handle(DeactivateUserCommand(user_id=user_id, actor_id=current_user.id)))
 
 
-@router.get("/users/{user_id}/roles", response_model=list[RoleResponse], dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read_roles", path_param="user_id"))])
-async def get_user_roles(user_id: UUID, handler: Annotated[GetUserRolesHandler, Depends(get_user_roles_handler)]) -> list[RoleResponse]:
-	return [RoleResponse.from_dto(role) for role in await handler.handle(GetUserRolesQuery(user_id=user_id))]
+@router.get("/users/{user_id}/role", response_model=RoleResponse, dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read_role", path_param="user_id"))])
+async def get_user_role(user_id: UUID, handler: Annotated[GetUserRoleHandler, Depends(get_user_role_handler)]) -> RoleResponse:
+	return RoleResponse.from_dto(await handler.handle(GetUserRoleQuery(user_id=user_id)))
 
 
 @router.get("/users/{user_id}/permissions", response_model=list[PermissionResponse], dependencies=[Depends(require_permissions("user.read")), Depends(require_instance_permission("user", "read_permissions", path_param="user_id"))])
@@ -117,14 +115,9 @@ async def get_user_revoked_permissions(user_id: UUID, handler: Annotated[GetUser
 	return [PermissionResponse.from_dto(permission) for permission in await handler.handle(GetUserRevokedPermissionsQuery(user_id=user_id))]
 
 
-@router.post("/users/{user_id}/roles/{role_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("role.assign"))])
-async def assign_role(user_id: UUID, role_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[AssignRoleHandler, Depends(get_assign_role_handler)]) -> UserResponse:
-	return UserResponse.from_dto(await handler.handle(AssignRoleCommand(user_id=user_id, role_id=role_id, actor_id=current_user.id)))
-
-
-@router.delete("/users/{user_id}/roles/{role_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("role.revoke")), Depends(require_instance_permission("user", "revoke_role", path_param="user_id"))])
-async def revoke_role(user_id: UUID, role_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[RevokeRoleHandler, Depends(get_revoke_role_handler)]) -> UserResponse:
-	return UserResponse.from_dto(await handler.handle(RevokeRoleCommand(user_id=user_id, role_id=role_id, actor_id=current_user.id)))
+@router.put("/users/{user_id}/role/{role_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("role.assign")), Depends(require_instance_permission("user", "set_role", path_param="user_id"))])
+async def set_user_role(user_id: UUID, role_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[SetUserRoleHandler, Depends(get_set_user_role_handler)]) -> UserResponse:
+	return UserResponse.from_dto(await handler.handle(SetUserRoleCommand(user_id=user_id, role_id=role_id, actor_id=current_user.id)))
 
 
 @router.post("/users/{user_id}/permissions/{permission_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("permission.grant_to_user"))])

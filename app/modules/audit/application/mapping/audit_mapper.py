@@ -26,10 +26,9 @@ from app.modules.ticket_management.domain.events.tickets_imported import Tickets
 
 from app.modules.auth.domain.events.permission_granted_to_user import PermissionGrantedToUser
 from app.modules.auth.domain.events.permission_revoked_from_user import PermissionRevokedFromUser
-from app.modules.auth.domain.events.role_assigned_to_user import RoleAssignedToUser
+from app.modules.auth.domain.events.user_role_changed import UserRoleChanged
 from app.modules.auth.domain.events.role_permission_granted import RolePermissionGranted
 from app.modules.auth.domain.events.role_permission_revoked import RolePermissionRevoked
-from app.modules.auth.domain.events.role_revoked_from_user import RoleRevokedFromUser
 from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
@@ -81,8 +80,7 @@ class AuditMapper:
 			UserUpdated: self._user_updated,
 			UserActivated: self._user_activated,
 			UserDeactivated: self._user_deactivated,
-			RoleAssignedToUser: self._role_assigned_to_user,
-			RoleRevokedFromUser: self._role_revoked_from_user,
+			UserRoleChanged: self._user_role_changed,
 			PermissionGrantedToUser: self._permission_granted_to_user,
 			PermissionRevokedFromUser: self._permission_revoked_from_user,
 			RolePermissionGranted: self._role_permission_granted,
@@ -283,18 +281,15 @@ class AuditMapper:
 			payload={"user_id": str(event.user_id)},
 		)
 
-	def _role_assigned_to_user(self, event: RoleAssignedToUser) -> AuditEntry:
+	def _user_role_changed(self, event: UserRoleChanged) -> AuditEntry:
 		return self._entry(
-			event, module="auth", event_type="RoleAssignedToUser",
-			action="user.role_assigned", resource_type="user",
-			payload={"user_id": str(event.user_id), "role_id": str(event.role_id)},
-		)
-
-	def _role_revoked_from_user(self, event: RoleRevokedFromUser) -> AuditEntry:
-		return self._entry(
-			event, module="auth", event_type="RoleRevokedFromUser",
-			action="user.role_revoked", resource_type="user",
-			payload={"user_id": str(event.user_id), "role_id": str(event.role_id)},
+			event, module="auth", event_type="UserRoleChanged",
+			action="user.role_changed", resource_type="user",
+			payload={
+				"user_id": str(event.user_id),
+				"previous_role_id": str(event.previous_role_id),
+				"new_role_id": str(event.new_role_id),
+			},
 		)
 
 	def _permission_granted_to_user(self, event: PermissionGrantedToUser) -> AuditEntry:

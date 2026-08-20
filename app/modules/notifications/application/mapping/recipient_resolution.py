@@ -74,7 +74,7 @@ class RecipientResolver:
 
 	async def active_user_ids_with_role(self, role_id: UUID) -> set[UUID]:
 		users = await self._all_active_users()
-		return {user.id for user in users if user.active and role_id in user.role_ids}
+		return {user.id for user in users if user.active and user.role_id == role_id}
 
 	async def active_admin_user_ids(self) -> set[UUID]:
 		async with self._role_repository_scope() as roles:
