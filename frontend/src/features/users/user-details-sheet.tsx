@@ -20,23 +20,44 @@ import { ActiveBadge } from "@/components/app/status"
 import { getPrimaryApplication, getBackupApplication } from "@/services/api/users"
 import { getRoleName } from "@/features/users/get-role-name"
 import { functionalTeamLabels } from "@/features/users/constants"
+import { applicationOptions, functionalTeamOptionsForApplications } from "@/features/tickets/constants"
+import { usePermissions } from "@/lib/auth"
 import { useRolesList } from "@/hooks/use-roles-list"
 import { usePermissionsList } from "@/hooks/use-permissions-list"
+import type { OrganizationalIdentity } from "@/features/users/use-users-admin"
 import type { components } from "@/types/api"
 
 type UserResponse = components["schemas"]["UserResponse"]
+type Application = components["schemas"]["Application"]
+type FunctionalTeam = components["schemas"]["FunctionalTeam"]
+
+/** Sentinel for the "Aucune" option: Radix's Select rejects an empty-string item value, and a
+ * user holding no application at all is an ordinary state the admin must be able to set. */
+const NO_APPLICATION = "none"
+
+function buildAssignments(
+  primary: Application | null,
+  backup: Application | null
+): OrganizationalIdentity["application_assignments"] {
+  const assignments: NonNullable<OrganizationalIdentity["application_assignments"]> = []
+  if (primary) assignments.push({ application: primary, assignment_type: "PRIMARY" })
+  if (backup) assignments.push({ application: backup, assignment_type: "BACKUP" })
+  return assignments
+}
 
 interface UserDetailsSheetProps {
   user: UserResponse | null
   onOpenChange: (open: boolean) => void
   onSaveRole: (userId: string, roleId: string) => void
+  onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void
   onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void
   onToggleActive: (userId: string) => void
 }
 
-function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions, onToggleActive }: UserDetailsSheetProps) {
+function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizationalIdentity, onSavePermissions, onToggleActive }: UserDetailsSheetProps) {
   const { roles } = useRolesList()
   const { permissions } = usePermissionsList()
+  const { user: currentUser, hasPermission } = usePermissions()
   const currentRoleId = user?.role_id ?? roles[0]?.id ?? ""
   const [roleId, setRoleId] = useState(currentRoleId)
 
@@ -51,10 +72,27 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions, o
   const [checkedPermissionIds, setCheckedPermissionIds] = useState<Set<string>>(effectivePermissionIds)
   const [active, setActive] = useState(user?.active ?? true)
 
-  if (!user) return <Sheet open={false} onOpenChange={onOpenChange} />
+  const currentPrimary = user ? getPrimaryApplication(user) : null
+  const currentBackup = user ? getBackupApplication(user) : null
+  const [primaryApplication, setPrimaryApplication] = useState<Application | null>(currentPrimary)
+  const [backupApplication, setBackupApplication] = useState<Application | null>(currentBackup)
+  const [functionalTeam, setFunctionalTeam] = useState<FunctionalTeam>(user?.functional_team ?? "SUPPORT")
 
-  const primaryApplication = getPrimaryApplication(user)
-  const backupApplication = getBackupApplication(user)
+  // The same rule the User aggregate enforces: AERO and VIO have no Paramétrage team, so holding
+  // either — as primary or as backup — leaves Support the only answer. Chosen for the admin rather
+  // than offered and then refused by the backend, and re-derived on every render so clearing the
+  // application reopens the choice.
+  const availableFunctionalTeams = functionalTeamOptionsForApplications([primaryApplication, backupApplication])
+  const effectiveFunctionalTeam =
+    availableFunctionalTeams.length === 1 ? availableFunctionalTeams[0] : functionalTeam
+
+  // Permission-aware UX only, mirroring the backend: `user.manage_organization` gates the section
+  // at all, and UserAccessPolicy refuses it on the actor's own record — staffing is a decision made
+  // about a person, not one they make for themselves.
+  const mayManageOrganization = hasPermission("user.manage_organization")
+  const isSelf = currentUser?.id === user?.id
+
+  if (!user) return <Sheet open={false} onOpenChange={onOpenChange} />
 
   function togglePermission(permissionId: string, checked: boolean) {
     setCheckedPermissionIds((prev) => {
@@ -69,6 +107,14 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions, o
     if (!user) return
     if (roleId !== currentRoleId) onSaveRole(user.id, roleId)
 
+    const assignmentsChanged = primaryApplication !== currentPrimary || backupApplication !== currentBackup
+    if (mayManageOrganization && !isSelf && (assignmentsChanged || effectiveFunctionalTeam !== user.functional_team)) {
+      onSaveOrganizationalIdentity(user.id, {
+        functional_team: effectiveFunctionalTeam,
+        application_assignments: buildAssignments(primaryApplication, backupApplication),
+      })
+    }
+
     const toGrant = permissions.filter((p) => checkedPermissionIds.has(p.id) && !effectivePermissionIds.has(p.id)).map((p) => p.id)
     const toRevoke = permissions.filter((p) => !checkedPermissionIds.has(p.id) && effectivePermissionIds.has(p.id)).map((p) => p.id)
     if (toGrant.length > 0 || toRevoke.length > 0) onSavePermissions(user.id, toGrant, toRevoke)
@@ -82,7 +128,7 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions, o
     ["Rôle", getRoleName(user, roles)],
     [
       "Application",
-      backupApplication ? `${primaryApplication} (principal), ${backupApplication} (secours)` : (primaryApplication ?? "—"),
+      currentBackup ? `${currentPrimary} (principal), ${currentBackup} (secours)` : (currentPrimary ?? "—"),
     ],
     ["Équipe fonctionnelle", functionalTeamLabels[user.functional_team]],
     [
@@ -121,6 +167,81 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSavePermissions, o
               </SelectContent>
             </Select>
           </div>
+          {mayManageOrganization && (
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Affectation applicative</p>
+                {isSelf && (
+                  <p className="text-xs text-muted-foreground">
+                    Vous ne pouvez pas modifier votre propre affectation. Un autre administrateur doit
+                    s&apos;en charger.
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="primary-application">Application principale</Label>
+                <Select
+                  value={primaryApplication ?? NO_APPLICATION}
+                  disabled={isSelf}
+                  onValueChange={(value) => {
+                    const next = value === NO_APPLICATION ? null : (value as Application)
+                    setPrimaryApplication(next)
+                    // One application per user, never both roles on the same one — the same pair the
+                    // aggregate refuses as a duplicate assignment.
+                    if (next !== null && next === backupApplication) setBackupApplication(null)
+                  }}
+                >
+                  <SelectTrigger id="primary-application" className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_APPLICATION}>Aucune</SelectItem>
+                    {applicationOptions.map((application) => (
+                      <SelectItem key={application} value={application}>{application}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="backup-application">Application de secours</Label>
+                <Select
+                  value={backupApplication ?? NO_APPLICATION}
+                  disabled={isSelf}
+                  onValueChange={(value) =>
+                    setBackupApplication(value === NO_APPLICATION ? null : (value as Application))
+                  }
+                >
+                  <SelectTrigger id="backup-application" className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_APPLICATION}>Aucune</SelectItem>
+                    {applicationOptions
+                      .filter((application) => application !== primaryApplication)
+                      .map((application) => (
+                        <SelectItem key={application} value={application}>{application}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="functional-team">Équipe fonctionnelle</Label>
+                <Select
+                  value={effectiveFunctionalTeam}
+                  disabled={isSelf || availableFunctionalTeams.length === 1}
+                  onValueChange={(value) => setFunctionalTeam(value as FunctionalTeam)}
+                >
+                  <SelectTrigger id="functional-team" className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {availableFunctionalTeams.map((team) => (
+                      <SelectItem key={team} value={team}>{functionalTeamLabels[team]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {availableFunctionalTeams.length === 1 && !isSelf && (
+                  <p className="text-xs text-muted-foreground">
+                    AERO et VIO sont assurées par l&apos;équipe Support uniquement.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             <p className="text-sm font-medium">Permissions</p>
             <ul className="divide-y divide-border rounded-md border border-border">

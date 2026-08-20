@@ -35,7 +35,18 @@ const functionalTeamOptions: FunctionalTeam[] = ["SUPPORT", "CONFIGURATION"]
 const supportOnlyApplications: Application[] = ["AERO", "VIO"]
 
 function functionalTeamOptionsFor(application: Application | ""): FunctionalTeam[] {
-  if (application !== "" && supportOnlyApplications.includes(application)) return ["SUPPORT"]
+  return functionalTeamOptionsForApplications([application])
+}
+
+// The rule is about *any* application a person holds, not just the one they run: a backup covers
+// the application for real, so a Paramétrage engineer backing up AERO describes the same team that
+// does not exist. The single-application form above is the signup case, where one is all that is
+// ever declared.
+function functionalTeamOptionsForApplications(
+  applications: readonly (Application | "" | null)[]
+): FunctionalTeam[] {
+  const held = applications.filter((a): a is Application => a !== "" && a !== null)
+  if (held.some((a) => supportOnlyApplications.includes(a))) return ["SUPPORT"]
   return functionalTeamOptions
 }
 
@@ -307,6 +318,7 @@ export {
   functionalTeamLabels,
   functionalTeamOptions,
   functionalTeamOptionsFor,
+  functionalTeamOptionsForApplications,
   supportOnlyApplications,
   categoryOptions,
   versionOptions,

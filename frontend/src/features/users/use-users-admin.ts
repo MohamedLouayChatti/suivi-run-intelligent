@@ -6,10 +6,14 @@ import {
   activateUser,
   deactivateUser,
   setUserRole,
+  setUserOrganizationalIdentity,
   grantPermissionToUser,
   revokePermissionFromUser,
 } from "@/services/api/users"
 import { useUsersList, usersListQueryKey } from "@/hooks/use-users-list"
+import type { components } from "@/types/api"
+
+type OrganizationalIdentity = components["schemas"]["UserOrganizationalIdentityRequest"]
 
 function useUsersAdmin() {
   const { users, isLoading } = useUsersList()
@@ -32,6 +36,11 @@ function useUsersAdmin() {
     afterMutation()
   }
 
+  async function saveOrganizationalIdentity(userId: string, identity: OrganizationalIdentity) {
+    await setUserOrganizationalIdentity(userId, identity)
+    afterMutation()
+  }
+
   async function savePermissions(userId: string, toGrant: string[], toRevoke: string[]) {
     await Promise.all([
       ...toGrant.map((permissionId) => grantPermissionToUser(userId, permissionId)),
@@ -40,7 +49,8 @@ function useUsersAdmin() {
     afterMutation()
   }
 
-  return { users, isLoading, toggleActive, changeRole, savePermissions }
+  return { users, isLoading, toggleActive, changeRole, saveOrganizationalIdentity, savePermissions }
 }
 
 export { useUsersAdmin }
+export type { OrganizationalIdentity }

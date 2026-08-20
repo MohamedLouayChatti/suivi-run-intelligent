@@ -7,6 +7,7 @@ type UserDirectoryResponse = components["schemas"]["UserDirectoryResponse"]
 type RoleResponse = components["schemas"]["RoleResponse"]
 type PermissionResponse = components["schemas"]["PermissionResponse"]
 type Application = components["schemas"]["Application"]
+type UserOrganizationalIdentityRequest = components["schemas"]["UserOrganizationalIdentityRequest"]
 
 async function listUsers(pageSize = 100): Promise<UserResponse[]> {
   const { data } = await httpClient.get<UserResponse[]>("/auth/users", {
@@ -40,6 +41,23 @@ async function deactivateUser(userId: string): Promise<UserResponse> {
  * exactly one role, so changing it is one request. */
 async function setUserRole(userId: string, roleId: string): Promise<UserResponse> {
   const { data } = await httpClient.put<UserResponse>(`/auth/users/${userId}/role/${roleId}`)
+  return data
+}
+
+/** PUT /auth/users/:id/organizational-identity — replaces, in one call, which applications the
+ * user staffs and which functional team they are on. A full replacement, not a patch: the
+ * backend validates the two against each other (AERO and VIO admit Support alone), so sending
+ * one without the other would ask it to guess the rest. An empty `application_assignments`
+ * clears the user's applications. The backend refuses the call when the target is the caller
+ * themselves. */
+async function setUserOrganizationalIdentity(
+  userId: string,
+  identity: UserOrganizationalIdentityRequest
+): Promise<UserResponse> {
+  const { data } = await httpClient.put<UserResponse>(
+    `/auth/users/${userId}/organizational-identity`,
+    identity
+  )
   return data
 }
 
@@ -91,6 +109,7 @@ export {
   activateUser,
   deactivateUser,
   setUserRole,
+  setUserOrganizationalIdentity,
   listRoles,
   listPermissions,
   grantPermissionToUser,

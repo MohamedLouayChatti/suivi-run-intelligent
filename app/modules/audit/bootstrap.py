@@ -31,6 +31,7 @@ from app.modules.auth.domain.events.role_permission_revoked import RolePermissio
 from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
+from app.modules.auth.domain.events.user_organizational_identity_changed import UserOrganizationalIdentityChanged
 from app.modules.auth.domain.events.user_updated import UserUpdated
 
 from app.modules.knowledge_base.domain.events.similarity_graph_recalculated import SimilarityGraphRecalculated
@@ -61,6 +62,7 @@ AUDITED_EVENT_TYPES = (
 	TicketArchived, TicketRestored, JiraDetailsUpdated, OperationalHighlightChanged,
 	TicketsImported, TicketsImportDiscarded,
 	UserCreated, UserUpdated, UserActivated, UserDeactivated, UserRoleChanged,
+	UserOrganizationalIdentityChanged,
 	PermissionGrantedToUser, PermissionRevokedFromUser, RolePermissionGranted, RolePermissionRevoked,
 	SimilarityRecalculationScheduleUpdated, SimilarityRecalculationRequested,
 	SimilarityGraphRecalculated, SimilarityGraphRecalculationFailed, TicketBatchImportFailed,

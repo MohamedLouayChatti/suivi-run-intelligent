@@ -18,6 +18,9 @@ class NotificationType(StrEnum):
 	ACCOUNT_ACTIVATED = "ACCOUNT_ACTIVATED"
 	ACCOUNT_DEACTIVATED = "ACCOUNT_DEACTIVATED"
 	ROLE_CHANGED = "ROLE_CHANGED"
+	# Which applications the recipient staffs, and on which team. One member for both, because
+	# the two are set together and refused together -- there is no change to one alone.
+	ORGANIZATIONAL_IDENTITY_CHANGED = "ORGANIZATIONAL_IDENTITY_CHANGED"
 	# Historical only: a user held a set of roles before, so gaining and losing one were two
 	# separate things to be told about. They now hold exactly one, and any change to it is a
 	# single ROLE_CHANGED. Kept because notifications written under the old model still carry

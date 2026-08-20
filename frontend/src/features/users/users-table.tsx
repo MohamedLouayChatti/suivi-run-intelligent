@@ -29,6 +29,7 @@ import { getRoleName } from "@/features/users/get-role-name"
 import { functionalTeamLabels } from "@/features/users/constants"
 import { UserDetailsSheet } from "@/features/users/user-details-sheet"
 import { useRolesList } from "@/hooks/use-roles-list"
+import type { OrganizationalIdentity } from "@/features/users/use-users-admin"
 import type { components } from "@/types/api"
 
 type UserResponse = components["schemas"]["UserResponse"]
@@ -46,11 +47,12 @@ interface UsersTableProps {
   users: UserResponse[]
   highlightUserId?: string | null
   onChangeRole: (userId: string, roleId: string) => void
+  onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void
   onToggleActive: (userId: string) => void
   onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void
 }
 
-function UsersTable({ users, highlightUserId, onChangeRole, onToggleActive, onSavePermissions }: UsersTableProps) {
+function UsersTable({ users, highlightUserId, onChangeRole, onSaveOrganizationalIdentity, onToggleActive, onSavePermissions }: UsersTableProps) {
   const { roles } = useRolesList()
   const [query, setQuery] = useState("")
   const [roleId, setRoleId] = useState("all")
@@ -170,6 +172,7 @@ function UsersTable({ users, highlightUserId, onChangeRole, onToggleActive, onSa
         user={selectedUser}
         onOpenChange={(open) => !open && closeSheet()}
         onSaveRole={onChangeRole}
+        onSaveOrganizationalIdentity={onSaveOrganizationalIdentity}
         onSavePermissions={onSavePermissions}
         onToggleActive={onToggleActive}
       />

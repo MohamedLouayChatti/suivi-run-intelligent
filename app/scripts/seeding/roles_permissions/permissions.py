@@ -17,6 +17,7 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("user.read_all", "Lire les informations de tous les utilisateurs."),
 	PermissionDefinition("user.activate", "Activer un utilisateur."),
 	PermissionDefinition("user.deactivate", "Désactiver un utilisateur."),
+	PermissionDefinition("user.manage_organization", "Gérer l'affectation applicative et l'équipe fonctionnelle d'un utilisateur."),
 	PermissionDefinition("role.read", "Lire les informations d'un rôle."),
 	PermissionDefinition("role.read_all", "Lire les informations de tous les rôles."),
 	PermissionDefinition("role.assign", "Définir le rôle d'un utilisateur."),

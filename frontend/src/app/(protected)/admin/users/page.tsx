@@ -19,7 +19,7 @@ export default function UsersPage() {
 function UsersPageContent() {
   const searchParams = useSearchParams()
   const highlightUserId = searchParams.get("highlight")
-  const { users, toggleActive, changeRole, savePermissions } = useUsersAdmin()
+  const { users, toggleActive, changeRole, saveOrganizationalIdentity, savePermissions } = useUsersAdmin()
   const activeCount = users.filter((u) => u.active).length
 
   return (
@@ -34,6 +34,7 @@ function UsersPageContent() {
           users={users}
           highlightUserId={highlightUserId}
           onChangeRole={changeRole}
+          onSaveOrganizationalIdentity={saveOrganizationalIdentity}
           onToggleActive={(userId) => {
             const user = users.find((u) => u.id === userId)
             if (user) toggleActive(userId, user.active)

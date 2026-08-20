@@ -32,6 +32,12 @@ from app.modules.ticket_management.domain.events.ticket_transferred import Ticke
 
 from app.modules.auth.domain.events.permission_granted_to_user import PermissionGrantedToUser
 from app.modules.auth.domain.events.permission_revoked_from_user import PermissionRevokedFromUser
+from app.modules.auth.domain.enums.assignment_type import AssignmentType
+from app.modules.auth.domain.enums.functional_team import FunctionalTeam as AuthFunctionalTeam
+from app.modules.auth.domain.value_objects.application_assignment import ApplicationAssignment
+from app.modules.auth.domain.events.user_organizational_identity_changed import (
+	UserOrganizationalIdentityChanged,
+)
 from app.modules.auth.domain.events.user_role_changed import UserRoleChanged
 from app.modules.auth.domain.events.role_permission_granted import RolePermissionGranted
 from app.modules.auth.domain.events.role_permission_revoked import RolePermissionRevoked
@@ -94,6 +100,51 @@ _STATUS_LABELS_FR: dict[Status, str] = {
 }
 
 
+# Auth's FunctionalTeam is a separate enum from Ticket Management's above -- same two members,
+# different module, and this one describes a person rather than a ticket. Both display as the
+# same two French words the frontend already shows, which is the point of naming them here.
+_FUNCTIONAL_TEAM_LABELS_FR: dict[AuthFunctionalTeam, str] = {
+	AuthFunctionalTeam.SUPPORT: "Support",
+	AuthFunctionalTeam.CONFIGURATION: "Paramétrage",
+}
+
+
+def _assignment_for(assignments: Iterable[ApplicationAssignment], assignment_type: AssignmentType) -> str | None:
+	return next((x.application.value for x in assignments if x.assignment_type == assignment_type), None)
+
+
+def _applications_metadata(assignments: Iterable[ApplicationAssignment]) -> list[dict[str, str]]:
+	"""Ordered, because the event carries a set and a set has no order to preserve."""
+	return sorted(
+		({"application": x.application.value, "assignment_type": x.assignment_type.value} for x in assignments),
+		key=lambda entry: (entry["application"], entry["assignment_type"]),
+	)
+
+
+def _organizational_identity_sentence(
+	functional_team: AuthFunctionalTeam, assignments: Iterable[ApplicationAssignment]
+) -> str:
+	"""Where the recipient now stands, in one sentence.
+
+	Holding no application is spelled out rather than left as an empty clause: it is an
+	ordinary state, and a notification that trailed off would read like the message was
+	truncated.
+	"""
+	assignments = list(assignments)
+	primary = _assignment_for(assignments, AssignmentType.PRIMARY)
+	backup = _assignment_for(assignments, AssignmentType.BACKUP)
+	team = _FUNCTIONAL_TEAM_LABELS_FR[functional_team]
+	if primary is not None and backup is not None:
+		scope = f"avec {primary} en application principale et {backup} en application de secours"
+	elif primary is not None:
+		scope = f"avec {primary} en application principale"
+	elif backup is not None:
+		scope = f"avec {backup} en application de secours"
+	else:
+		scope = "sans application affectée"
+	return f"Vous êtes désormais rattaché à l'équipe {team}, {scope}."
+
+
 class NotificationMapper:
 	"""Translates domain events published elsewhere in the system into Notification
 	aggregates -- same registry philosophy as Audit's AuditMapper. Unlike AuditMapper,
@@ -123,6 +174,7 @@ class NotificationMapper:
 			UserActivated: self._user_activated,
 			UserDeactivated: self._user_deactivated,
 			UserRoleChanged: self._user_role_changed,
+			UserOrganizationalIdentityChanged: self._user_organizational_identity_changed,
 			PermissionGrantedToUser: self._permission_granted,
 			PermissionRevokedFromUser: self._permission_revoked,
 			RolePermissionGranted: self._role_permission_granted,
@@ -339,6 +391,29 @@ class NotificationMapper:
 				"user_id": str(event.user_id),
 				"previous_role_id": str(event.previous_role_id),
 				"role_id": str(event.new_role_id),
+			},
+		)
+
+	async def _user_organizational_identity_changed(self, event: UserOrganizationalIdentityChanged) -> list[Notification]:
+		"""What the recipient staffs now -- not what they used to.
+
+		Same choice `_user_role_changed` makes: a person can act on where they have been put,
+		not on where they no longer are, and the before/after pair is in the audit log for
+		anyone reconstructing the decision. No action either -- the only page that shows this
+		is the administration user list, which the recipient of this notification generally
+		cannot open.
+		"""
+		return self._for_recipients(
+			event, [event.user_id],
+			title="Affectation modifiée",
+			message=_organizational_identity_sentence(event.new_functional_team, event.new_application_assignments),
+			type=NotificationType.ORGANIZATIONAL_IDENTITY_CHANGED, action=None,
+			metadata={
+				"user_id": str(event.user_id),
+				"previous_functional_team": event.previous_functional_team.value,
+				"functional_team": event.new_functional_team.value,
+				"previous_applications": _applications_metadata(event.previous_application_assignments),
+				"applications": _applications_metadata(event.new_application_assignments),
 			},
 		)
 

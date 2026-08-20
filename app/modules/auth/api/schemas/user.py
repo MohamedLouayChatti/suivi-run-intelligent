@@ -34,6 +34,20 @@ class UserUpdateRequest(BaseModel):
 	application_assignments: list[ApplicationAssignmentSchema] | None = None
 
 
+class UserOrganizationalIdentityRequest(BaseModel):
+	"""The whole of a user's staffing, as an administrator is setting it.
+
+	A full replacement rather than a patch, and spelled in the same
+	`application_assignments` vocabulary `UserCreateRequest` and `UserResponse` already use,
+	so one shape describes staffing everywhere in this module.  An empty list clears the
+	user's assignments; the aggregate is what refuses a second primary, a second backup, or a
+	Configuration engineer on an application that has no Configuration team.
+	"""
+
+	functional_team: FunctionalTeam
+	application_assignments: list[ApplicationAssignmentSchema] = Field(default_factory=list)
+
+
 class UserDirectoryResponse(BaseModel):
 	"""Lightweight, non-admin-gated user projection: id/display_name/active/team/apps only.
 	Used to populate reassign pickers and assignee filters without exposing email or

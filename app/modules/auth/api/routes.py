@@ -12,13 +12,15 @@ from app.modules.auth.api.dependencies import (
 	get_list_permissions_handler, get_list_roles_handler, get_list_users_handler,
 	get_permission_handler, get_revoke_permission_from_role_handler,
 	get_revoke_permission_from_user_handler, get_role_handler,
-	get_role_permissions_handler, get_set_user_role_handler, get_update_user_handler,
+	get_role_permissions_handler, get_set_user_organizational_identity_handler,
+	get_set_user_role_handler, get_update_user_handler,
 	get_user_direct_permissions_handler, get_user_handler, get_user_role_handler,
 	get_user_revoked_permissions_handler,
 )
-from app.modules.auth.api.schemas import MeResponse, PermissionResponse, RoleCreateRequest, RoleResponse, UserCreateRequest, UserDirectoryResponse, UserResponse, UserUpdateRequest
+from app.modules.auth.api.schemas import MeResponse, PermissionResponse, RoleCreateRequest, RoleResponse, UserCreateRequest, UserDirectoryResponse, UserOrganizationalIdentityRequest, UserResponse, UserUpdateRequest
 from app.modules.auth.application.commands.activate_user.handler import ActivateUserHandler
 from app.modules.auth.application.commands.set_user_role.handler import SetUserRoleHandler
+from app.modules.auth.application.commands.set_user_organizational_identity.handler import SetUserOrganizationalIdentityHandler
 from app.modules.auth.application.commands.create_role.handler import CreateRoleHandler
 from app.modules.auth.application.commands.create_user.handler import CreateUserHandler
 from app.modules.auth.application.commands.deactivate_user.handler import DeactivateUserHandler
@@ -40,6 +42,7 @@ from app.modules.auth.application.queries.list_roles.handler import ListRolesHan
 from app.modules.auth.application.queries.list_users.handler import ListUsersHandler
 from app.modules.auth.application.commands.activate_user.command import ActivateUserCommand
 from app.modules.auth.application.commands.set_user_role.command import SetUserRoleCommand
+from app.modules.auth.application.commands.set_user_organizational_identity.command import SetUserOrganizationalIdentityCommand
 from app.modules.auth.application.commands.create_role.command import CreateRoleCommand
 from app.modules.auth.application.commands.create_user.command import CreateUserCommand
 from app.modules.auth.application.commands.deactivate_user.command import DeactivateUserCommand
@@ -118,6 +121,11 @@ async def get_user_revoked_permissions(user_id: UUID, handler: Annotated[GetUser
 @router.put("/users/{user_id}/role/{role_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("role.assign")), Depends(require_instance_permission("user", "set_role", path_param="user_id"))])
 async def set_user_role(user_id: UUID, role_id: UUID, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[SetUserRoleHandler, Depends(get_set_user_role_handler)]) -> UserResponse:
 	return UserResponse.from_dto(await handler.handle(SetUserRoleCommand(user_id=user_id, role_id=role_id, actor_id=current_user.id)))
+
+
+@router.put("/users/{user_id}/organizational-identity", response_model=UserResponse, dependencies=[Depends(require_permissions("user.manage_organization")), Depends(require_instance_permission("user", "set_organizational_identity", path_param="user_id"))])
+async def set_user_organizational_identity(user_id: UUID, request: UserOrganizationalIdentityRequest, current_user: Annotated[CurrentUser, Depends(get_current_user)], handler: Annotated[SetUserOrganizationalIdentityHandler, Depends(get_set_user_organizational_identity_handler)]) -> UserResponse:
+	return UserResponse.from_dto(await handler.handle(SetUserOrganizationalIdentityCommand(user_id=user_id, functional_team=request.functional_team, application_assignments=frozenset(assignment.to_value_object() for assignment in request.application_assignments), actor_id=current_user.id)))
 
 
 @router.post("/users/{user_id}/permissions/{permission_id}", response_model=UserResponse, dependencies=[Depends(require_permissions("permission.grant_to_user"))])

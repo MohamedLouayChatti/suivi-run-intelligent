@@ -174,6 +174,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/users/{user_id}/organizational-identity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set User Organizational Identity */
+        put: operations["set_user_organizational_identity_auth_users__user_id__organizational_identity_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/users/{user_id}/permissions/{permission_id}": {
         parameters: {
             query?: never;
@@ -1562,7 +1579,7 @@ export interface components {
          * NotificationType
          * @enum {string}
          */
-        NotificationType: "TICKET_ASSIGNED" | "TICKET_PRIORITY_CHANGED" | "TICKET_STATUS_CHANGED" | "COMMENT_ADDED" | "COMMENT_EDITED" | "COMMENT_DELETED" | "ATTACHMENT_ADDED" | "ATTACHMENT_DELETED" | "TICKET_ARCHIVED" | "TICKET_RESTORED" | "TICKET_TRANSFERRED" | "ACCOUNT_ACTIVATED" | "ACCOUNT_DEACTIVATED" | "ROLE_CHANGED" | "ROLE_ASSIGNED" | "ROLE_REVOKED" | "PERMISSION_GRANTED" | "PERMISSION_REVOKED" | "ROLE_PERMISSION_GRANTED" | "ROLE_PERMISSION_REVOKED" | "ACCOUNT_CREATED" | "NEW_USER_REGISTERED" | "SIMILARITY_SCHEDULE_UPDATED" | "SIMILARITY_RECALCULATION_FAILED" | "BATCH_IMPORT_FAILED";
+        NotificationType: "TICKET_ASSIGNED" | "TICKET_PRIORITY_CHANGED" | "TICKET_STATUS_CHANGED" | "COMMENT_ADDED" | "COMMENT_EDITED" | "COMMENT_DELETED" | "ATTACHMENT_ADDED" | "ATTACHMENT_DELETED" | "TICKET_ARCHIVED" | "TICKET_RESTORED" | "TICKET_TRANSFERRED" | "ACCOUNT_ACTIVATED" | "ACCOUNT_DEACTIVATED" | "ROLE_CHANGED" | "ORGANIZATIONAL_IDENTITY_CHANGED" | "ROLE_ASSIGNED" | "ROLE_REVOKED" | "PERMISSION_GRANTED" | "PERMISSION_REVOKED" | "ROLE_PERMISSION_GRANTED" | "ROLE_PERMISSION_REVOKED" | "ACCOUNT_CREATED" | "NEW_USER_REGISTERED" | "SIMILARITY_SCHEDULE_UPDATED" | "SIMILARITY_RECALCULATION_FAILED" | "BATCH_IMPORT_FAILED";
         /**
          * Offer
          * @enum {string}
@@ -1921,6 +1938,21 @@ export interface components {
             functional_team: components["schemas"]["FunctionalTeam"];
             /** Application Assignments */
             application_assignments: components["schemas"]["ApplicationAssignmentSchema"][];
+        };
+        /**
+         * UserOrganizationalIdentityRequest
+         * @description The whole of a user's staffing, as an administrator is setting it.
+         *
+         *     A full replacement rather than a patch, and spelled in the same
+         *     `application_assignments` vocabulary `UserCreateRequest` and `UserResponse` already use,
+         *     so one shape describes staffing everywhere in this module.  An empty list clears the
+         *     user's assignments; the aggregate is what refuses a second primary, a second backup, or a
+         *     Configuration engineer on an application that has no Configuration team.
+         */
+        UserOrganizationalIdentityRequest: {
+            functional_team: components["schemas"]["FunctionalTeam"];
+            /** Application Assignments */
+            application_assignments?: components["schemas"]["ApplicationAssignmentSchema"][];
         };
         /** UserResponse */
         UserResponse: {
@@ -2298,6 +2330,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_user_organizational_identity_auth_users__user_id__organizational_identity_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserOrganizationalIdentityRequest"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

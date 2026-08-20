@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import Any
 from uuid import uuid4
 
@@ -32,6 +32,8 @@ from app.modules.auth.domain.events.role_permission_revoked import RolePermissio
 from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
+from app.modules.auth.domain.events.user_organizational_identity_changed import UserOrganizationalIdentityChanged
+from app.modules.auth.domain.value_objects.application_assignment import ApplicationAssignment
 from app.modules.auth.domain.events.user_updated import UserUpdated
 
 from app.modules.knowledge_base.domain.events.similarity_graph_recalculated import SimilarityGraphRecalculated
@@ -45,6 +47,19 @@ from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_
 	SimilarityRecalculationScheduleUpdated,
 )
 from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
+
+
+def _assignments_payload(assignments: Iterable[ApplicationAssignment]) -> list[dict[str, str]]:
+	"""A user's application assignments, ordered so two payloads can be compared as written.
+
+	The event carries a set, which has no order at all; sorting here is what stops the same
+	staffing from being recorded two different ways depending on how the set happened to
+	iterate.
+	"""
+	return sorted(
+		({"application": x.application.value, "assignment_type": x.assignment_type.value} for x in assignments),
+		key=lambda entry: (entry["application"], entry["assignment_type"]),
+	)
 
 
 class AuditMapper:
@@ -81,6 +96,7 @@ class AuditMapper:
 			UserActivated: self._user_activated,
 			UserDeactivated: self._user_deactivated,
 			UserRoleChanged: self._user_role_changed,
+			UserOrganizationalIdentityChanged: self._user_organizational_identity_changed,
 			PermissionGrantedToUser: self._permission_granted_to_user,
 			PermissionRevokedFromUser: self._permission_revoked_from_user,
 			RolePermissionGranted: self._role_permission_granted,
@@ -289,6 +305,25 @@ class AuditMapper:
 				"user_id": str(event.user_id),
 				"previous_role_id": str(event.previous_role_id),
 				"new_role_id": str(event.new_role_id),
+			},
+		)
+
+	def _user_organizational_identity_changed(self, event: UserOrganizationalIdentityChanged) -> AuditEntry:
+		"""Both sides of the change, so a reader can tell what was taken away as well as given.
+
+		The assignments are written out in full rather than reduced to a primary and a backup:
+		the payload's job is to preserve what the event said, and the primary/backup reading of
+		it belongs to whoever is asking, not to this row.
+		"""
+		return self._entry(
+			event, module="auth", event_type="UserOrganizationalIdentityChanged",
+			action="user.organizational_identity_changed", resource_type="user",
+			payload={
+				"user_id": str(event.user_id),
+				"previous_functional_team": event.previous_functional_team.value,
+				"new_functional_team": event.new_functional_team.value,
+				"previous_application_assignments": _assignments_payload(event.previous_application_assignments),
+				"new_application_assignments": _assignments_payload(event.new_application_assignments),
 			},
 		)
 

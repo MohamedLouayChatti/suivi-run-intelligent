@@ -8,6 +8,7 @@ from typing import Any
 
 from app.modules.auth.application.commands.activate_user.handler import ActivateUserHandler
 from app.modules.auth.application.commands.set_user_role.handler import SetUserRoleHandler
+from app.modules.auth.application.commands.set_user_organizational_identity.handler import SetUserOrganizationalIdentityHandler
 from app.modules.auth.application.commands.create_role.handler import CreateRoleHandler
 from app.modules.auth.application.commands.create_user.handler import CreateUserHandler
 from app.modules.auth.application.commands.deactivate_user.handler import DeactivateUserHandler
@@ -116,6 +117,7 @@ def get_deactivate_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get
 def get_activate_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> ActivateUserHandler: return _command_handler(ActivateUserHandler, uow, publisher)
 def get_create_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)]) -> CreateRoleHandler: return _command_handler(CreateRoleHandler, uow)
 def get_set_user_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> SetUserRoleHandler: return _command_handler(SetUserRoleHandler, uow, publisher)
+def get_set_user_organizational_identity_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> SetUserOrganizationalIdentityHandler: return _command_handler(SetUserOrganizationalIdentityHandler, uow, publisher)
 def get_grant_permission_to_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> GrantPermissionToRoleHandler: return _command_handler(GrantPermissionToRoleHandler, uow, publisher)
 def get_revoke_permission_from_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> RevokePermissionFromRoleHandler: return _command_handler(RevokePermissionFromRoleHandler, uow, publisher)
 def get_grant_permission_to_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)], service: Annotated[AuthorizationService, Depends(get_authorization_service)]) -> GrantPermissionToUserHandler: return _command_handler(GrantPermissionToUserHandler, uow, publisher, service)

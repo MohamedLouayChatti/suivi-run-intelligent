@@ -6,6 +6,7 @@ import {
   UserX,
   UserPlus,
   ShieldCheck,
+  Building2,
   BrainCircuit,
   FileUp,
   type LucideIcon,
@@ -34,6 +35,9 @@ const notificationTypeIcons: Record<NotificationType, LucideIcon> = {
   ACCOUNT_CREATED: UserCheck,
   NEW_USER_REGISTERED: UserPlus,
   ROLE_CHANGED: ShieldCheck,
+  // Staffing, not authorization — the same icon the users table and its filters use for an
+  // application assignment, rather than the shield that means "what you may do".
+  ORGANIZATIONAL_IDENTITY_CHANGED: Building2,
   // Historical types, kept so notifications written before roles became single-valued still
   // render an icon; nothing produces either any more.
   ROLE_ASSIGNED: ShieldCheck,
