@@ -48,8 +48,9 @@ const notificationTypeIcons: Record<NotificationType, LucideIcon> = {
   ROLE_PERMISSION_REVOKED: ShieldCheck,
   // Knowledge base maintenance. Same icon as its Administration nav entry, so a notification
   // about the similarity graph looks like the page it is about; the batch import keeps the
-  // upload icon its own panel uses. All three carry no action — nothing to route to.
+  // upload icon its own panel uses. None of them carries an action — nothing to route to.
   SIMILARITY_SCHEDULE_UPDATED: BrainCircuit,
+  SIMILARITY_RECALCULATION_COMPLETED: BrainCircuit,
   SIMILARITY_RECALCULATION_FAILED: BrainCircuit,
   BATCH_IMPORT_FAILED: FileUp,
 }

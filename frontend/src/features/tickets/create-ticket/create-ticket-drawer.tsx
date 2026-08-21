@@ -1,7 +1,6 @@
 "use client"
 
-import { useState } from "react"
-import { Paperclip, X } from "lucide-react"
+import { Loader2, Paperclip, X } from "lucide-react"
 
 import {
   Sheet,
@@ -15,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { useCreateTicketForm } from "@/features/tickets/create-ticket/use-create-ticket-form"
+import { useCreateTicketSubmission } from "@/features/tickets/create-ticket/use-create-ticket-submission"
 import { IncidentFields } from "@/features/tickets/create-ticket/incident-fields"
 import { AssignmentFields } from "@/features/tickets/create-ticket/assignment-fields"
 import { BusinessFields } from "@/features/tickets/create-ticket/business-fields"
@@ -40,11 +40,13 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment 
   const { values, setField, setApplication, addFiles, removeFile, reset, isValid } = useCreateTicketForm(
     primaryApplication ?? "FCI"
   )
-  const [error, setError] = useState<string | null>(null)
+  const { isSubmitting, progressLabel, isSlow, error, setError, submit } = useCreateTicketSubmission({
+    onCreated,
+    onUploadAttachment,
+  })
 
   async function handleSubmit() {
-    if (!isValid || !currentUser) return
-    setError(null)
+    if (!isValid || !currentUser || isSubmitting) return
     // The creator is always the assignee and their own functional team, both fixed by the
     // backend/business rules — never user-editable fields on this form.
     const payload: TicketCreateRequest = {
@@ -65,22 +67,16 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment 
       element: values.element || null,
       vio_app: values.vioApp || null,
     }
-    try {
-      const created = await onCreated(payload)
-      for (const file of values.files) {
-        await onUploadAttachment(created.id, file)
-      }
-    } catch (err) {
-      // The ticket may already have been created (or partially attached) by the time this
-      // throws — leave the drawer open so the user sees the error instead of losing it.
-      setError(err instanceof Error ? err.message : "Une erreur est survenue.")
-      return
-    }
+    // A failed submission leaves the drawer open on its error, so the user keeps what they typed.
+    if (!(await submit(payload, values.files))) return
     reset()
     onOpenChange(false)
   }
 
   function handleOpenChange(next: boolean) {
+    // Closing mid-submission would strand a ticket that is already being created and lose the
+    // error if it fails — so ESC, the overlay and Annuler alike do nothing until it settles.
+    if (isSubmitting) return
     // Re-seed the form (including the Application default) every time it opens or closes,
     // so a freshly-loaded currentUser is always reflected.
     setError(null)
@@ -154,13 +150,27 @@ function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment 
         <SheetFooter className="border-t border-border">
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => handleOpenChange(false)}>
+            <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button onClick={handleSubmit} disabled={!isValid || !currentUser}>
-              Créer le ticket
+            <Button onClick={handleSubmit} disabled={!isValid || !currentUser || isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" /> Création…
+                </>
+              ) : (
+                "Créer le ticket"
+              )}
             </Button>
           </div>
+          {/* The button keeps a short, fixed label so it never resizes; what the backend is
+              working on goes here, where a full sentence fits. */}
+          {progressLabel && (
+            <p className="text-right text-xs text-muted-foreground">
+              {progressLabel}
+              {isSlow && " C'est plus long que d'habitude — ne fermez pas cette fenêtre."}
+            </p>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

@@ -39,6 +39,27 @@ class UserReadRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
+	async def find_active_user_ids_with_permission(self, permission_name: str) -> set[UUID]:
+		"""Every active user whose effective permissions include `permission_name`.
+
+		The bulk counterpart of `get_effective_permissions`, which answers the same question one
+		user at a time. It exists for the callers that need an *audience* rather than a decision --
+		"who should be told about this" -- and it answers that in the only currency this codebase
+		authorizes in. Resolving an audience by role name instead goes stale the moment the
+		permission is granted to another role or to a single user, and reads a role as though it
+		meant something beyond the permissions it bundles.
+
+		Ids rather than DTOs: nothing needing a broadcast list needs the users themselves, and an
+		audience is a set by nature -- somebody reached through their role and again through a
+		direct grant is one recipient.
+
+		An unknown permission name yields an empty set rather than raising. This is a lookup over
+		reference data a seeder owns, so "nobody holds it" and "it does not exist" call for the
+		same answer from a read model: no recipients.
+		"""
+		raise NotImplementedError
+
+	@abstractmethod
 	async def get_user_role(self, user_id: UUID) -> RoleDTO | None:
 		"""The one role this user holds, or None when no such user exists.
 

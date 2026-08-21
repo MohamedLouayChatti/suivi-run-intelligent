@@ -45,7 +45,11 @@ from app.modules.auth.domain.events.user_activated import UserActivated
 from app.modules.auth.domain.events.user_created import UserCreated
 from app.modules.auth.domain.events.user_deactivated import UserDeactivated
 
+from app.modules.knowledge_base.domain.enums.recalculation_trigger import RecalculationTrigger
 from app.modules.knowledge_base.domain.enums.weekday import Weekday
+from app.modules.knowledge_base.domain.events.similarity_graph_recalculated import (
+	SimilarityGraphRecalculated,
+)
 from app.modules.knowledge_base.domain.events.similarity_graph_recalculation_failed import (
 	SimilarityGraphRecalculationFailed,
 )
@@ -107,6 +111,41 @@ _FUNCTIONAL_TEAM_LABELS_FR: dict[AuthFunctionalTeam, str] = {
 	AuthFunctionalTeam.SUPPORT: "Support",
 	AuthFunctionalTeam.CONFIGURATION: "Paramétrage",
 }
+
+
+# Which door the pass came through, written as the whole subject of the sentence rather than as an
+# adjective to drop into one. The three read differently enough that a shared frame with a word
+# swapped into it produces French nobody would write: "le recalcul lancé manuellement de la base
+# de connaissances" separates the participle from what it qualifies. Each is a phrase that stands
+# on its own and takes a verb.
+#
+# The enum is carried on both outcome events precisely so a reader can tell "the Tuesday night pass
+# failed" from "the pass somebody started a minute ago failed" -- two facts calling for different
+# reactions, and the same record without this.
+_RECALCULATION_SUBJECT_FR: dict[RecalculationTrigger, str] = {
+	RecalculationTrigger.SCHEDULED: "Le recalcul planifié de la base de connaissances",
+	RecalculationTrigger.MANUAL: "Le recalcul lancé manuellement",
+	RecalculationTrigger.BATCH_IMPORT: "Le recalcul déclenché par un import de tickets",
+}
+
+
+# Who each broadcast is for, named as the permission that defines them rather than as a role.
+# These are the audiences with no single obvious recipient -- there is no assignee, no author and
+# no affected user to send to, only "whoever can act on this" -- and that is a permission by
+# definition. Delegating one of these permissions moves its notifications with it, which is the
+# whole of what delegating it was supposed to mean.
+#
+# The graph's state goes to whoever can *see* it rather than only to whoever can rebuild it: a
+# stale graph changes what every reader of that page is looking at, and a notification saying so
+# is worth having even when the reader's answer is to ask somebody else to act.
+_SIMILARITY_GRAPH_AUDIENCE = "knowledge_base.read_recalculation"
+# The import's own permission, not the graph's: what these announce is an upload that failed and
+# may need re-running, which is the uploader's job rather than the maintainer's.
+_BATCH_IMPORT_AUDIENCE = "knowledge_base.batch_import"
+# A signup lands inactive and stays that way until somebody activates it, so the audience is the
+# people who can perform exactly that act. They also hold `user.read_all` in every seeded role
+# today, which is what makes this notification's deep link into the users page reachable for them.
+_NEW_USER_AUDIENCE = "user.activate"
 
 
 def _assignment_for(assignments: Iterable[ApplicationAssignment], assignment_type: AssignmentType) -> str | None:
@@ -181,6 +220,7 @@ class NotificationMapper:
 			RolePermissionRevoked: self._role_permission_revoked,
 			UserCreated: self._user_created,
 			SimilarityRecalculationScheduleUpdated: self._similarity_schedule_updated,
+			SimilarityGraphRecalculated: self._similarity_recalculation_completed,
 			SimilarityGraphRecalculationFailed: self._similarity_recalculation_failed,
 			TicketBatchImportFailed: self._batch_import_failed,
 		}
@@ -474,7 +514,7 @@ class NotificationMapper:
 			type=NotificationType.ACCOUNT_CREATED, action=None,
 			metadata={"user_id": str(event.user_id)},
 		)
-		admin_ids = await self._recipients.active_admin_user_ids()
+		admin_ids = await self._recipients.active_user_ids_with_permission(_NEW_USER_AUDIENCE)
 		admin_ids = admin_ids - {event.user_id}
 		announcements = self._for_recipients(
 			event, admin_ids,
@@ -486,26 +526,34 @@ class NotificationMapper:
 
 	# -- Knowledge Base --------------------------------------------------------
 	#
-	# All three go to the administrators, and none of them carries an action: the pages these
-	# concern are administrative screens with no per-resource route to deep-link into, and
-	# inventing an action type the frontend does not yet interpret would put a dead click target
-	# in the bell. Every Auth notification above is action-less for the same reason.
+	# None of these carries an action: the pages they concern are administrative screens with no
+	# per-resource route to deep-link into, and inventing an action type the frontend does not yet
+	# interpret would put a dead click target in the bell. Every Auth notification above is
+	# action-less for the same reason.
 	#
-	# Two of the module's five events are deliberately absent. SimilarityRecalculationRequested is
-	# the administrator's own button and needs no bell; SimilarityGraphRecalculated is a routine
-	# background pass finishing as designed, which is precisely what a notification should not be
-	# spent on -- both are recorded in the audit log, where a reader goes looking rather than being
-	# interrupted.
+	# A completed recalculation used to be withheld here as routine success, on the argument that
+	# a notification list filled with things going right is one where failures stop being noticed.
+	# What that missed is that almost everything this module does is invisible by construction:
+	# the passes run outside working hours, write to a store nobody reads directly, and leave the
+	# graph looking identical whether they ran or not. Announcing only the failures made silence
+	# ambiguous -- it meant a healthy graph, a scheduler that never fired, and a process that was
+	# restarted before its window, all at once. Announcing both makes an absent success readable,
+	# which is the fact an administrator was actually missing. The volume argument survives on its
+	# own terms: this is twice a week plus whatever is asked for by hand.
+	#
+	# SimilarityRecalculationRequested stays absent. It is the administrator's own button press,
+	# answered by the button itself and by the status card next to it, and the pass it starts
+	# reports its own outcome here a few minutes later.
 
 	async def _similarity_schedule_updated(self, event: SimilarityRecalculationScheduleUpdated) -> list[Notification]:
-		"""Tell the other administrators that the rebuild window moved, or stopped.
+		"""Tell everyone else who can see this schedule that the rebuild window moved, or stopped.
 
-		The acting administrator is excluded by the shared guard, which is right here: they just
-		set it. Everyone else administering this system has no other way to find out -- the change
-		takes effect on a background pass that runs outside working hours, so its only visible
-		symptom is similar-incident results quietly ceasing to improve, weeks later.
+		The one who set it is excluded by the shared guard, which is right here: they just did it.
+		Nobody else has another way to find out -- the change takes effect on a background pass that
+		runs outside working hours, so its only visible symptom is similar-incident results quietly
+		ceasing to improve, weeks later.
 		"""
-		recipient_ids = await self._recipients.active_admin_user_ids()
+		recipient_ids = await self._recipients.active_user_ids_with_permission(_SIMILARITY_GRAPH_AUDIENCE)
 		if event.enabled:
 			days = self._day_list(event.days_of_week)
 			message = (
@@ -528,8 +576,51 @@ class NotificationMapper:
 			},
 		)
 
+	async def _similarity_recalculation_completed(self, event: SimilarityGraphRecalculated) -> list[Notification]:
+		"""Say that a pass ran, what it went through, and how long it took.
+
+		The counterpart of the failure below, and told to the same audience for the same reason:
+		what changed is the answer every similar-incident card in the product gives, and nothing
+		about the product looks different afterwards. Naming the trigger is what makes the message
+		worth reading rather than noise -- a Tuesday-night pass finishing is a heartbeat, a pass
+		finishing four minutes after somebody pressed the button is a reply to them.
+
+		`actor_id` is None on this event, so the shared guard excludes nobody: the administrator
+		who asked for a manual pass is told it finished, which is the one message here with a
+		person waiting for it. That is deliberate and not an oversight of the guard -- the guard
+		exists so nobody is told what they just did, and this reports what happened afterwards.
+
+		`sources_without_results` is reported only when there is something to report. It is a
+		correct outcome of a threshold rather than a fault, but a pass where it dominates is the
+		signature of a mis-calibrated one, and that is invisible anywhere else.
+		"""
+		recipient_ids = await self._recipients.active_user_ids_with_permission(_SIMILARITY_GRAPH_AUDIENCE)
+		message = (
+			f"{_RECALCULATION_SUBJECT_FR[event.trigger]} est terminé : "
+			f"{_count_fr(event.items_processed)} ticket(s) analysé(s) et "
+			f"{_count_fr(event.results_written)} suggestion(s) reconstruite(s) en "
+			f"{_duration_fr(event.duration_seconds)}."
+		)
+		if event.sources_without_results > 0:
+			message += (
+				f" {_count_fr(event.sources_without_results)} ticket(s) n'ont aucun incident "
+				f"similaire au-dessus du seuil de pertinence."
+			)
+		return self._for_recipients(
+			event, recipient_ids,
+			title="Recalcul de similarité terminé", message=message,
+			type=NotificationType.SIMILARITY_RECALCULATION_COMPLETED, action=None,
+			metadata={
+				"trigger": event.trigger.value,
+				"items_processed": event.items_processed,
+				"results_written": event.results_written,
+				"sources_without_results": event.sources_without_results,
+				"duration_seconds": round(event.duration_seconds, 1),
+			},
+		)
+
 	async def _similarity_recalculation_failed(self, event: SimilarityGraphRecalculationFailed) -> list[Notification]:
-		"""Tell the administrators the graph is stale, because nothing else will.
+		"""Tell everyone who can see the graph that it is stale, because nothing else will.
 
 		The most useful notification in this module's set, and the one whose absence was the real
 		gap: a failed pass leaves the previous graph in place, keeps its next scheduled firing, and
@@ -537,24 +628,25 @@ class NotificationMapper:
 		like three quiet weeks, and every similar-incident card keeps answering from a corpus that
 		has moved on.
 
-		actor_id is None on this event, so the shared guard excludes nobody and every active
-		administrator is told -- which is correct: a scheduled pass failing at 20:00 is nobody's
-		action, and the administrator who triggered a manual one is as entitled to know as the rest.
+		actor_id is None on this event, so the shared guard excludes nobody and the whole audience is
+		told -- which is correct: a scheduled pass failing at 20:00 is nobody's action, and whoever
+		triggered a manual one is as entitled to know as the rest.
 		"""
-		recipient_ids = await self._recipients.active_admin_user_ids()
+		recipient_ids = await self._recipients.active_user_ids_with_permission(_SIMILARITY_GRAPH_AUDIENCE)
 		return self._for_recipients(
 			event, recipient_ids,
 			title="Échec du recalcul de similarité",
 			message=(
-				f"Le recalcul complet de la base de connaissances a échoué ({event.reason}). Les "
-				f"incidents similaires affichés restent ceux du dernier calcul réussi."
+				f"{_RECALCULATION_SUBJECT_FR[event.trigger]} a échoué au bout de "
+				f"{_duration_fr(event.duration_seconds)} ({event.reason}). Les incidents "
+				f"similaires affichés restent ceux du dernier calcul réussi."
 			),
 			type=NotificationType.SIMILARITY_RECALCULATION_FAILED, action=None,
 			metadata={"trigger": event.trigger.value, "reason": event.reason},
 		)
 
 	async def _batch_import_failed(self, event: TicketBatchImportFailed) -> list[Notification]:
-		"""Tell the administrators an import failed, and whether it left anything behind.
+		"""Tell whoever can run an import that one failed, and whether it left anything behind.
 
 		The one place in this mapper where the acting user is notified of their own action, and
 		the exception is deliberate. The shared guard exists so nobody is told what they just did;
@@ -562,7 +654,7 @@ class NotificationMapper:
 		carries the only durable instruction for repairing it. The uploader does see that in the
 		error response, but a response is read once, by one person, who may well close the tab --
 		and the repair is a backfill rather than another upload, so getting it wrong is expensive.
-		The other administrators are told for the ordinary reason: tickets with no corpus entry are
+		Everyone else holding the permission is told for the ordinary reason: tickets with no corpus entry are
 		invisible to every similarity search until somebody acts.
 		"""
 		if event.tickets_discarded:
@@ -581,7 +673,7 @@ class NotificationMapper:
 			"application": event.application.value, "ticket_count": event.ticket_count,
 			"reason": event.reason, "tickets_discarded": event.tickets_discarded,
 		}
-		recipient_ids = await self._recipients.active_admin_user_ids()
+		recipient_ids = await self._recipients.active_user_ids_with_permission(_BATCH_IMPORT_AUDIENCE)
 		notifications = self._for_recipients(
 			event, recipient_ids,
 			title="Échec d'un import de tickets", message=message,
@@ -608,3 +700,35 @@ class NotificationMapper:
 		if len(labels) <= 1:
 			return "".join(labels)
 		return f"{', '.join(labels[:-1])} et {labels[-1]}"
+
+
+# Named rather than written inline: it is U+202F, which looks exactly like a space in an
+# editor and would be silently replaced by one on any careless edit.
+_THOUSANDS_SEPARATOR_FR = chr(0x202F)
+
+
+def _count_fr(value: int) -> str:
+	"""A count as French writes it: 6830 -> "6 830", grouped with a narrow no-break space.
+
+	Module-level rather than a method, and matching what `toLocaleString("fr-FR")` produces on
+	the frontend -- the same number must not be grouped one way in the bell and another way on
+	the page it is about.
+	"""
+	return f"{value:,}".replace(",", _THOUSANDS_SEPARATOR_FR)
+
+
+def _duration_fr(seconds: float) -> str:
+	"""How long a pass took, at the precision a reader of it cares about.
+
+	Rounded to whole seconds and floored at one: a pass reported as having taken "0 s" reads as
+	one that did not run, and the difference between 400ms and 600ms is not what anybody is
+	asking. Minutes and hours drop the units below them once they would only add noise.
+	"""
+	total = max(round(seconds), 1)
+	hours, rest = divmod(total, 3600)
+	minutes, remainder = divmod(rest, 60)
+	if hours:
+		return f"{hours} h {minutes:02d} min"
+	if minutes:
+		return f"{minutes} min {remainder:02d} s" if remainder else f"{minutes} min"
+	return f"{remainder} s"

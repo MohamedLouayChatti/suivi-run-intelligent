@@ -17,12 +17,37 @@ import {
   IMPORT_MAX_MEGABYTES,
 } from "@/features/knowledge-base/import-columns"
 import { useBatchImport } from "@/features/knowledge-base/use-batch-import"
+import { useTimedProgressSteps, type TimedProgressStep } from "@/hooks/use-timed-progress-steps"
 import type { BatchImportReport } from "@/services/api/knowledge-base"
 import type { components } from "@/types/api"
 
 type Application = components["schemas"]["Application"]
 
 const MAX_UPLOAD_BYTES = IMPORT_MAX_MEGABYTES * 1024 * 1024
+
+/**
+ * What an import spends its time on, in the order the backend does it: the file is read into a
+ * table, every row is validated, the tickets are committed in one transaction, and only then is
+ * each one embedded into the knowledge base.
+ *
+ * That last phase is the long one and the only one that grows with the file — it costs a model
+ * call per row — so it is the step that holds while the rest are paced to get out of its way. As
+ * with ticket creation, these boundaries only decide when a message may *appear*; the response
+ * always ends the sequence, wherever it had got to.
+ *
+ * One consequence worth knowing: a file rejected at validation comes back in a couple of seconds,
+ * by which time this may be showing a later step than the backend actually reached. It is replaced
+ * by the rejection report the instant it arrives, and no step ever claims to have completed.
+ */
+const importSteps: TimedProgressStep[] = [
+  { after: 0, label: "Lecture du fichier…" },
+  { after: 1500, label: "Vérification des lignes…" },
+  { after: 5000, label: "Création des tickets…" },
+  { after: 9000, label: "Indexation dans la base de connaissances…" },
+]
+
+/** An import is expected to be slow; this is where "slow" becomes worth remarking on. */
+const IMPORT_SLOW_AFTER_MS = 45_000
 
 /**
  * Two checks the backend also enforces, repeated here only to answer instantly instead of after a
@@ -48,6 +73,11 @@ function BatchImportPanel() {
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { outcome, isImporting, runImport, reset } = useBatchImport()
+  const { label: progressLabel, isSlow } = useTimedProgressSteps({
+    steps: importSteps,
+    isActive: isImporting,
+    slowAfterMs: IMPORT_SLOW_AFTER_MS,
+  })
 
   function selectFile(candidate: File | undefined) {
     if (!candidate) return
@@ -195,10 +225,10 @@ function BatchImportPanel() {
                 </>
               )}
             </Button>
-            {isImporting && (
+            {isImporting && progressLabel && (
               <p className="text-xs text-muted-foreground">
-                Chaque ligne est analysée puis indexée&nbsp;; sur un fichier volumineux cela peut
-                prendre plusieurs minutes. Ne fermez pas cet onglet.
+                {progressLabel} Ne fermez pas cet onglet.
+                {isSlow && " Sur un fichier volumineux, l'indexation peut prendre plusieurs minutes."}
               </p>
             )}
           </div>

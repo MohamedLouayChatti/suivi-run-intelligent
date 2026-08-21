@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, except_, func, select, union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -13,6 +13,12 @@ from app.modules.auth.application.dto.user_dto import UserDTO
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
 from app.modules.auth.application.queries.list_users.query import ListUsersQuery
 from app.modules.auth.infrastructure.persistence import mapper
+from app.modules.auth.infrastructure.persistence.models.association_tables import (
+	role_permissions,
+	user_direct_permissions,
+	user_revoked_permissions,
+)
+from app.modules.auth.infrastructure.persistence.models.permission_model import PermissionModel
 from app.modules.auth.infrastructure.persistence.models.role_model import RoleModel
 from app.modules.auth.infrastructure.persistence.models.user_model import UserModel
 
@@ -45,6 +51,37 @@ class SqlAlchemyUserReadRepository(UserReadRepository):
 			self._base_query().where(func.lower(func.btrim(UserModel.display_name)).in_(normalized))
 		)
 		return [mapper.user_model_to_dto(model) for model in result.all()]
+
+	async def find_active_user_ids_with_permission(self, permission_name: str) -> set[UUID]:
+		# The set arithmetic is AuthorizationService's -- role permissions, plus direct grants,
+		# minus revocations -- expressed in SQL rather than by calling it. That service decides
+		# for one user from entities already in hand, and this question is asked of every user at
+		# once: satisfying it through the service would mean loading every active user with their
+		# role, grants and revocations just to intersect three id sets in Python. The rule is one
+		# union and one difference, and the database states both exactly.
+		permission_id = select(PermissionModel.id).where(PermissionModel.name == permission_name).scalar_subquery()
+
+		# An unresolvable name makes this subquery NULL, so every comparison below is NULL and all
+		# three branches come back empty -- which is the documented answer for a permission nobody
+		# holds, reached without a separate existence check.
+		through_role = (
+			select(UserModel.id)
+			.join(role_permissions, role_permissions.c.role_id == UserModel.role_id)
+			.where(UserModel.active.is_(True), role_permissions.c.permission_id == permission_id)
+		)
+		granted_directly = (
+			select(UserModel.id)
+			.join(user_direct_permissions, user_direct_permissions.c.user_id == UserModel.id)
+			.where(UserModel.active.is_(True), user_direct_permissions.c.permission_id == permission_id)
+		)
+		# Not filtered on `active`: this only ever subtracts, so rows for inactive users can never
+		# add a recipient, and an extra predicate here would only be a second place to get wrong.
+		revoked = select(user_revoked_permissions.c.user_id).where(
+			user_revoked_permissions.c.permission_id == permission_id
+		)
+
+		result = await self.session.execute(except_(union(through_role, granted_directly), revoked))
+		return {row[0] for row in result}
 
 	async def get_user_role(self, user_id: UUID) -> RoleDTO | None:
 		model = await self._load_user(user_id)

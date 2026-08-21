@@ -48,8 +48,10 @@ class SimilarityRecalculationRunner(RecalculationRunner):
 	logs it against the job name, there is still no retry, and the schedule is still the retry that
 	matters -- a failed rebuild leaves the previous graph exactly as it was, which is stale but
 	coherent, and the next run repairs it. What publishing adds is that "stale but coherent" stops
-	being a state only a log line knows about: the audit log records it and the administrators are
-	told, which is the difference between a graph everyone knows is stale and one that quietly is.
+	being a state only a log line knows about: the audit log records it and everyone who can see the
+	graph's state is told, which is the difference between a graph known to be stale and one that
+	quietly is. The same now goes for a pass that succeeds -- announcing only failure left silence
+	meaning both "nothing went wrong" and "nothing ran".
 	"""
 
 	def __init__(self) -> None:

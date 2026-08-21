@@ -34,5 +34,11 @@ class NotificationType(StrEnum):
 	ACCOUNT_CREATED = "ACCOUNT_CREATED"
 	NEW_USER_REGISTERED = "NEW_USER_REGISTERED"
 	SIMILARITY_SCHEDULE_UPDATED = "SIMILARITY_SCHEDULE_UPDATED"
+	# Both outcomes of one pass, and both are told. A completed rebuild was once left out as
+	# routine success not worth a bell -- which held only while the failure was the sole thing
+	# anyone could learn about a pass. It leaves an announced failure as the only sign the
+	# rebuild exists, so silence reads as health whether the pass ran or the scheduler never
+	# fired at all. Told together, an absent success is itself informative.
+	SIMILARITY_RECALCULATION_COMPLETED = "SIMILARITY_RECALCULATION_COMPLETED"
 	SIMILARITY_RECALCULATION_FAILED = "SIMILARITY_RECALCULATION_FAILED"
 	BATCH_IMPORT_FAILED = "BATCH_IMPORT_FAILED"
