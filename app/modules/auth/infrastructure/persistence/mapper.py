@@ -43,23 +43,24 @@ def user_model_to_dto(model: UserModel) -> UserDTO:
 
 
 def role_to_model(role: Role, *, permissions: Iterable[PermissionModel] = ()) -> RoleModel:
-	model = RoleModel(id=role.id, name=role.name)
+	model = RoleModel(id=role.id, name=role.name, requires_primary_application=role.requires_primary_application)
 	model.permissions = list(permissions)
 	return model
 
 
 def sync_role_model(model: RoleModel, role: Role, *, permissions: Iterable[PermissionModel] = ()) -> RoleModel:
 	model.name = role.name
+	model.requires_primary_application = role.requires_primary_application
 	model.permissions = list(permissions)
 	return model
 
 
 def role_model_to_domain(model: RoleModel) -> Role:
-	return Role(id=model.id, name=model.name, permission_ids={x.id for x in model.permissions})
+	return Role(id=model.id, name=model.name, permission_ids={x.id for x in model.permissions}, requires_primary_application=model.requires_primary_application)
 
 
 def role_model_to_dto(model: RoleModel) -> RoleDTO:
-	return RoleDTO(id=model.id, name=model.name, permission_ids={x.id for x in model.permissions})
+	return RoleDTO(id=model.id, name=model.name, permission_ids={x.id for x in model.permissions}, requires_primary_application=model.requires_primary_application)
 
 
 def permission_to_model(permission: Permission) -> PermissionModel:

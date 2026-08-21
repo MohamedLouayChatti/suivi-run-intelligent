@@ -1665,6 +1665,8 @@ export interface components {
             name: string;
             /** Permission Ids */
             permission_ids: string[];
+            /** Requires Primary Application */
+            requires_primary_application: boolean;
         };
         /** SimilarIncidentResponse */
         SimilarIncidentResponse: {

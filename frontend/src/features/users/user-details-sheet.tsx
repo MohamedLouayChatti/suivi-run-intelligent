@@ -48,9 +48,9 @@ function buildAssignments(
 interface UserDetailsSheetProps {
   user: UserResponse | null
   onOpenChange: (open: boolean) => void
-  onSaveRole: (userId: string, roleId: string) => void
-  onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void
-  onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void
+  onSaveRole: (userId: string, roleId: string) => void | Promise<void>
+  onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void | Promise<void>
+  onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void | Promise<void>
   onToggleActive: (userId: string) => void
 }
 
@@ -92,6 +92,18 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
   const mayManageOrganization = hasPermission("user.manage_organization")
   const isSelf = currentUser?.id === user?.id
 
+  // What the user would hold once this sheet is saved. An admin who cannot edit staffing leaves it
+  // exactly as stored, so the check below reads the same value either way.
+  const mayEditStaffing = mayManageOrganization && !isSelf
+  const stagedPrimary = mayEditStaffing ? primaryApplication : currentPrimary
+  const selectedRole = roles.find((r) => r.id === roleId)
+
+  // The rule itself is the backend's; the frontend only asks the role whether it applies. Reading
+  // `requires_primary_application` off RoleResponse is what keeps a list of staffed role names out
+  // of the UI — no business logic here, just the flag the backend publishes.
+  const rolePrimaryApplicationMissing =
+    selectedRole?.requires_primary_application === true && stagedPrimary === null
+
   if (!user) return <Sheet open={false} onOpenChange={onOpenChange} />
 
   function togglePermission(permissionId: string, checked: boolean) {
@@ -103,17 +115,22 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
     })
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!user) return
-    if (roleId !== currentRoleId) onSaveRole(user.id, roleId)
+    if (rolePrimaryApplicationMissing) return
 
+    // Staffing is written before the role, never after: assigning a role that requires a primary
+    // application to a user who is only being given one in this same save would otherwise be
+    // refused by a backend that has not seen the application yet.
     const assignmentsChanged = primaryApplication !== currentPrimary || backupApplication !== currentBackup
-    if (mayManageOrganization && !isSelf && (assignmentsChanged || effectiveFunctionalTeam !== user.functional_team)) {
-      onSaveOrganizationalIdentity(user.id, {
+    if (mayEditStaffing && (assignmentsChanged || effectiveFunctionalTeam !== user.functional_team)) {
+      await onSaveOrganizationalIdentity(user.id, {
         functional_team: effectiveFunctionalTeam,
         application_assignments: buildAssignments(primaryApplication, backupApplication),
       })
     }
+
+    if (roleId !== currentRoleId) await onSaveRole(user.id, roleId)
 
     const toGrant = permissions.filter((p) => checkedPermissionIds.has(p.id) && !effectivePermissionIds.has(p.id)).map((p) => p.id)
     const toRevoke = permissions.filter((p) => !checkedPermissionIds.has(p.id) && effectivePermissionIds.has(p.id)).map((p) => p.id)
@@ -166,6 +183,13 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
                 ))}
               </SelectContent>
             </Select>
+            {rolePrimaryApplicationMissing && (
+              <p className="text-xs text-destructive">
+                {mayEditStaffing
+                  ? `Le rôle « ${selectedRole?.name} » nécessite une application principale. Renseignez-la ci-dessous.`
+                  : `Le rôle « ${selectedRole?.name} » nécessite une application principale, que cet utilisateur n'a pas.`}
+              </p>
+            )}
           </div>
           {mayManageOrganization && (
             <div className="space-y-3">
@@ -189,6 +213,10 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
                     // One application per user, never both roles on the same one — the same pair the
                     // aggregate refuses as a duplicate assignment.
                     if (next !== null && next === backupApplication) setBackupApplication(null)
+                    // A backup supplements an application of one's own, so it cannot outlive the
+                    // primary. Cleared visibly here rather than left to be refused on save, the same
+                    // way the AERO/VIO team rule is resolved for the admin instead of rejected.
+                    if (next === null) setBackupApplication(null)
                   }}
                 >
                   <SelectTrigger id="primary-application" className="w-full"><SelectValue /></SelectTrigger>
@@ -204,7 +232,7 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
                 <Label htmlFor="backup-application">Application de secours</Label>
                 <Select
                   value={backupApplication ?? NO_APPLICATION}
-                  disabled={isSelf}
+                  disabled={isSelf || primaryApplication === null}
                   onValueChange={(value) =>
                     setBackupApplication(value === NO_APPLICATION ? null : (value as Application))
                   }
@@ -219,6 +247,11 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
                       ))}
                   </SelectContent>
                 </Select>
+                {primaryApplication === null && !isSelf && (
+                  <p className="text-xs text-muted-foreground">
+                    Une application de secours nécessite d&apos;abord une application principale.
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="functional-team">Équipe fonctionnelle</Label>
@@ -269,7 +302,7 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
           </div>
         </div>
         <SheetFooter className="flex-row border-t border-border">
-          <Button className="flex-1" onClick={handleSave}>Enregistrer</Button>
+          <Button className="flex-1" onClick={handleSave} disabled={rolePrimaryApplicationMissing}>Enregistrer</Button>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
         </SheetFooter>
       </SheetContent>

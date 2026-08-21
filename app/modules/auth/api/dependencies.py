@@ -37,6 +37,7 @@ from app.modules.auth.infrastructure.persistence.unit_of_work import SqlAlchemyU
 from app.modules.auth.infrastructure.providers.clerk_jwt_verifier import ClerkJWTVerifier
 from app.modules.auth.infrastructure.providers.clerk_webhook_verifier import ClerkWebhookVerifier
 from app.modules.auth.domain.services.authorization_service import AuthorizationService
+from app.modules.auth.domain.services.staffing_service import StaffingService
 from app.shared.database.session import create_session
 from app.shared.events.event_bus import InMemoryEventBus
 from app.shared.events.event_publisher import EventPublisher
@@ -102,12 +103,19 @@ def get_authorization_service() -> AuthorizationService:
 	return AuthorizationService()
 
 
-def _command_handler(handler_type, uow, publisher=None, authorization_service=None):
+def get_staffing_service() -> StaffingService:
+	return StaffingService()
+
+
+# `domain_service` is whichever stateless domain service the handler takes last -- AuthorizationService
+# for the permission-exception handlers, StaffingService for the two that change staffing. Positional
+# because every handler here takes them in the same order.
+def _command_handler(handler_type, uow, publisher=None, domain_service=None):
 	args = [uow]
 	if publisher is not None:
 		args.append(publisher)
-	if authorization_service is not None:
-		args.append(authorization_service)
+	if domain_service is not None:
+		args.append(domain_service)
 	return handler_type(*args)
 
 
@@ -116,8 +124,8 @@ def get_update_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_uni
 def get_deactivate_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> DeactivateUserHandler: return _command_handler(DeactivateUserHandler, uow, publisher)
 def get_activate_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> ActivateUserHandler: return _command_handler(ActivateUserHandler, uow, publisher)
 def get_create_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)]) -> CreateRoleHandler: return _command_handler(CreateRoleHandler, uow)
-def get_set_user_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> SetUserRoleHandler: return _command_handler(SetUserRoleHandler, uow, publisher)
-def get_set_user_organizational_identity_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> SetUserOrganizationalIdentityHandler: return _command_handler(SetUserOrganizationalIdentityHandler, uow, publisher)
+def get_set_user_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)], staffing: Annotated[StaffingService, Depends(get_staffing_service)]) -> SetUserRoleHandler: return _command_handler(SetUserRoleHandler, uow, publisher, staffing)
+def get_set_user_organizational_identity_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)], staffing: Annotated[StaffingService, Depends(get_staffing_service)]) -> SetUserOrganizationalIdentityHandler: return _command_handler(SetUserOrganizationalIdentityHandler, uow, publisher, staffing)
 def get_grant_permission_to_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> GrantPermissionToRoleHandler: return _command_handler(GrantPermissionToRoleHandler, uow, publisher)
 def get_revoke_permission_from_role_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)]) -> RevokePermissionFromRoleHandler: return _command_handler(RevokePermissionFromRoleHandler, uow, publisher)
 def get_grant_permission_to_user_handler(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[EventPublisher, Depends(get_event_publisher)], service: Annotated[AuthorizationService, Depends(get_authorization_service)]) -> GrantPermissionToUserHandler: return _command_handler(GrantPermissionToUserHandler, uow, publisher, service)

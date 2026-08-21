@@ -7,6 +7,7 @@ from app.modules.auth.application.dto.user_dto import UserDTO
 from app.modules.auth.application.exceptions import RoleNotFound, UserNotFound
 from app.modules.auth.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.auth.domain.events.user_role_changed import UserRoleChanged
+from app.modules.auth.domain.services.staffing_service import StaffingService
 from app.shared.events.event_publisher import EventPublisher
 
 
@@ -17,11 +18,17 @@ class SetUserRoleHandler:
 	whose previous and new role are the same records an administrative act that did not
 	happen, and would notify the user that their role changed when nothing about their
 	access did.
+
+	A role that only means something for someone running an application is refused to a user
+	who runs none (`StaffingService`).  Checked here rather than inside `User` because the rule
+	spans both aggregates -- the requirement is declared on the Role, the staffing lives on the
+	User -- which is the same boundary `AuthorizationService` exists to sit on.
 	"""
 
-	def __init__(self, uow: UnitOfWork, event_publisher: EventPublisher) -> None:
+	def __init__(self, uow: UnitOfWork, event_publisher: EventPublisher, staffing_service: StaffingService) -> None:
 		self.uow = uow
 		self.event_publisher = event_publisher
+		self.staffing_service = staffing_service
 
 	async def handle(self, command: SetUserRoleCommand) -> UserDTO:
 		user = await self.uow.users.get_by_id(command.user_id)
@@ -35,6 +42,7 @@ class SetUserRoleHandler:
 		if previous_role_id == role.id:
 			return UserDTO.from_user(user)
 
+		self.staffing_service.ensure_staffed_for_role(user, role)
 		user.set_role(role.id)
 		await self.uow.users.update(user)
 		try:

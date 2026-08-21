@@ -61,6 +61,7 @@ async def _synchronize_roles(session: AsyncSession) -> None:
 			role = RoleModel(id=uuid4(), name=definition.name)
 			session.add(role)
 			role_models[definition.name] = role
+		role.requires_primary_application = definition.requires_primary_application
 		role.permissions = _permissions_for_names(definition.permission_names, permission_models)
 
 

@@ -6,6 +6,7 @@ from uuid import UUID
 from app.modules.auth.domain.constants import SUPPORT_ONLY_APPLICATIONS
 from app.modules.auth.domain.exceptions import (
 	AuthorizationDomainError,
+	BackupWithoutPrimaryApplication,
 	DuplicateApplicationAssignment,
 	FunctionalTeamNotAllowedForApplication,
 	InvalidFunctionalTeam,
@@ -57,6 +58,7 @@ class User:
 
 	def _validate_organizational_identity(self) -> None:
 		self._validate_assignment_cardinality()
+		self._validate_backup_requires_primary()
 		self._validate_functional_team_against_assignments()
 
 	def _validate_assignment_cardinality(self) -> None:
@@ -77,6 +79,20 @@ class User:
 			raise MultiplePrimaryApplications()
 		if types.count(AssignmentType.BACKUP) > 1:
 			raise MultipleBackupApplications()
+
+	def _validate_backup_requires_primary(self) -> None:
+		"""Nobody backs up an application without running one of their own.
+
+		A backup assignment is cover taken on *alongside* a project of one's own, never the
+		whole of someone's remit -- so it presupposes a primary rather than standing in for
+		one. Enforced here rather than in the schema because it is a rule about two rows
+		together, which the partial unique indexes carrying the rest of the cardinality rule
+		cannot express.
+		"""
+		if self.primary_application is not None:
+			return
+		if any(assignment.assignment_type == AssignmentType.BACKUP for assignment in self.application_assignments):
+			raise BackupWithoutPrimaryApplication()
 
 	@property
 	def primary_application(self) -> Application | None:

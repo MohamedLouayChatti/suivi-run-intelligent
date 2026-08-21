@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import Index, String
+from sqlalchemy import Boolean, Index, String
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -22,6 +22,11 @@ class RoleModel(Base):
 
 	id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
 	name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+	# Reference data set by the roles seeder, not by anything at runtime -- server_default so the
+	# column can be added NOT NULL to a table that already has rows.
+	requires_primary_application: Mapped[bool] = mapped_column(
+		Boolean, nullable=False, server_default="false", default=False
+	)
 
 	permissions: Mapped[list["PermissionModel"]] = relationship(
 		secondary=role_permissions, back_populates="roles", lazy="selectin"
