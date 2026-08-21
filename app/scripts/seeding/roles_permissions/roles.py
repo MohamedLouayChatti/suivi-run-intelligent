@@ -52,8 +52,27 @@ _SUPPORT_ENGINEER_PERMISSIONS: tuple[str, ...] = (
 	"analytics.read",
 )
 
+_ADMIN_EXCLUDED_PERMISSIONS: frozenset[str] = frozenset({"ticket.create"})
+"""The permissions an administrator is *not* seeded with, despite holding every other one.
+
+`ticket.create` is the one capability whose permission is not sufficient on its own:
+`TicketCreationPolicy` requires an assignment to the application the ticket is filed against and
+admits no breadth override, deliberately -- filing a ticket for an application you do not work on
+is a data-quality question rather than a privilege one.  An administrator legitimately runs no
+application, so seeding this onto the role produces a "Créer un ticket" button leading to a form
+that can never be submitted: a capability offered and then refused, which is worse than one never
+offered.
+
+Not a statement that administrators may never create tickets.  One who *is* staffed on an
+application is one direct grant away from it (`permission.grant_to_user`), which is exactly what
+the direct permission exceptions are for -- and unlike the role, that grant is made to someone
+whose assignments make it usable.
+"""
+
 SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
-	RoleDefinition("Admin", tuple(PERMISSIONS_BY_NAME)),
+	# Every permission except the ones above, which are useless to this role rather than withheld
+	# from it.  Nothing in the codebase reads the name "Admin"; this tuple is the whole definition.
+	RoleDefinition("Admin", tuple(name for name in PERMISSIONS_BY_NAME if name not in _ADMIN_EXCLUDED_PERMISSIONS)),
 	# An engineer works the tickets of the application they are on: TicketCreationPolicy already
 	# refuses a ticket for an application they hold no assignment to, so the role without one
 	# describes someone who cannot do the job it names.

@@ -2,6 +2,7 @@
 
 import {
   canActOnApplication,
+  canImportForApplication,
   canManageOthersTickets,
   hasAllPermissions,
   hasAnyPermission,
@@ -36,6 +37,8 @@ function usePermissions() {
       canActOnApplication(user, application),
     canManageOthersTickets: (application: Parameters<typeof canManageOthersTickets>[1]) =>
       canManageOthersTickets(user, application),
+    canImportForApplication: (application: Parameters<typeof canImportForApplication>[1]) =>
+      canImportForApplication(user, application),
   };
 }
 

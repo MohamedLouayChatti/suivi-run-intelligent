@@ -18,6 +18,7 @@ import {
 } from "@/features/knowledge-base/import-columns"
 import { useBatchImport } from "@/features/knowledge-base/use-batch-import"
 import { useTimedProgressSteps, type TimedProgressStep } from "@/hooks/use-timed-progress-steps"
+import { usePermissions } from "@/lib/auth"
 import type { BatchImportReport } from "@/services/api/knowledge-base"
 import type { components } from "@/types/api"
 
@@ -67,7 +68,19 @@ function rejectLocally(file: File): string | null {
 }
 
 function BatchImportPanel() {
-  const [application, setApplication] = useState<Application>("COLORIS")
+  const { isLoading: isLoadingUser, canImportForApplication } = usePermissions()
+  // Mirrors BatchImportPolicy: every application for a holder of the breadth permission,
+  // otherwise the single one the user runs. Permission-aware UX only — the route refuses an
+  // application outside this list with a 403 regardless of what the form offers.
+  const importableApplications = applicationOptions.filter(canImportForApplication)
+  // COLORIS stays the default wherever it is still on offer, and is the whole list for a user
+  // scoped to it; anyone else lands on the one application they may import for.
+  const defaultApplication: Application | null =
+    (importableApplications.includes("COLORIS") ? "COLORIS" : importableApplications[0]) ?? null
+  const [chosenApplication, setChosenApplication] = useState<Application | null>(null)
+  // Derived rather than stored, so the default follows GET /auth/me resolving without an effect
+  // to reconcile the two — a choice the user has made always wins over it.
+  const application = chosenApplication ?? defaultApplication
   const [file, setFile] = useState<File | null>(null)
   const [localError, setLocalError] = useState<string | null>(null)
   const [isDraggingOver, setIsDraggingOver] = useState(false)
@@ -98,14 +111,23 @@ function BatchImportPanel() {
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
-  function downloadTemplate() {
-    const blob = new Blob([buildTemplateCsv(application)], { type: "text/csv;charset=utf-8" })
+  function downloadTemplate(target: Application) {
+    const blob = new Blob([buildTemplateCsv(target)], { type: "text/csv;charset=utf-8" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.download = `modele_import_tickets_${application.toLowerCase()}.csv`
+    link.download = `modele_import_tickets_${target.toLowerCase()}.csv`
     link.click()
     URL.revokeObjectURL(url)
+  }
+
+  // A null application means there is nothing to import *for*: either the profile that decides
+  // that has not arrived yet, or the user holds the import permission without running any
+  // application. The second is a real state — an assignment can be cleared, and the permission
+  // can be granted directly to someone who has none — so it is answered rather than left as an
+  // empty picker above a working upload button.
+  if (application === null) {
+    return isLoadingUser ? null : <NoImportableApplicationNotice />
   }
 
   return (
@@ -114,7 +136,7 @@ function BatchImportPanel() {
         title="Déposer un fichier de tickets"
         description="Les tickets sont créés puis indexés dans la base de connaissances, en une seule opération."
         action={
-          <Button variant="outline" size="sm" onClick={downloadTemplate}>
+          <Button variant="outline" size="sm" onClick={() => downloadTemplate(application)}>
             <Download className="size-4" /> Télécharger un modèle
           </Button>
         }
@@ -124,14 +146,14 @@ function BatchImportPanel() {
             <Label htmlFor="import-application">Application</Label>
             <Select
               value={application}
-              onValueChange={(value) => setApplication(value as Application)}
-              disabled={isImporting}
+              onValueChange={(value) => setChosenApplication(value as Application)}
+              disabled={isImporting || importableApplications.length < 2}
             >
               <SelectTrigger id="import-application">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {applicationOptions.map((option) => (
+                {importableApplications.map((option) => (
                   <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>
@@ -141,6 +163,9 @@ function BatchImportPanel() {
             <p className="text-xs text-muted-foreground">
               Elle s&apos;applique à toutes les lignes du fichier. Le modèle téléchargé est adapté à
               l&apos;application choisie.
+              {importableApplications.length === 1 && (
+                <> Vous importez pour l&apos;application dont vous avez la charge.</>
+              )}
             </p>
           </div>
 
@@ -304,6 +329,24 @@ function ImportSuccessReport({
           <Button variant="outline" size="sm" className="mt-4" onClick={onReset}>
             <RotateCcw className="size-4" /> Importer un autre fichier
           </Button>
+        </div>
+      </div>
+    </SectionCard>
+  )
+}
+
+function NoImportableApplicationNotice() {
+  return (
+    <SectionCard>
+      <div className="flex items-start gap-3">
+        <TriangleAlert className="mt-0.5 size-5 shrink-0 text-destructive" strokeWidth={2} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">Aucune application à importer</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Un import est rattaché à une application, et vous n&apos;êtes affecté à aucune en tant
+            qu&apos;application principale. Demandez à un administrateur de vous affecter une
+            application principale, ou de vous accorder l&apos;import pour toutes les applications.
+          </p>
         </div>
       </div>
     </SectionCard>

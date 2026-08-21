@@ -1086,10 +1086,13 @@ export interface paths {
          *     rather than implying. A file with a single bad row is rejected whole, with 422 and every
          *     problem found, and nothing is written.
          *
-         *     Authorized by its own permission and nothing else. There is no instance to authorize against,
-         *     and no application-assignment check: which application the file belongs to is a property of the
-         *     file, and loading historical incidents in bulk is an administrative act rather than someone
-         *     filing a ticket on their own beat.
+         *     Authorized in two layers, and the application is what the second one judges. The permission
+         *     says the caller may run imports at all; `BatchImportPolicy` then says which application they may
+         *     run one *for* -- the one they are assigned to run, unless they hold the breadth permission that
+         *     widens it to every application. Without that second layer the first would let a project manager
+         *     for one application create thousands of tickets against another, which became reachable the
+         *     moment `knowledge_base.batch_import` stopped being an administrator's alone. There is still no
+         *     instance to authorize against: an import creates tickets rather than acting on one.
          */
         post: operations["import_ticket_batch_knowledge_base_batch_imports_post"];
         delete?: never;

@@ -15,6 +15,7 @@ import { statusConfig } from "@/components/app/status"
 import type { components } from "@/types/api"
 import type { TicketFilters } from "@/features/tickets/filter-tickets"
 import {
+  applicationOptions,
   priorityOptions,
   activeStatusOptions,
   categoryOptions,
@@ -28,12 +29,24 @@ interface TicketsFiltersProps {
   onChange: (patch: Partial<TicketFilters>) => void
   onReset: () => void
   assignees: UserDirectory[]
-  /** The user's own applications (primary, + backup if any) — never the full 4-app list;
-   * a user can only ever see tickets from applications they're assigned to. */
+  /** Mirrors the backend's ticket application scope: holding `ticket.read_any_application` is
+   * what lets a caller span every application, rather than belonging to any particular role.
+   * `GET /tickets` already returns every application's tickets to such a caller, so this only
+   * decides whether the filter offers them as choices. */
+  canReadAllApplications: boolean
+  /** The user's own applications (primary, + backup if any) — ignored when the caller holds the
+   * breadth permission above, who chooses from every application instead. */
   accessibleApplications: Application[]
 }
 
-function TicketsFilters({ filters, onChange, onReset, assignees, accessibleApplications }: TicketsFiltersProps) {
+function TicketsFilters({
+  filters,
+  onChange,
+  onReset,
+  assignees,
+  canReadAllApplications,
+  accessibleApplications,
+}: TicketsFiltersProps) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4">
       <div className="relative min-w-[220px] flex-1">
@@ -49,20 +62,33 @@ function TicketsFilters({ filters, onChange, onReset, assignees, accessibleAppli
       <Select
         value={filters.application}
         onValueChange={(value) => onChange({ application: value as TicketFilters["application"] })}
-        disabled={accessibleApplications.length < 2}
+        disabled={!canReadAllApplications && accessibleApplications.length < 2}
       >
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="Application" />
         </SelectTrigger>
         <SelectContent>
-          {accessibleApplications.length > 1 && (
-            <SelectItem value="all">Toutes mes applications</SelectItem>
+          {canReadAllApplications ? (
+            <>
+              <SelectItem value="all">Toutes les applications</SelectItem>
+              {applicationOptions.map((app) => (
+                <SelectItem key={app} value={app}>
+                  {app}
+                </SelectItem>
+              ))}
+            </>
+          ) : (
+            <>
+              {accessibleApplications.length > 1 && (
+                <SelectItem value="all">Toutes mes applications</SelectItem>
+              )}
+              {accessibleApplications.map((app) => (
+                <SelectItem key={app} value={app}>
+                  {app}
+                </SelectItem>
+              ))}
+            </>
           )}
-          {accessibleApplications.map((app) => (
-            <SelectItem key={app} value={app}>
-              {app}
-            </SelectItem>
-          ))}
         </SelectContent>
       </Select>
 

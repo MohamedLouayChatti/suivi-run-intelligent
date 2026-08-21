@@ -19,6 +19,9 @@ export default function TicketsPage() {
   const { data: currentUser } = useCurrentUser()
   const { hasPermission } = usePermissions()
   const canCreate = hasPermission("ticket.create")
+  // Mirrors the backend's ticket application scope: holding the breadth permission is what lets
+  // a caller span every application, rather than belonging to any particular role.
+  const canReadAllApplications = hasPermission("ticket.read_any_application")
   const { users } = useUserDirectory()
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
@@ -27,14 +30,25 @@ export default function TicketsPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   // Filters default to the user's primary application once GET /auth/me resolves, applied
-  // exactly once so it never overrides a filter the user has since changed.
+  // exactly once so it never overrides a filter the user has since changed. A caller who may
+  // read every application keeps the cross-application default instead — same rule as the
+  // Analyses page, and the view the breadth permission exists to give.
   const appliedDefaultRef = useRef(false)
   useEffect(() => {
-    if (!appliedDefaultRef.current && primaryApplication) {
+    if (appliedDefaultRef.current || !currentUser) return
+    if (!canReadAllApplications && primaryApplication) {
       setFilters(createDefaultTicketFilters(primaryApplication))
-      appliedDefaultRef.current = true
     }
-  }, [primaryApplication])
+    appliedDefaultRef.current = true
+  }, [currentUser, canReadAllApplications, primaryApplication])
+
+  function resetFilters() {
+    setFilters(
+      !canReadAllApplications && primaryApplication
+        ? createDefaultTicketFilters(primaryApplication)
+        : defaultTicketFilters,
+    )
+  }
 
   function handleFilterChange(patch: Partial<TicketFilters>) {
     setFilters((prev) => ({ ...prev, ...patch }))
@@ -47,8 +61,9 @@ export default function TicketsPage() {
         <TicketsFilters
           filters={filters}
           onChange={handleFilterChange}
-          onReset={() => setFilters(primaryApplication ? createDefaultTicketFilters(primaryApplication) : defaultTicketFilters)}
+          onReset={resetFilters}
           assignees={users}
+          canReadAllApplications={canReadAllApplications}
           accessibleApplications={accessibleApplications}
         />
         <MyActiveTicketsTable

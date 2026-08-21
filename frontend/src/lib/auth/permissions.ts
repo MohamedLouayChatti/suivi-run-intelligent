@@ -87,6 +87,26 @@ function canManageOthersTickets(
   );
 }
 
+/**
+ * Mirrors `BatchImportPolicy` — whether the user may load a file of tickets for `application`.
+ * Two independent ways to qualify, neither of them a role: the breadth permission, or the one
+ * application they run.
+ *
+ * A backup assignment deliberately does not qualify, unlike `canActOnApplication` above. Bulk
+ * loading an application's historical incidents decides what its whole corpus says and what
+ * every future similarity suggestion is drawn from, which is running the project rather than
+ * covering it — the same line `canManageOthersTickets` draws.
+ */
+function canImportForApplication(
+  user: CurrentUser | undefined,
+  application: Application
+): boolean {
+  return (
+    hasPermission(user, "knowledge_base.import_any_application") ||
+    isPrimaryApplication(user, application)
+  );
+}
+
 export {
   hasPermission,
   hasAllPermissions,
@@ -97,4 +117,5 @@ export {
   canActOnApplication,
   isPrimaryApplication,
   canManageOthersTickets,
+  canImportForApplication,
 };

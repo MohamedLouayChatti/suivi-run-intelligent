@@ -42,28 +42,19 @@ def parse_uuid(value: object) -> UUID | None:
 		return None
 
 
-_PRIMARY_ASSIGNMENT_TYPE = "PRIMARY"
-"""Auth's AssignmentType.PRIMARY, compared by value rather than by type.
-
-An application assignment belongs to Auth, and this module may not import Auth's domain --
-so the same by-value comparison `has_application_assignment` already uses for the application
-itself is what reads the assignment kind. Ticket Management has no assignment-type enum of its
-own to mirror, which is why this one is a named string.
-"""
-
-
 def has_application_assignment(current_user: CurrentUser, application: TicketApplication) -> bool:
-	return any(
-		assignment.application.value == application.value
-		for assignment in current_user.application_assignments
-	)
+	"""Named here, answered by `CurrentUser`.
+
+	An application assignment belongs to Auth, and this module may not import Auth's domain,
+	so the by-value comparison lives on `CurrentUser` -- the one shared type that may name
+	Auth's value object. These two read as this module's vocabulary while the rule itself has
+	a single spelling.
+	"""
+	return current_user.has_application_assignment(application)
 
 
 def has_primary_application_assignment(current_user: CurrentUser, application: TicketApplication) -> bool:
-	return any(
-		assignment.application.value == application.value and assignment.assignment_type.value == _PRIMARY_ASSIGNMENT_TYPE
-		for assignment in current_user.application_assignments
-	)
+	return current_user.has_primary_application_assignment(application)
 
 
 def is_same_functional_team(current_user: CurrentUser, functional_team: TicketFunctionalTeam) -> bool:

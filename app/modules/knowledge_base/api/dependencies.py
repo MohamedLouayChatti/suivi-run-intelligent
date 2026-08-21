@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from typing import Annotated
 
-from fastapi import Depends, Request
+from fastapi import Depends, Form, HTTPException, Request, status
 
 from app.modules.knowledge_base.application.commands.import_ticket_batch.handler import ImportTicketBatchHandler
 from app.modules.knowledge_base.application.commands.trigger_similarity_recalculation.handler import (
@@ -16,6 +16,7 @@ from app.modules.knowledge_base.application.queries.get_recalculation_schedule.h
 	GetRecalculationScheduleHandler,
 )
 from app.modules.knowledge_base.application.queries.get_similar_incidents.handler import GetSimilarIncidentsHandler
+from app.modules.knowledge_base.application.security.batch_import_policy import BatchImportPolicy
 from app.modules.knowledge_base.application.services.corpus_ingestion import CorpusIngestion
 from app.modules.knowledge_base.infrastructure.events.in_memory_event_publisher import InMemoryEventPublisher
 from app.modules.knowledge_base.infrastructure.jobs.similarity_recalculation_runner import (
@@ -46,6 +47,7 @@ from app.modules.ticket_management.application.commands.discard_imported_tickets
 	DiscardImportedTicketsHandler,
 )
 from app.modules.ticket_management.application.commands.import_tickets.handler import ImportTicketsHandler
+from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.infrastructure.events.in_memory_event_publisher import (
 	InMemoryEventPublisher as TicketEventPublisher,
 )
@@ -56,7 +58,37 @@ from app.modules.ticket_management.infrastructure.persistence.repositories.sqlal
 	SqlAlchemyTicketReadRepository,
 )
 from app.shared.database.session import create_session
+from app.shared.security.current_user import CurrentUser, get_current_user
 from app.workers.worker import job_queue, job_scheduler
+
+
+_batch_import_policy = BatchImportPolicy()
+
+
+async def require_batch_import_authorized(
+	application: Annotated[Application, Form()],
+	current_user: Annotated[CurrentUser, Depends(get_current_user)],
+) -> Application:
+	"""Authorizes the import against the application it declares, and hands that application on.
+
+	Shaped exactly like Ticket Management's `require_ticket_creation_authorized`: the field the
+	policy judges is also the dependency's return value, so the route receives it already
+	authorized rather than reading it a second time and trusting that something checked it.
+
+	The application is a form field rather than a path parameter, which is why this is a plain
+	dependency rather than `require_instance_permission` -- there is no instance, and no path
+	parameter naming one. FastAPI parses the multipart body once per request and both this and
+	the route read from that same parse, so declaring the field here costs no second read of the
+	upload.
+
+	A refusal is a 403 rather than an empty result, unlike the collection scopes elsewhere: this
+	is a single write with a named target, so there is no narrower window to fall back to -- there
+	is only the import happening or not.
+	"""
+	result = await _batch_import_policy.authorize(current_user=current_user, application=application)
+	if not result.allowed:
+		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=result.reason)
+	return application
 
 
 def get_event_publisher(request: Request) -> InMemoryEventPublisher:

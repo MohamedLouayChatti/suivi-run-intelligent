@@ -52,6 +52,7 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	PermissionDefinition("knowledge_base.read_recalculation", "Consulter la planification du recalcul complet du graphe de similarité."),
 	PermissionDefinition("knowledge_base.manage_recalculation", "Modifier la planification du recalcul complet du graphe de similarité et le déclencher manuellement."),
 	PermissionDefinition("knowledge_base.batch_import", "Importer un fichier de tickets en masse et l'intégrer à la base de connaissances."),
+	PermissionDefinition("knowledge_base.import_any_application", "Importer un fichier de tickets pour n'importe quelle application, au-delà de celle dont on a la charge."),
 )
 
 PERMISSIONS_BY_NAME = {permission.name: permission for permission in PERMISSION_CATALOG}

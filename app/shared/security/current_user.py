@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 from typing import Annotated
 from uuid import UUID
 
@@ -13,6 +14,7 @@ from app.modules.auth.application.queries.get_effective_permissions.handler impo
 from app.modules.auth.application.queries.get_effective_permissions.query import GetEffectivePermissionsQuery
 from app.shared.security.auth_provider import AuthProvider
 from app.modules.auth.domain.enums.functional_team import FunctionalTeam
+from app.modules.auth.domain.enums.assignment_type import AssignmentType
 from app.modules.auth.domain.value_objects.application_assignment import ApplicationAssignment
 
 
@@ -44,6 +46,32 @@ class CurrentUser:
 
 	def has_permission(self, permission: str) -> bool:
 		return permission in self.permissions
+
+	def has_application_assignment(self, application: Enum) -> bool:
+		"""Whether the caller is staffed on `application` at all -- as primary or as backup.
+
+		Takes any `Enum` and compares by value because every module owns its own `Application`
+		enum (same values, distinct types), while the assignments themselves are Auth's -- the
+		same by-value translation `require_application_scope` performs. Living here rather than
+		in each module is what keeps one spelling of the question: `CurrentUser` is the object
+		being asked about, and it is the one place that may name Auth's value object outright.
+		"""
+		return any(
+			assignment.application.value == application.value for assignment in self.application_assignments
+		)
+
+	def has_primary_application_assignment(self, application: Enum) -> bool:
+		"""Whether `application` is the one the caller *runs*, as opposed to one they back up.
+
+		The narrower half of the question above, and the one every "may they manage this" rule
+		asks: a backup assignment is cover taken on for someone else's project, and covering a
+		project is not running it.
+		"""
+		return any(
+			assignment.application.value == application.value
+			and assignment.assignment_type is AssignmentType.PRIMARY
+			for assignment in self.application_assignments
+		)
 
 
 _bearer_scheme = HTTPBearer(auto_error=False)

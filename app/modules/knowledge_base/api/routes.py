@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Response, UploadFile, status
 
 from app.modules.knowledge_base.api import dependencies as dep
 from app.modules.knowledge_base.api.schemas.batch_import import (
@@ -116,7 +116,7 @@ async def run_recalculation_now(
 )
 async def import_ticket_batch(
 	current_user: Annotated[CurrentUser, Depends(get_current_user)],
-	application: Annotated[Application, Form()],
+	application: Annotated[Application, Depends(dep.require_batch_import_authorized)],
 	file: Annotated[UploadFile, File()],
 	handler=Depends(dep.get_import_ticket_batch_handler),
 ):
@@ -134,10 +134,13 @@ async def import_ticket_batch(
 	rather than implying. A file with a single bad row is rejected whole, with 422 and every
 	problem found, and nothing is written.
 
-	Authorized by its own permission and nothing else. There is no instance to authorize against,
-	and no application-assignment check: which application the file belongs to is a property of the
-	file, and loading historical incidents in bulk is an administrative act rather than someone
-	filing a ticket on their own beat.
+	Authorized in two layers, and the application is what the second one judges. The permission
+	says the caller may run imports at all; `BatchImportPolicy` then says which application they may
+	run one *for* -- the one they are assigned to run, unless they hold the breadth permission that
+	widens it to every application. Without that second layer the first would let a project manager
+	for one application create thousands of tickets against another, which became reachable the
+	moment `knowledge_base.batch_import` stopped being an administrator's alone. There is still no
+	instance to authorize against: an import creates tickets rather than acting on one.
 	"""
 	command = ImportTicketBatchCommand(
 		application=application,

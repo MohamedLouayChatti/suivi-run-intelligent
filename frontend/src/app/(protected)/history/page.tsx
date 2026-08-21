@@ -9,13 +9,17 @@ import { HistoryTable } from "@/features/history/history-table"
 import { useHistoryList } from "@/features/history/use-history-list"
 import { defaultHistoryFilters, createDefaultHistoryFilters, type HistoryFilters } from "@/features/history/filter-history"
 import { useUserDirectory } from "@/hooks/use-user-directory"
-import { RequirePermission, useCurrentUser } from "@/lib/auth"
+import { RequirePermission, useCurrentUser, usePermissions } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 import { exportTicketHistory } from "@/services/api/tickets"
 
 export default function HistoryPage() {
   const { tickets, isLoading } = useHistoryList()
   const { data: currentUser } = useCurrentUser()
+  const { hasPermission } = usePermissions()
+  // Mirrors the backend's ticket application scope: holding the breadth permission is what lets
+  // a caller span every application, rather than belonging to any particular role.
+  const canReadAllApplications = hasPermission("ticket.read_any_application")
   const { users } = useUserDirectory()
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
@@ -39,14 +43,25 @@ export default function HistoryPage() {
   }
 
   // Filters default to the user's primary application once GET /auth/me resolves, applied
-  // exactly once so it never overrides a filter the user has since changed.
+  // exactly once so it never overrides a filter the user has since changed. A caller who may
+  // read every application keeps the cross-application default instead — same rule as the
+  // Analyses page, and the view the breadth permission exists to give.
   const appliedDefaultRef = useRef(false)
   useEffect(() => {
-    if (!appliedDefaultRef.current && primaryApplication) {
+    if (appliedDefaultRef.current || !currentUser) return
+    if (!canReadAllApplications && primaryApplication) {
       setFilters(createDefaultHistoryFilters(primaryApplication))
-      appliedDefaultRef.current = true
     }
-  }, [primaryApplication])
+    appliedDefaultRef.current = true
+  }, [currentUser, canReadAllApplications, primaryApplication])
+
+  function resetFilters() {
+    setFilters(
+      !canReadAllApplications && primaryApplication
+        ? createDefaultHistoryFilters(primaryApplication)
+        : defaultHistoryFilters,
+    )
+  }
 
   function handleFilterChange(patch: Partial<HistoryFilters>) {
     setFilters((prev) => ({ ...prev, ...patch }))
@@ -59,8 +74,9 @@ export default function HistoryPage() {
         <HistoryFiltersBar
           filters={filters}
           onChange={handleFilterChange}
-          onReset={() => setFilters(primaryApplication ? createDefaultHistoryFilters(primaryApplication) : defaultHistoryFilters)}
+          onReset={resetFilters}
           assignees={users}
+          canReadAllApplications={canReadAllApplications}
           accessibleApplications={accessibleApplications}
         />
         <HistoryTable tickets={tickets} filters={filters} isLoading={isLoading} />
