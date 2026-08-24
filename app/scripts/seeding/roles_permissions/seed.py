@@ -21,8 +21,10 @@ logger = logging.getLogger(__name__)
 
 async def synchronize_authorization_data(session: AsyncSession) -> None:
 	"""Make permissions, seeded roles, and their assignments match the catalogs."""
+	_validate_catalogs()
 	await _synchronize_permissions(session)
 	await session.flush()
+	await _synchronize_permission_dependencies(session)
 	await _synchronize_roles(session)
 	await _remove_stale_roles(session)
 	await session.flush()
@@ -41,6 +43,57 @@ async def _synchronize_permissions(session: AsyncSession) -> None:
 			by_name[definition.name] = model
 		elif model.description != definition.description:
 			model.description = definition.description
+
+
+def _validate_catalogs() -> None:
+	"""Refuse to seed a permission graph or a role that could never be satisfied.
+
+	Both checks belong here rather than in the domain: the catalogs are the source of truth,
+	and a cycle or an unclosed role is a mistake in *them*, caught once at the moment they are
+	written to the database rather than every time permissions are resolved afterwards.
+	"""
+	for definition in PERMISSION_CATALOG:
+		for required in definition.requires:
+			if required not in PERMISSIONS_BY_NAME:
+				raise ValueError(f"Permission {definition.name!r} requires unknown permission {required!r}")
+
+	for definition in PERMISSION_CATALOG:
+		_prerequisite_closure(definition.name, ())
+
+	for role in SEEDED_ROLE_DEFINITIONS:
+		held = set(role.permission_names)
+		for name in sorted(held):
+			missing = _prerequisite_closure(name, ()) - held
+			if missing:
+				raise ValueError(
+					f"Role {role.name!r} holds {name!r} without {sorted(missing)}, which it cannot be used without"
+				)
+
+
+def _prerequisite_closure(name: str, path: tuple[str, ...]) -> set[str]:
+	if name in path:
+		raise ValueError(f"Permission dependency cycle: {' -> '.join([*path, name])}")
+	reached: set[str] = set()
+	for required in PERMISSIONS_BY_NAME[name].requires:
+		reached.add(required)
+		reached |= _prerequisite_closure(required, (*path, name))
+	return reached
+
+
+async def _synchronize_permission_dependencies(session: AsyncSession) -> None:
+	"""Fully resync each permission's prerequisites, the way role permission sets are resynced.
+
+	Written as a wholesale replacement rather than an incremental diff so the catalog stays
+	authoritative: an edge deleted from it disappears here on the next run.
+	"""
+	models = {
+		model.name: model
+		for model in (
+			await session.scalars(select(PermissionModel).options(selectinload(PermissionModel.required_permissions)))
+		).all()
+	}
+	for definition in PERMISSION_CATALOG:
+		models[definition.name].required_permissions = [models[name] for name in definition.requires]
 
 
 async def _synchronize_roles(session: AsyncSession) -> None:

@@ -4,6 +4,7 @@ from collections.abc import Awaitable, Callable, Iterable
 from typing import Any
 from uuid import UUID, uuid4
 
+from app.modules.auth.application.dto.permission_dto import PermissionDTO
 from app.modules.notifications.application.mapping.recipient_resolution import RecipientResolver
 from app.modules.notifications.domain.entities.notification import Notification
 from app.modules.notifications.domain.enums.notification_type import NotificationType
@@ -143,9 +144,19 @@ _SIMILARITY_GRAPH_AUDIENCE = "knowledge_base.read_recalculation"
 # may need re-running, which is the uploader's job rather than the maintainer's.
 _BATCH_IMPORT_AUDIENCE = "knowledge_base.batch_import"
 # A signup lands inactive and stays that way until somebody activates it, so the audience is the
-# people who can perform exactly that act. They also hold `user.read_all` in every seeded role
-# today, which is what makes this notification's deep link into the users page reachable for them.
+# people who can perform exactly that act. They necessarily hold `user.read_all` too -- the
+# catalog declares it a prerequisite of `user.activate` -- which is what makes this
+# notification's deep link into the users page reachable for every recipient rather than for
+# whichever roles happen to bundle both.
 _NEW_USER_AUDIENCE = "user.activate"
+
+_MAX_LISTED_CAPABILITIES = 3
+"""How many revoked capabilities a single notification spells out before counting the rest.
+
+Revoking a permission takes everything that depended on it too, so one administrative act can
+remove fifteen at once. Naming all of them turns a notification into a report nobody reads;
+the audit log keeps the full set for whoever needs it.
+"""
 
 
 def _assignment_for(assignments: Iterable[ApplicationAssignment], assignment_type: AssignmentType) -> str | None:
@@ -259,6 +270,22 @@ class NotificationMapper:
 		regular enough to parse (half the catalog uses multi-word verbs like
 		`change_priority` or `grant_to_role`)."""
 		return description[:1].lower() + description[1:] if description else description
+
+	@classmethod
+	def _capability_list(cls, permissions: list[PermissionDTO]) -> str:
+		"""What a revocation took away, as one readable clause after a fixed lead-in.
+
+		A revocation carries every permission that depended on it, so this can be fifteen
+		descriptions at once -- more than anyone reads in a notification. Three are named and
+		the rest counted, which tells the recipient what changed without turning a notification
+		into a report; the audit log has the full list for anyone who needs it.
+		"""
+		described = sorted(cls._lead_in(permission.description).rstrip(".") for permission in permissions)
+		if len(described) <= _MAX_LISTED_CAPABILITIES:
+			return f"{', '.join(described)}."
+		remaining = len(described) - _MAX_LISTED_CAPABILITIES
+		listed = ", ".join(described[:_MAX_LISTED_CAPABILITIES])
+		return f"{listed}, et {remaining} autre{'s' if remaining > 1 else ''} action{'s' if remaining > 1 else ''}."
 
 	# -- Ticket Management ---------------------------------------------------
 
@@ -469,14 +496,15 @@ class NotificationMapper:
 		)
 
 	async def _permission_revoked(self, event: PermissionRevokedFromUser) -> list[Notification]:
-		permission = await self._recipients.get_permission(event.permission_id)
-		if permission is None:
+		permissions = await self._recipients.get_permissions(event.permission_ids)
+		if not permissions:
 			return []
 		return self._for_recipients(
 			event, [event.user_id],
-			title="Permission retirée", message=f"Vous ne pouvez plus : {self._lead_in(permission.description)}",
+			title="Permission retirée" if len(permissions) == 1 else "Permissions retirées",
+			message=f"Vous ne pouvez plus : {self._capability_list(permissions)}",
 			type=NotificationType.PERMISSION_REVOKED, action=None,
-			metadata={"user_id": str(event.user_id), "permission_id": str(event.permission_id)},
+			metadata={"user_id": str(event.user_id), "permission_ids": sorted(str(x) for x in event.permission_ids)},
 		)
 
 	async def _role_permission_granted(self, event: RolePermissionGranted) -> list[Notification]:
@@ -496,15 +524,15 @@ class NotificationMapper:
 	async def _role_permission_revoked(self, event: RolePermissionRevoked) -> list[Notification]:
 		recipient_ids = await self._recipients.active_user_ids_with_role(event.role_id)
 		role_name = await self._recipients.get_role_name(event.role_id)
-		permission = await self._recipients.get_permission(event.permission_id)
-		if role_name is None or permission is None:
+		permissions = await self._recipients.get_permissions(event.permission_ids)
+		if role_name is None or not permissions:
 			return []
 		return self._for_recipients(
 			event, recipient_ids,
 			title="Permissions du rôle modifiées",
-			message=f'Les membres du rôle « {role_name} » ne peuvent plus : {self._lead_in(permission.description)}',
+			message=f'Les membres du rôle « {role_name} » ne peuvent plus : {self._capability_list(permissions)}',
 			type=NotificationType.ROLE_PERMISSION_REVOKED, action=None,
-			metadata={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
+			metadata={"role_id": str(event.role_id), "permission_ids": sorted(str(x) for x in event.permission_ids)},
 		)
 
 	async def _user_created(self, event: UserCreated) -> list[Notification]:

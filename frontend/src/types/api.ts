@@ -1365,9 +1365,9 @@ export interface components {
         };
         /** Body_import_ticket_batch_knowledge_base_batch_imports_post */
         Body_import_ticket_batch_knowledge_base_batch_imports_post: {
-            application: components["schemas"]["Application"];
             /** File */
             file: string;
+            application: components["schemas"]["Application"];
         };
         /**
          * Category
@@ -1604,6 +1604,8 @@ export interface components {
             name: string;
             /** Description */
             description: string;
+            /** Required Permission Ids */
+            required_permission_ids: string[];
         };
         /**
          * Priority

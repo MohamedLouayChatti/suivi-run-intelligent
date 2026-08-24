@@ -19,3 +19,13 @@ class UserRoleChanged(DomainEvent):
 	user_id: UUID
 	previous_role_id: UUID
 	new_role_id: UUID
+	discarded_direct_permission_ids: frozenset[UUID]
+	discarded_revoked_permission_ids: frozenset[UUID]
+	"""The permission exceptions the role change swept away, on both sides.
+
+	Setting a role replaces the user's whole permission profile, so any direct grant or
+	revocation decided against the previous role goes with it.  Carried here because those
+	exceptions were themselves administrative decisions, recorded in this log when they were
+	made -- leaving their disappearance unrecorded would make the log say a user still holds a
+	permission that was taken from them, with nothing in between to explain it.
+	"""

@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 from app.shared.database.base import Base
 
-from .association_tables import role_permissions, user_direct_permissions, user_revoked_permissions
+from .association_tables import permission_dependencies, role_permissions, user_direct_permissions, user_revoked_permissions
 
 
 class PermissionModel(Base):
@@ -34,3 +34,16 @@ class PermissionModel(Base):
 	revoked_users: Mapped[list["UserModel"]] = relationship(
 		secondary=user_revoked_permissions, back_populates="revoked_permissions", lazy="selectin"
 	)
+	required_permissions: Mapped[list["PermissionModel"]] = relationship(
+		secondary=permission_dependencies,
+		primaryjoin=lambda: PermissionModel.id == permission_dependencies.c.permission_id,
+		secondaryjoin=lambda: PermissionModel.id == permission_dependencies.c.requires_permission_id,
+		lazy="selectin",
+	)
+	"""The permissions this one cannot be used without -- direct prerequisites only.
+
+	Eagerly loaded like the rest of this model's relationships: the catalog is forty rows of
+	reference data, and every effective-permission resolution needs the whole graph anyway.
+	One-directional on purpose -- nothing asks a permission what depends on it, and the
+	reverse edges are derived in the domain when a cascade needs them.
+	"""

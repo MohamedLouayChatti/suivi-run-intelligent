@@ -8,6 +8,7 @@ from app.modules.auth.application.exceptions import PermissionNotFound, RoleNotF
 from app.modules.auth.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.auth.domain.events.permission_granted_to_user import PermissionGrantedToUser
 from app.modules.auth.domain.services.authorization_service import AuthorizationService
+from app.modules.auth.domain.value_objects.permission_dependency_graph import PermissionDependencyGraph
 from app.shared.events.event_publisher import EventPublisher
 
 
@@ -27,7 +28,17 @@ class GrantPermissionToUserHandler:
 		role = await self.uow.roles.get_by_id(user.role_id)
 		if role is None:
 			raise RoleNotFound()
-		self.authorization_service.ensure_direct_permission_may_be_granted(user, permission.id, role)
+		catalog = await self.uow.permissions.list()
+		# Checked against the user's *effective* permissions, not their direct ones: a
+		# prerequisite satisfied by the role they hold is satisfied, and requiring it to be
+		# granted directly as well would refuse coherent grants.
+		self.authorization_service.ensure_direct_permission_may_be_granted(
+			user,
+			permission,
+			role,
+			PermissionDependencyGraph.from_permissions(catalog),
+			{entry.id: entry.name for entry in catalog},
+		)
 		user.grant_permission(permission.id)
 		await self.uow.users.update(user)
 		try:

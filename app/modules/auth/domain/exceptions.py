@@ -63,3 +63,24 @@ class PrimaryApplicationRequiredForRole(AuthorizationDomainError):
 	Which roles those are is declared on the Role itself (`requires_primary_application`), so
 	this is never a statement about any particular role name.
 	"""
+
+
+class PermissionPrerequisiteNotSatisfied(AuthorizationDomainError):
+	"""A permission was granted to a holder lacking the permissions it cannot be used without.
+
+	Refused rather than satisfied automatically: conferring the prerequisites silently would
+	hand over reach nobody asked for -- granting `user.activate` would quietly add
+	`user.read_all` and every user's email with it.  The missing names are carried on the
+	exception so the caller can be told what else to grant.
+	"""
+
+	def __init__(self, permission_name: str, missing_permission_names: frozenset[str]) -> None:
+		self.permission_name = permission_name
+		self.missing_permission_names = missing_permission_names
+		super().__init__(
+			f"'{permission_name}' requires {sorted(missing_permission_names)}, which the holder does not have."
+		)
+
+
+class CircularPermissionDependency(AuthorizationDomainError):
+	"""The permission dependency graph contains a cycle, so no holder could ever satisfy it."""

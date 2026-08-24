@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from contextlib import AbstractAsyncContextManager
 from uuid import UUID
 
@@ -57,6 +57,18 @@ class RecipientResolver:
 	async def get_permission(self, permission_id: UUID) -> PermissionDTO | None:
 		async with self._permission_repository_scope() as permissions:
 			return await permissions.get_permission(permission_id)
+
+	async def get_permissions(self, permission_ids: Iterable[UUID]) -> list[PermissionDTO]:
+		"""Several permissions at once, for the events that revoke a permission and its dependents.
+
+		One repository scope for the whole set rather than one per id: a single revocation can
+		carry away fifteen permissions, and opening fifteen sessions to describe one
+		administrative act would be absurd. Ids that resolve to nothing are dropped, matching
+		`get_permission` returning `None`.
+		"""
+		async with self._permission_repository_scope() as permissions:
+			resolved = [await permissions.get_permission(permission_id) for permission_id in permission_ids]
+		return [permission for permission in resolved if permission is not None]
 
 	async def _all_active_users(self) -> list[UserDTO]:
 		async with self._user_repository_scope() as users:

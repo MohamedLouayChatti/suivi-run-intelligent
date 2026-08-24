@@ -23,6 +23,9 @@ class SetUserRoleHandler:
 	who runs none (`StaffingService`).  Checked here rather than inside `User` because the rule
 	spans both aggregates -- the requirement is declared on the Role, the staffing lives on the
 	User -- which is the same boundary `AuthorizationService` exists to sit on.
+
+	Setting a role also clears every permission exception the user carried, which `User.set_role`
+	owns; the exceptions swept away are captured here only so the published event can carry them.
 	"""
 
 	def __init__(self, uow: UnitOfWork, event_publisher: EventPublisher, staffing_service: StaffingService) -> None:
@@ -43,6 +46,8 @@ class SetUserRoleHandler:
 			return UserDTO.from_user(user)
 
 		self.staffing_service.ensure_staffed_for_role(user, role)
+		discarded_direct = frozenset(user.direct_permission_ids)
+		discarded_revoked = frozenset(user.revoked_permission_ids)
 		user.set_role(role.id)
 		await self.uow.users.update(user)
 		try:
@@ -55,6 +60,8 @@ class SetUserRoleHandler:
 				user_id=user.id,
 				previous_role_id=previous_role_id,
 				new_role_id=role.id,
+				discarded_direct_permission_ids=discarded_direct,
+				discarded_revoked_permission_ids=discarded_revoked,
 				occurred_at=datetime.now(UTC),
 				actor_id=command.actor_id,
 			)

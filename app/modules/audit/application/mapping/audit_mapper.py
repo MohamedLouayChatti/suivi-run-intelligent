@@ -305,6 +305,12 @@ class AuditMapper:
 				"user_id": str(event.user_id),
 				"previous_role_id": str(event.previous_role_id),
 				"new_role_id": str(event.new_role_id),
+				# Setting a role replaces the whole permission profile, so any direct grant or
+				# revocation the user carried is swept away with the old role. Those exceptions
+				# were themselves recorded here when they were made; without this the log would
+				# show them granted and never taken back.
+				"discarded_direct_permission_ids": sorted(str(x) for x in event.discarded_direct_permission_ids),
+				"discarded_revoked_permission_ids": sorted(str(x) for x in event.discarded_revoked_permission_ids),
 			},
 		)
 
@@ -335,10 +341,17 @@ class AuditMapper:
 		)
 
 	def _permission_revoked_from_user(self, event: PermissionRevokedFromUser) -> AuditEntry:
+		"""One entry for one administrative act, however many permissions it carried away.
+
+		A revocation takes every permission that depended on the one named with it, and those
+		dependents are the consequence of a single decision rather than decisions of their own
+		-- writing one row each would make the log report fifteen acts where an administrator
+		performed one.  The whole set is in the payload, so nothing is lost by not splitting it.
+		"""
 		return self._entry(
 			event, module="auth", event_type="PermissionRevokedFromUser",
 			action="user.permission_revoked", resource_type="user",
-			payload={"user_id": str(event.user_id), "permission_id": str(event.permission_id)},
+			payload={"user_id": str(event.user_id), "permission_ids": sorted(str(x) for x in event.permission_ids)},
 		)
 
 	def _role_permission_granted(self, event: RolePermissionGranted) -> AuditEntry:
@@ -349,10 +362,11 @@ class AuditMapper:
 		)
 
 	def _role_permission_revoked(self, event: RolePermissionRevoked) -> AuditEntry:
+		"""One entry per administrative act, as for `_permission_revoked_from_user` above."""
 		return self._entry(
 			event, module="auth", event_type="RolePermissionRevoked",
 			action="role.permission_revoked", resource_type="role",
-			payload={"role_id": str(event.role_id), "permission_id": str(event.permission_id)},
+			payload={"role_id": str(event.role_id), "permission_ids": sorted(str(x) for x in event.permission_ids)},
 		)
 
 	# -- Knowledge Base ----------------------------------------------------

@@ -164,9 +164,23 @@ class User:
 			raise
 
 	def set_role(self, role_id: UUID) -> None:
+		"""Replace the user's role, discarding every permission exception they carried.
+
+		A role is a whole permission profile, not a starting point layered on: the exceptions
+		below were decided against the *previous* role, so carrying them across would leave a
+		user widened or narrowed for reasons nobody can reconstruct -- a direct grant made
+		because the old role lacked something the new one includes, a revocation aimed at a
+		permission the new role never had.  After this the user holds exactly what the new
+		role holds, which is the only permission profile the change can be said to describe.
+
+		It also removes the one way a role change could produce an incoherent effective set:
+		a direct grant whose prerequisite came from the old role has nothing left to orphan.
+		"""
 		if not isinstance(role_id, UUID):
 			raise InvalidRole()
 		self.role_id = role_id
+		self.direct_permission_ids = set()
+		self.revoked_permission_ids = set()
 
 	def grant_permission(self, permission_id: UUID) -> None:
 		self.revoked_permission_ids.discard(permission_id)

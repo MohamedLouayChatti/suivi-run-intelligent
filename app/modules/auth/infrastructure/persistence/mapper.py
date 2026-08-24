@@ -68,11 +68,11 @@ def permission_to_model(permission: Permission) -> PermissionModel:
 
 
 def permission_model_to_domain(model: PermissionModel) -> Permission:
-	return Permission(id=model.id, name=model.name, description=model.description)
+	return Permission(id=model.id, name=model.name, description=model.description, required_permission_ids=frozenset(x.id for x in model.required_permissions))
 
 
 def permission_model_to_dto(model: PermissionModel) -> PermissionDTO:
-	return PermissionDTO(id=model.id, name=model.name, description=model.description)
+	return PermissionDTO(id=model.id, name=model.name, description=model.description, required_permission_ids=frozenset(x.id for x in model.required_permissions))
 
 
 def _sync_user_relationships(model: UserModel, user: User, permissions: Iterable[PermissionModel]) -> None:

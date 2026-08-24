@@ -8,6 +8,7 @@ from app.modules.auth.application.exceptions import PermissionNotFound, RoleNotF
 from app.modules.auth.application.interfaces.unit_of_work import UnitOfWork
 from app.modules.auth.domain.events.permission_revoked_from_user import PermissionRevokedFromUser
 from app.modules.auth.domain.services.authorization_service import AuthorizationService
+from app.modules.auth.domain.value_objects.permission_dependency_graph import PermissionDependencyGraph
 from app.shared.events.event_publisher import EventPublisher
 
 
@@ -27,13 +28,23 @@ class RevokePermissionFromUserHandler:
 		role = await self.uow.roles.get_by_id(user.role_id)
 		if role is None:
 			raise RoleNotFound()
-		self.authorization_service.ensure_direct_permission_may_be_revoked(user, permission.id, role)
-		user.revoke_permission(permission.id)
+		catalog = await self.uow.permissions.list()
+		dependencies = PermissionDependencyGraph.from_permissions(catalog)
+		self.authorization_service.ensure_direct_permission_may_be_revoked(user, permission.id, role, dependencies)
+
+		# Everything that depended on this permission comes away in the same act, since leaving
+		# it held-but-unusable is precisely the state the dependency relation exists to prevent.
+		# `User.revoke_permission` records each as an exception rather than merely dropping a
+		# direct grant, which is what makes this reach a dependent inherited from the role.
+		effective = self.authorization_service.resolve_permissions(user, role, dependencies)
+		revoked = self.authorization_service.cascade_for_revocation(permission.id, held=effective, dependencies=dependencies)
+		for permission_id in revoked:
+			user.revoke_permission(permission_id)
 		await self.uow.users.update(user)
 		try:
 			await self.uow.commit()
 		except Exception:
 			await self.uow.rollback()
 			raise
-		await self.event_publisher.publish(PermissionRevokedFromUser(user_id=user.id, permission_id=permission.id, occurred_at=datetime.now(UTC), actor_id=command.actor_id))
+		await self.event_publisher.publish(PermissionRevokedFromUser(user_id=user.id, permission_ids=revoked, occurred_at=datetime.now(UTC), actor_id=command.actor_id))
 		return UserDTO.from_user(user)
