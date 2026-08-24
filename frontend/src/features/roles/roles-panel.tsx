@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
+import { Lock } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -16,13 +17,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
+import { buildPermissionGraph } from "@/lib/auth"
 import { useRolesList } from "@/hooks/use-roles-list"
 import { usePermissionsList } from "@/hooks/use-permissions-list"
 import { useUsersList } from "@/hooks/use-users-list"
 import { useRolesAdmin } from "@/features/roles/use-roles-admin"
-import type { components } from "@/types/api"
-
-type PermissionResponse = components["schemas"]["PermissionResponse"]
 
 // Static presentational copy — RoleResponse only carries id/name/permission_ids, and role
 // management (create/edit) isn't part of this app; roles are seeded, not authored by admins.
@@ -38,21 +37,46 @@ const roleDescriptions: Record<string, string> = {
 }
 
 function RolesPanel() {
+  const { capabilities, togglePermission } = useRolesAdmin()
   const { roles } = useRolesList()
-  const { permissions } = usePermissionsList()
-  const { users } = useUsersList()
-  const { togglePermission } = useRolesAdmin()
+  const { permissions } = usePermissionsList({ enabled: capabilities.readPermissions })
+  // Only for the member count, and only when the caller may read every user. Firing this
+  // unconditionally is what used to force `user.read_all` onto the whole page's gate.
+  const { users } = useUsersList({ enabled: capabilities.countMembers })
   const [activeRoleId, setActiveRoleId] = useState<string | null>(null)
-  const [pendingChange, setPendingChange] = useState<{ permission: PermissionResponse; granted: boolean } | null>(null)
+  const [pendingChange, setPendingChange] = useState<
+    { permissionId: string; permissionName: string; granted: boolean; cascade: Set<string> } | null
+  >(null)
+
+  // The same relation the backend enforces, published on each permission rather than restated.
+  const graph = useMemo(() => buildPermissionGraph(permissions), [permissions])
+  const permissionsByName = useMemo(
+    () => new Map(permissions.map((permission) => [permission.id, permission.name])),
+    [permissions]
+  )
 
   const roleId = activeRoleId ?? roles[0]?.id
   const role = roles.find((r) => r.id === roleId)
   if (!role) return null
 
   const currentRoleId = role.id
+  const grantedIds = new Set(role.permission_ids)
+
+  function namesOf(ids: Iterable<string>): string[] {
+    return [...ids].map((id) => permissionsByName.get(id) ?? id).sort()
+  }
+
+  function requestChange(permissionId: string, permissionName: string, granted: boolean) {
+    // Revoking carries away everything in the role that depended on this permission, exactly as
+    // the backend's cascade does; granting affects only itself, its prerequisites being required
+    // to be present already.
+    const cascade = granted ? new Set([permissionId]) : graph.cascadeOf(permissionId, grantedIds)
+    setPendingChange({ permissionId, permissionName, granted, cascade })
+  }
+
   function confirmPendingChange() {
     if (!pendingChange) return
-    togglePermission(currentRoleId, pendingChange.permission.id, pendingChange.granted)
+    togglePermission(currentRoleId, pendingChange.permissionId, pendingChange.granted)
     setPendingChange(null)
   }
 
@@ -61,9 +85,15 @@ function RolesPanel() {
   )
 
   const stats: [string, string][] = [
-    ["Membres", String(memberCounts[role.id] ?? 0)],
+    ...(capabilities.countMembers
+      ? ([["Membres", String(memberCounts[role.id] ?? 0)]] as [string, string][])
+      : []),
     ["Permissions", `${role.permission_ids.length} sur ${permissions.length}`],
   ]
+
+  const cascadeExtras = pendingChange
+    ? namesOf([...pendingChange.cascade].filter((id) => id !== pendingChange.permissionId))
+    : []
 
   return (
     <div className="grid gap-6 xl:grid-cols-[20rem_minmax(0,1fr)]">
@@ -82,9 +112,11 @@ function RolesPanel() {
                   <span className={cn("text-sm font-medium", role.id === r.id && "text-primary")}>
                     {r.name}
                   </span>
-                  <span className="text-xs tabular text-muted-foreground">
-                    {memberCounts[r.id] ?? 0} membres
-                  </span>
+                  {capabilities.countMembers && (
+                    <span className="text-xs tabular text-muted-foreground">
+                      {memberCounts[r.id] ?? 0} membres
+                    </span>
+                  )}
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                   {roleDescriptions[r.name] ?? ""}
@@ -107,43 +139,82 @@ function RolesPanel() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Permissions" description="Capacités accordées pour ce rôle" bodyClassName="p-0">
-          <ul className="divide-y divide-border">
-            {permissions.map((p) => {
-              const granted = role.permission_ids.includes(p.id)
-              return (
-                <li key={p.id} className="flex items-center gap-3 px-5 py-3">
-                  <Checkbox
-                    id={`role-perm-${p.id}`}
-                    checked={granted}
-                    onCheckedChange={() => setPendingChange({ permission: p, granted: !granted })}
-                  />
-                  <Label htmlFor={`role-perm-${p.id}`} className="cursor-pointer font-mono text-xs">
-                    {p.name}
-                  </Label>
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {granted ? "Accordée" : "Non accordée"}
-                  </span>
-                </li>
-              )
-            })}
-          </ul>
-        </SectionCard>
+        {capabilities.readPermissions && (
+          <SectionCard title="Permissions" description="Capacités accordées pour ce rôle" bodyClassName="p-0">
+            <ul className="divide-y divide-border">
+              {permissions.map((p) => {
+                const granted = grantedIds.has(p.id)
+                // A role cannot hold a permission without the ones it is built on, so the box
+                // stays disabled until they are granted. The backend refuses such a grant
+                // outright; this only avoids offering it.
+                const missing = granted ? new Set<string>() : graph.missingPrerequisites(p.id, grantedIds)
+                const blocked = missing.size > 0
+                const editable = granted ? capabilities.revokePermission : capabilities.grantPermission
+                return (
+                  <li key={p.id} className="flex items-start gap-3 px-5 py-3">
+                    <Checkbox
+                      id={`role-perm-${p.id}`}
+                      checked={granted}
+                      disabled={!editable || blocked}
+                      className="mt-0.5"
+                      onCheckedChange={() => requestChange(p.id, p.name, !granted)}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <Label
+                        htmlFor={`role-perm-${p.id}`}
+                        className={cn("font-mono text-xs", editable && !blocked && "cursor-pointer")}
+                      >
+                        {p.name}
+                      </Label>
+                      {blocked && (
+                        <p className="mt-0.5 flex items-start gap-1 text-[11px] leading-snug text-muted-foreground">
+                          <Lock className="mt-px size-3 shrink-0" />
+                          <span>Nécessite {namesOf(missing).join(", ")}</span>
+                        </p>
+                      )}
+                    </div>
+                    <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                      {granted ? "Accordée" : "Non accordée"}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </SectionCard>
+        )}
       </div>
 
       <AlertDialog open={pendingChange !== null} onOpenChange={(open) => !open && setPendingChange(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle>
               {pendingChange?.granted
-                ? `Accorder la permission "${pendingChange.permission.name}" au rôle "${role.name}" ? Tous les membres de ce rôle en bénéficieront immédiatement.`
-                : `Révoquer la permission "${pendingChange?.permission.name}" du rôle "${role.name}" ? Tous les membres de ce rôle la perdront immédiatement, sauf si elle leur est accordée directement.`}
+                ? "Accorder cette permission ?"
+                : cascadeExtras.length > 0
+                  ? "Révoquer plusieurs permissions ?"
+                  : "Révoquer cette permission ?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingChange?.granted ? (
+                `Accorder la permission « ${pendingChange.permissionName} » au rôle « ${role.name} » ? Tous les membres de ce rôle en bénéficieront immédiatement.`
+              ) : cascadeExtras.length > 0 ? (
+                <>
+                  {`« ${pendingChange?.permissionName} » est requise par ${cascadeExtras.length} autre${cascadeExtras.length > 1 ? "s" : ""} permission${cascadeExtras.length > 1 ? "s" : ""} de ce rôle, qui ${cascadeExtras.length > 1 ? "seront révoquées" : "sera révoquée"} également : `}
+                  <span className="font-medium">{cascadeExtras.join(", ")}</span>
+                  {". Tous les membres du rôle les perdront immédiatement."}
+                </>
+              ) : (
+                `Révoquer la permission « ${pendingChange?.permissionName} » du rôle « ${role.name} » ? Tous les membres de ce rôle la perdront immédiatement, sauf si elle leur est accordée directement.`
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmPendingChange}>Confirmer</AlertDialogAction>
+            <AlertDialogAction onClick={confirmPendingChange}>
+              {pendingChange && !pendingChange.granted && cascadeExtras.length > 0
+                ? `Révoquer les ${pendingChange.cascade.size}`
+                : "Confirmer"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

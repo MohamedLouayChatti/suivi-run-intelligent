@@ -1,10 +1,10 @@
 import { PageHeader, PageBody } from "@/components/app/page"
 import { RolesPanel } from "@/features/roles/roles-panel"
-import { RequirePermission } from "@/lib/auth"
+import { RequireRouteAccess } from "@/lib/auth"
 
 export default function RolesPage() {
   return (
-    <RequirePermission permissions={["role.read_all", "permission.read", "user.read_all"]}>
+    <RequireRouteAccess href="/admin/roles">
       <PageHeader
         title="Rôles"
         description="Ensembles de permissions appliqués sur la plateforme"
@@ -13,6 +13,6 @@ export default function RolesPage() {
       <PageBody>
         <RolesPanel />
       </PageBody>
-    </RequirePermission>
+    </RequireRouteAccess>
   )
 }

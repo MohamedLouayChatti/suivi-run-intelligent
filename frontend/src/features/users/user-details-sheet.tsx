@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Check, Minus } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Check, Lock, Minus } from "lucide-react"
 
 import {
   Sheet,
@@ -11,6 +11,16 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
@@ -21,13 +31,12 @@ import { getPrimaryApplication, getBackupApplication } from "@/services/api/user
 import { getRoleName } from "@/features/users/get-role-name"
 import { functionalTeamLabels } from "@/features/users/constants"
 import { applicationOptions, functionalTeamOptionsForApplications } from "@/features/tickets/constants"
-import { usePermissions } from "@/lib/auth"
+import { buildPermissionGraph, usePermissions } from "@/lib/auth"
 import { useRolesList } from "@/hooks/use-roles-list"
 import { usePermissionsList } from "@/hooks/use-permissions-list"
-import type { OrganizationalIdentity } from "@/features/users/use-users-admin"
+import type { AdminUser, OrganizationalIdentity, UsersAdminCapabilities } from "@/features/users/use-users-admin"
 import type { components } from "@/types/api"
 
-type UserResponse = components["schemas"]["UserResponse"]
 type Application = components["schemas"]["Application"]
 type FunctionalTeam = components["schemas"]["FunctionalTeam"]
 
@@ -46,7 +55,8 @@ function buildAssignments(
 }
 
 interface UserDetailsSheetProps {
-  user: UserResponse | null
+  user: AdminUser | null
+  capabilities: UsersAdminCapabilities
   onOpenChange: (open: boolean) => void
   onSaveRole: (userId: string, roleId: string) => void | Promise<void>
   onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void | Promise<void>
@@ -54,22 +64,45 @@ interface UserDetailsSheetProps {
   onToggleActive: (userId: string) => void
 }
 
-function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizationalIdentity, onSavePermissions, onToggleActive }: UserDetailsSheetProps) {
-  const { roles } = useRolesList()
-  const { permissions } = usePermissionsList()
-  const { user: currentUser, hasPermission } = usePermissions()
-  const currentRoleId = user?.role_id ?? roles[0]?.id ?? ""
+function UserDetailsSheet({
+  user,
+  capabilities,
+  onOpenChange,
+  onSaveRole,
+  onSaveOrganizationalIdentity,
+  onSavePermissions,
+  onToggleActive,
+}: UserDetailsSheetProps) {
+  // Each list is fetched only when its own permission allows it, so a caller holding some of
+  // this page's capabilities and not others never fires a request that can only 403.
+  const { roles } = useRolesList({ enabled: capabilities.readRoles })
+  const { permissions } = usePermissionsList({ enabled: capabilities.readPermissions })
+  const { user: currentUser } = usePermissions()
+
+  const detail = user?.detail ?? null
+  const currentRoleId = detail?.role_id ?? roles[0]?.id ?? ""
   const [roleId, setRoleId] = useState(currentRoleId)
 
-  // A permission is effectively granted if it comes from the user's role or was
-  // granted directly, unless it was explicitly revoked — mirrors AuthorizationService.resolve_permissions.
-  const rolePermissionIds = new Set(roles.find((r) => r.id === user?.role_id)?.permission_ids ?? [])
-  const effectivePermissionIds = new Set(
-    [...rolePermissionIds, ...(user?.direct_permission_ids ?? [])].filter(
-      (id) => !(user?.revoked_permission_ids ?? []).includes(id)
+  // The same relation the backend enforces, read from the API rather than restated: each
+  // permission publishes the ones it cannot be used without.
+  const graph = useMemo(() => buildPermissionGraph(permissions), [permissions])
+
+  // What the user effectively holds — role permissions plus direct grants, minus revocations,
+  // then narrowed to the part whose prerequisites are actually present. Mirrors
+  // `AuthorizationService.combine_permissions`, closure included: a direct grant whose
+  // prerequisite nothing supplies is stored but not effective, and showing it ticked would
+  // tell the admin the user has something they do not.
+  const rolePermissionIds = new Set(roles.find((r) => r.id === detail?.role_id)?.permission_ids ?? [])
+  const grantedPermissionIds = new Set(
+    [...rolePermissionIds, ...(detail?.direct_permission_ids ?? [])].filter(
+      (id) => !(detail?.revoked_permission_ids ?? []).includes(id)
     )
   )
+  const effectivePermissionIds = graph.satisfiedSubset(grantedPermissionIds)
+
   const [checkedPermissionIds, setCheckedPermissionIds] = useState<Set<string>>(effectivePermissionIds)
+  const [pendingCascade, setPendingCascade] = useState<{ permissionId: string; cascade: Set<string> } | null>(null)
+  const [confirmingRoleChange, setConfirmingRoleChange] = useState(false)
   const [active, setActive] = useState(user?.active ?? true)
 
   const currentPrimary = user ? getPrimaryApplication(user) : null
@@ -86,15 +119,19 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
   const effectiveFunctionalTeam =
     availableFunctionalTeams.length === 1 ? availableFunctionalTeams[0] : functionalTeam
 
-  // Permission-aware UX only, mirroring the backend: `user.manage_organization` gates the section
-  // at all, and UserAccessPolicy refuses it on the actor's own record — staffing is a decision made
-  // about a person, not one they make for themselves.
-  const mayManageOrganization = hasPermission("user.manage_organization")
   const isSelf = currentUser?.id === user?.id
 
-  // What the user would hold once this sheet is saved. An admin who cannot edit staffing leaves it
-  // exactly as stored, so the check below reads the same value either way.
-  const mayEditStaffing = mayManageOrganization && !isSelf
+  // Every section below asks for the permission that performs it, and for the self-targeting
+  // rules `UserAccessPolicy` applies: it refuses set_role, revoke_permission and
+  // set_organizational_identity on the actor's own record. The first can strip their own
+  // access; the last is refused on different grounds — staffing is a decision made about a
+  // person, not one they make for themselves.
+  const mayEditStaffing = capabilities.manageOrganization && !isSelf
+  const mayEditRole = capabilities.assignRole && capabilities.readRoles && !isSelf
+  const mayEditPermissions = capabilities.managePermissions && capabilities.readPermissions && !isSelf
+  const mayReadPermissions = capabilities.readAll && capabilities.readPermissions
+  const mayToggleActive = user?.active ? capabilities.deactivate && !isSelf : capabilities.activate
+
   const stagedPrimary = mayEditStaffing ? primaryApplication : currentPrimary
   const selectedRole = roles.find((r) => r.id === roleId)
 
@@ -104,18 +141,55 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
   const rolePrimaryApplicationMissing =
     selectedRole?.requires_primary_application === true && stagedPrimary === null
 
+  const roleChangeStaged = roleId !== currentRoleId
+  const exceptionCount =
+    (detail?.direct_permission_ids.length ?? 0) + (detail?.revoked_permission_ids.length ?? 0)
+
+  // A role change replaces the whole permission profile, so the checkboxes show what the new
+  // role grants and stop being editable: staging permission edits alongside a role change would
+  // show the admin choices the save is about to discard.
+  const displayedPermissionIds = roleChangeStaged
+    ? graph.satisfiedSubset(new Set(selectedRole?.permission_ids ?? []))
+    : checkedPermissionIds
+
+  const permissionsByName = useMemo(
+    () => new Map(permissions.map((permission) => [permission.id, permission.name])),
+    [permissions]
+  )
+
+  function namesOf(ids: Iterable<string>): string[] {
+    return [...ids].map((id) => permissionsByName.get(id) ?? id).sort()
+  }
+
   if (!user) return <Sheet open={false} onOpenChange={onOpenChange} />
 
   function togglePermission(permissionId: string, checked: boolean) {
+    if (checked) {
+      setCheckedPermissionIds((prev) => new Set(prev).add(permissionId))
+      return
+    }
+    // Unticking takes everything that depended on this permission with it, exactly as the
+    // backend's revoke does. More than one means confirming first — dropping ticket.read
+    // carries fifteen others, which is not something to discover after the fact.
+    const cascade = graph.cascadeOf(permissionId, checkedPermissionIds)
+    if (cascade.size > 1) {
+      setPendingCascade({ permissionId, cascade })
+      return
+    }
     setCheckedPermissionIds((prev) => {
       const next = new Set(prev)
-      if (checked) next.add(permissionId)
-      else next.delete(permissionId)
+      next.delete(permissionId)
       return next
     })
   }
 
-  async function handleSave() {
+  function applyPendingCascade() {
+    if (!pendingCascade) return
+    setCheckedPermissionIds((prev) => new Set([...prev].filter((id) => !pendingCascade.cascade.has(id))))
+    setPendingCascade(null)
+  }
+
+  async function persist() {
     if (!user) return
     if (rolePrimaryApplicationMissing) return
 
@@ -130,19 +204,39 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
       })
     }
 
-    if (roleId !== currentRoleId) await onSaveRole(user.id, roleId)
+    if (mayEditRole && roleChangeStaged) {
+      // Setting a role discards every permission exception, so there is nothing left for a
+      // permission save to write — and sending one would re-add what the role change removed.
+      await onSaveRole(user.id, roleId)
+    } else if (mayEditPermissions) {
+      const toGrant = graph.prerequisitesFirst(
+        permissions.filter((p) => checkedPermissionIds.has(p.id) && !effectivePermissionIds.has(p.id)).map((p) => p.id)
+      )
+      const toRevoke = permissions
+        .filter((p) => !checkedPermissionIds.has(p.id) && effectivePermissionIds.has(p.id))
+        .map((p) => p.id)
+      if (toGrant.length > 0 || toRevoke.length > 0) await onSavePermissions(user.id, toGrant, toRevoke)
+    }
 
-    const toGrant = permissions.filter((p) => checkedPermissionIds.has(p.id) && !effectivePermissionIds.has(p.id)).map((p) => p.id)
-    const toRevoke = permissions.filter((p) => !checkedPermissionIds.has(p.id) && effectivePermissionIds.has(p.id)).map((p) => p.id)
-    if (toGrant.length > 0 || toRevoke.length > 0) onSavePermissions(user.id, toGrant, toRevoke)
-
-    if (active !== user.active) onToggleActive(user.id)
+    if (mayToggleActive && active !== user.active) onToggleActive(user.id)
 
     onOpenChange(false)
   }
 
+  function handleSave() {
+    // Only worth confirming when the change actually destroys something: a role change on a
+    // user carrying no exceptions takes nothing away that was not already the old role's.
+    if (mayEditRole && roleChangeStaged && exceptionCount > 0) {
+      setConfirmingRoleChange(true)
+      return
+    }
+    void persist()
+  }
+
   const rows: [string, React.ReactNode][] = [
-    ["Rôle", getRoleName(user, roles)],
+    ...(capabilities.readAll && capabilities.readRoles
+      ? ([["Rôle", getRoleName(detail?.role_id, roles)]] as [string, React.ReactNode][])
+      : []),
     [
       "Application",
       currentBackup ? `${currentPrimary} (principal), ${currentBackup} (secours)` : (currentPrimary ?? "—"),
@@ -152,161 +246,257 @@ function UserDetailsSheet({ user, onOpenChange, onSaveRole, onSaveOrganizational
       "Statut",
       <div key="status" className="flex items-center gap-2">
         <ActiveBadge active={active} />
-        <Switch checked={active} onCheckedChange={setActive} aria-label="Activer ou désactiver le compte" />
+        {mayToggleActive && (
+          <Switch checked={active} onCheckedChange={setActive} aria-label="Activer ou désactiver le compte" />
+        )}
       </div>,
     ],
   ]
 
+  const anySectionEditable = mayEditRole || mayEditStaffing || mayEditPermissions || mayToggleActive
+
   return (
-    <Sheet open={!!user} onOpenChange={(open) => !open && onOpenChange(false)}>
-      <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>{user.display_name}</SheetTitle>
-          <SheetDescription>{user.email}</SheetDescription>
-        </SheetHeader>
-        <div className="flex-1 space-y-6 overflow-y-auto px-4">
-          <dl className="space-y-4 text-sm">
-            {rows.map(([label, value]) => (
-              <div key={label} className="flex items-center justify-between gap-3 border-b border-border pb-3">
-                <dt className="text-muted-foreground">{label}</dt>
-                <dd className="font-medium">{value}</dd>
-              </div>
-            ))}
-          </dl>
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Attribuer un rôle</p>
-            <Select value={roleId} onValueChange={setRoleId}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {roles.map((r) => (
-                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {rolePrimaryApplicationMissing && (
-              <p className="text-xs text-destructive">
-                {mayEditStaffing
-                  ? `Le rôle « ${selectedRole?.name} » nécessite une application principale. Renseignez-la ci-dessous.`
-                  : `Le rôle « ${selectedRole?.name} » nécessite une application principale, que cet utilisateur n'a pas.`}
-              </p>
-            )}
-          </div>
-          {mayManageOrganization && (
-            <div className="space-y-3">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Affectation applicative</p>
-                {isSelf && (
-                  <p className="text-xs text-muted-foreground">
-                    Vous ne pouvez pas modifier votre propre affectation. Un autre administrateur doit
-                    s&apos;en charger.
-                  </p>
-                )}
-              </div>
+    <>
+      <Sheet open={!!user} onOpenChange={(open) => !open && onOpenChange(false)}>
+        <SheetContent className="flex w-full flex-col gap-0 sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>{user.display_name}</SheetTitle>
+            {capabilities.readAll && <SheetDescription>{detail?.email}</SheetDescription>}
+          </SheetHeader>
+          <div className="flex-1 space-y-6 overflow-y-auto px-4">
+            <dl className="space-y-4 text-sm">
+              {rows.map(([label, value]) => (
+                <div key={label} className="flex items-center justify-between gap-3 border-b border-border pb-3">
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="font-medium">{value}</dd>
+                </div>
+              ))}
+            </dl>
+
+            {mayEditRole && (
               <div className="space-y-2">
-                <Label htmlFor="primary-application">Application principale</Label>
-                <Select
-                  value={primaryApplication ?? NO_APPLICATION}
-                  disabled={isSelf}
-                  onValueChange={(value) => {
-                    const next = value === NO_APPLICATION ? null : (value as Application)
-                    setPrimaryApplication(next)
-                    // One application per user, never both roles on the same one — the same pair the
-                    // aggregate refuses as a duplicate assignment.
-                    if (next !== null && next === backupApplication) setBackupApplication(null)
-                    // A backup supplements an application of one's own, so it cannot outlive the
-                    // primary. Cleared visibly here rather than left to be refused on save, the same
-                    // way the AERO/VIO team rule is resolved for the admin instead of rejected.
-                    if (next === null) setBackupApplication(null)
-                  }}
-                >
-                  <SelectTrigger id="primary-application" className="w-full"><SelectValue /></SelectTrigger>
+                <p className="text-sm font-medium">Attribuer un rôle</p>
+                <Select value={roleId} onValueChange={setRoleId}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={NO_APPLICATION}>Aucune</SelectItem>
-                    {applicationOptions.map((application) => (
-                      <SelectItem key={application} value={application}>{application}</SelectItem>
+                    {roles.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {rolePrimaryApplicationMissing && (
+                  <p className="text-xs text-destructive">
+                    {mayEditStaffing
+                      ? `Le rôle « ${selectedRole?.name} » nécessite une application principale. Renseignez-la ci-dessous.`
+                      : `Le rôle « ${selectedRole?.name} » nécessite une application principale, que cet utilisateur n'a pas.`}
+                  </p>
+                )}
+                {roleChangeStaged && exceptionCount > 0 && (
+                  <p className="text-xs text-destructive">
+                    Changer de rôle réinitialise les permissions : les {exceptionCount} exception
+                    {exceptionCount > 1 ? "s" : ""} de cet utilisateur seront supprimées et il obtiendra
+                    exactement les permissions du rôle « {selectedRole?.name} ».
+                  </p>
+                )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="backup-application">Application de secours</Label>
-                <Select
-                  value={backupApplication ?? NO_APPLICATION}
-                  disabled={isSelf || primaryApplication === null}
-                  onValueChange={(value) =>
-                    setBackupApplication(value === NO_APPLICATION ? null : (value as Application))
-                  }
-                >
-                  <SelectTrigger id="backup-application" className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NO_APPLICATION}>Aucune</SelectItem>
-                    {applicationOptions
-                      .filter((application) => application !== primaryApplication)
-                      .map((application) => (
+            )}
+
+            {mayEditStaffing && (
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Affectation applicative</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="primary-application">Application principale</Label>
+                  <Select
+                    value={primaryApplication ?? NO_APPLICATION}
+                    onValueChange={(value) => {
+                      const next = value === NO_APPLICATION ? null : (value as Application)
+                      setPrimaryApplication(next)
+                      // One application per user, never both roles on the same one — the same pair the
+                      // aggregate refuses as a duplicate assignment.
+                      if (next !== null && next === backupApplication) setBackupApplication(null)
+                      // A backup supplements an application of one's own, so it cannot outlive the
+                      // primary. Cleared visibly here rather than left to be refused on save, the same
+                      // way the AERO/VIO team rule is resolved for the admin instead of rejected.
+                      if (next === null) setBackupApplication(null)
+                    }}
+                  >
+                    <SelectTrigger id="primary-application" className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_APPLICATION}>Aucune</SelectItem>
+                      {applicationOptions.map((application) => (
                         <SelectItem key={application} value={application}>{application}</SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-                {primaryApplication === null && !isSelf && (
-                  <p className="text-xs text-muted-foreground">
-                    Une application de secours nécessite d&apos;abord une application principale.
-                  </p>
-                )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="backup-application">Application de secours</Label>
+                  <Select
+                    value={backupApplication ?? NO_APPLICATION}
+                    disabled={primaryApplication === null}
+                    onValueChange={(value) =>
+                      setBackupApplication(value === NO_APPLICATION ? null : (value as Application))
+                    }
+                  >
+                    <SelectTrigger id="backup-application" className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={NO_APPLICATION}>Aucune</SelectItem>
+                      {applicationOptions
+                        .filter((application) => application !== primaryApplication)
+                        .map((application) => (
+                          <SelectItem key={application} value={application}>{application}</SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  {primaryApplication === null && (
+                    <p className="text-xs text-muted-foreground">
+                      Une application de secours nécessite d&apos;abord une application principale.
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="functional-team">Équipe fonctionnelle</Label>
+                  <Select
+                    value={effectiveFunctionalTeam}
+                    disabled={availableFunctionalTeams.length === 1}
+                    onValueChange={(value) => setFunctionalTeam(value as FunctionalTeam)}
+                  >
+                    <SelectTrigger id="functional-team" className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {availableFunctionalTeams.map((team) => (
+                        <SelectItem key={team} value={team}>{functionalTeamLabels[team]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {availableFunctionalTeams.length === 1 && (
+                    <p className="text-xs text-muted-foreground">
+                      AERO et VIO sont assurées par l&apos;équipe Support uniquement.
+                    </p>
+                  )}
+                </div>
               </div>
+            )}
+
+            {capabilities.manageOrganization && isSelf && (
+              <p className="text-xs text-muted-foreground">
+                Vous ne pouvez pas modifier votre propre rôle ni votre propre affectation. Un autre
+                administrateur doit s&apos;en charger.
+              </p>
+            )}
+
+            {mayReadPermissions && (
               <div className="space-y-2">
-                <Label htmlFor="functional-team">Équipe fonctionnelle</Label>
-                <Select
-                  value={effectiveFunctionalTeam}
-                  disabled={isSelf || availableFunctionalTeams.length === 1}
-                  onValueChange={(value) => setFunctionalTeam(value as FunctionalTeam)}
-                >
-                  <SelectTrigger id="functional-team" className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {availableFunctionalTeams.map((team) => (
-                      <SelectItem key={team} value={team}>{functionalTeamLabels[team]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {availableFunctionalTeams.length === 1 && !isSelf && (
+                <p className="text-sm font-medium">Permissions</p>
+                {roleChangeStaged && (
                   <p className="text-xs text-muted-foreground">
-                    AERO et VIO sont assurées par l&apos;équipe Support uniquement.
+                    Permissions du rôle « {selectedRole?.name} », appliquées après enregistrement.
                   </p>
                 )}
+                <ul className="divide-y divide-border rounded-md border border-border">
+                  {permissions.map((p) => {
+                    const checked = displayedPermissionIds.has(p.id)
+                    // A permission cannot be held without the ones it is built on, so it stays
+                    // disabled until they are ticked. The backend refuses such a grant outright;
+                    // this only avoids offering it.
+                    const missing = checked
+                      ? new Set<string>()
+                      : graph.missingPrerequisites(p.id, displayedPermissionIds)
+                    const blocked = missing.size > 0
+                    const editable = mayEditPermissions && !roleChangeStaged
+                    return (
+                      <li key={p.id} className="flex items-start gap-3 px-3 py-2">
+                        <Checkbox
+                          id={`perm-${p.id}`}
+                          checked={checked}
+                          disabled={!editable || blocked}
+                          onCheckedChange={(value) => togglePermission(p.id, value === true)}
+                          className="mt-0.5"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <Label
+                            htmlFor={`perm-${p.id}`}
+                            className={`font-mono text-xs ${editable && !blocked ? "cursor-pointer" : ""}`}
+                          >
+                            {p.name}
+                          </Label>
+                          {blocked && (
+                            <p className="mt-0.5 flex items-start gap-1 text-[11px] leading-snug text-muted-foreground">
+                              <Lock className="mt-px size-3 shrink-0" />
+                              <span>Nécessite {namesOf(missing).join(", ")}</span>
+                            </p>
+                          )}
+                        </div>
+                        {checked ? (
+                          <Check className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                        ) : (
+                          <Minus className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
-            </div>
-          )}
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Permissions</p>
-            <ul className="divide-y divide-border rounded-md border border-border">
-              {permissions.map((p) => {
-                const checked = checkedPermissionIds.has(p.id)
-                return (
-                  <li key={p.id} className="flex items-center gap-3 px-3 py-2">
-                    <Checkbox
-                      id={`perm-${p.id}`}
-                      checked={checked}
-                      onCheckedChange={(value) => togglePermission(p.id, value === true)}
-                    />
-                    <Label htmlFor={`perm-${p.id}`} className="flex-1 cursor-pointer font-mono text-xs">
-                      {p.name}
-                    </Label>
-                    {checked ? (
-                      <Check className="size-3.5 text-primary" />
-                    ) : (
-                      <Minus className="size-3.5 text-muted-foreground" />
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
+            )}
           </div>
-        </div>
-        <SheetFooter className="flex-row border-t border-border">
-          <Button className="flex-1" onClick={handleSave} disabled={rolePrimaryApplicationMissing}>Enregistrer</Button>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Annuler</Button>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+          {anySectionEditable && (
+            <SheetFooter>
+              <Button onClick={handleSave} disabled={rolePrimaryApplicationMissing}>
+                Enregistrer
+              </Button>
+            </SheetFooter>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={pendingCascade !== null} onOpenChange={(open) => !open && setPendingCascade(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Retirer plusieurs permissions ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {`« ${permissionsByName.get(pendingCascade?.permissionId ?? "") ?? ""} » est requise par ${
+                (pendingCascade?.cascade.size ?? 1) - 1
+              } autre${(pendingCascade?.cascade.size ?? 1) - 1 > 1 ? "s" : ""} permission${
+                (pendingCascade?.cascade.size ?? 1) - 1 > 1 ? "s" : ""
+              }, qui ${(pendingCascade?.cascade.size ?? 1) - 1 > 1 ? "seront retirées" : "sera retirée"} également : `}
+              {namesOf(
+                [...(pendingCascade?.cascade ?? [])].filter((id) => id !== pendingCascade?.permissionId)
+              ).join(", ")}
+              .
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={applyPendingCascade}>
+              Retirer les {pendingCascade?.cascade.size ?? 0}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmingRoleChange} onOpenChange={setConfirmingRoleChange}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Changer le rôle de {user.display_name} ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {`Attribuer le rôle « ${selectedRole?.name} » remplace l'intégralité de ses permissions. Les ${exceptionCount} exception${exceptionCount > 1 ? "s" : ""} qui lui ${exceptionCount > 1 ? "ont" : "a"} été accordée${exceptionCount > 1 ? "s" : ""} ou retirée${exceptionCount > 1 ? "s" : ""} individuellement seront supprimées, et il obtiendra exactement les permissions de ce rôle.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConfirmingRoleChange(false)
+                void persist()
+              }}
+            >
+              Changer le rôle
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 

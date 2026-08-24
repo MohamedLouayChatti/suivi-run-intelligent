@@ -12,4 +12,6 @@ export { useCurrentUser, currentUserQueryKey } from "./use-current-user";
 export { AuthGate } from "./auth-gate";
 export { useLogout } from "./use-logout";
 export { usePermissions } from "./use-permissions";
-export { RequirePermission } from "./require-permission";
+export { RequireRouteAccess } from "./require-permission";
+export { buildPermissionGraph } from "./permission-graph";
+export type { PermissionGraph } from "./permission-graph";

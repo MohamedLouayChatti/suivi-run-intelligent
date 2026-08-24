@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Download, Paperclip, X } from "lucide-react"
+import { Check, Download, Paperclip, Pencil, Trash2, X } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -9,6 +9,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { usePermissions } from "@/lib/auth"
 import { downloadAttachment } from "@/services/api/tickets"
 import type { components } from "@/types/api"
@@ -47,6 +57,8 @@ interface CommentsSectionProps {
   ticket: TicketDetail
   isLoading: boolean
   onAddComment: (content: string, files: File[]) => void
+  onEditComment: (commentId: string, content: string) => void
+  onDeleteComment: (commentId: string) => void
   onDeleteCommentAttachment: (commentId: string, attachmentId: string) => void
   attachmentError: string | null
 }
@@ -55,21 +67,62 @@ function CommentsSection({
   ticket,
   isLoading,
   onAddComment,
+  onEditComment,
+  onDeleteComment,
   onDeleteCommentAttachment,
   attachmentError,
 }: CommentsSectionProps) {
   const [draft, setDraft] = useState("")
   const [files, setFiles] = useState<File[]>([])
-  const { user: currentUser, hasPermission, canActOnApplication, isAttachmentUploader } = usePermissions()
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState("")
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null)
+  const {
+    user: currentUser,
+    hasPermission,
+    canActOnApplication,
+    isAttachmentUploader,
+    isCommentAuthor,
+  } = usePermissions()
+
+  // Mirrors AttachmentAccessPolicy's "delete": the uploader's own attachment, and the permission
+  // that performs the deletion. Only the first was checked, so a role without `attachment.delete`
+  // was still offered a button whose request the backend refuses.
+  function canDeleteAttachment(attachment: Parameters<typeof isAttachmentUploader>[0]) {
+    return hasPermission("attachment.delete") && isAttachmentUploader(attachment)
+  }
+  // Mirrors CommentAccessPolicy's "update"/"delete" rules, which admit the author alone — no
+  // breadth override, unlike reading. Paired with the permission that performs each, since
+  // holding one of the two without the other is an ordinary state.
+  function canEditComment(comment: Parameters<typeof isCommentAuthor>[0]) {
+    return hasPermission("comment.update") && isCommentAuthor(comment)
+  }
+  function mayDeleteComment(comment: Parameters<typeof isCommentAuthor>[0]) {
+    return hasPermission("comment.delete") && isCommentAuthor(comment)
+  }
   // Mirrors CommentAccessPolicy's "create" rule: assigned to the ticket's application, or
   // holding the cross-application breadth permission.
   const canComment =
     hasPermission("comment.create") &&
     (canActOnApplication(ticket.application) || hasPermission("ticket.read_any_application"))
-  // Newest first — the backend returns comments in creation order.
-  const comments = [...ticket.comments].sort(
-    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-  )
+  // Newest first — the backend returns comments in creation order. Deleted ones are dropped:
+  // deletion is soft, so the API keeps returning them with a `deleted_at`, and rendering those
+  // would make a deletion look like it had not happened. Nothing filtered them before because
+  // there was no way to delete a comment from the UI at all.
+  const comments = [...ticket.comments]
+    .filter((c) => c.deleted_at === null)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+
+  function beginEdit(commentId: string, content: string) {
+    setEditingCommentId(commentId)
+    setEditDraft(content)
+  }
+
+  function submitEdit(commentId: string) {
+    const content = editDraft.trim()
+    if (content) onEditComment(commentId, content)
+    setEditingCommentId(null)
+  }
 
   function handleSubmit() {
     if (!draft.trim()) return
@@ -104,11 +157,55 @@ function CommentsSection({
                       <span className="text-sm font-medium">
                         {c.author?.display_name ?? "Utilisateur inconnu"}
                       </span>
-                      <span className="text-xs text-muted-foreground">
-                        {dateTimeFormatter.format(new Date(c.created_at))}
+                      <span className="flex shrink-0 items-center gap-1">
+                        <span className="text-xs text-muted-foreground">
+                          {dateTimeFormatter.format(new Date(c.created_at))}
+                          {c.edited_at !== null && " · modifié"}
+                        </span>
+                        {editingCommentId !== c.id && canEditComment(c) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-6"
+                            aria-label="Modifier le commentaire"
+                            onClick={() => beginEdit(c.id, c.content)}
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                        )}
+                        {editingCommentId !== c.id && mayDeleteComment(c) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-6 text-destructive hover:text-destructive"
+                            aria-label="Supprimer le commentaire"
+                            onClick={() => setDeletingCommentId(c.id)}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        )}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm whitespace-pre-wrap">{c.content}</p>
+                    {editingCommentId === c.id ? (
+                      <div className="mt-2 space-y-2">
+                        <Textarea
+                          value={editDraft}
+                          onChange={(e) => setEditDraft(e.target.value)}
+                          rows={3}
+                          aria-label="Modifier le commentaire"
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="sm" onClick={() => setEditingCommentId(null)}>
+                            Annuler
+                          </Button>
+                          <Button size="sm" disabled={!editDraft.trim()} onClick={() => submitEdit(c.id)}>
+                            <Check className="size-3.5" /> Enregistrer
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm whitespace-pre-wrap">{c.content}</p>
+                    )}
                     {activeAttachments.length > 0 && (
                       <ul className="mt-2 space-y-1">
                         {activeAttachments.map((a) => (
@@ -126,7 +223,7 @@ function CommentsSection({
                               >
                                 <Download className="size-3.5" />
                               </Button>
-                              {isAttachmentUploader(a) && (
+                              {canDeleteAttachment(a) && (
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -199,6 +296,31 @@ function CommentsSection({
           </div>
         )}
       </div>
+      <AlertDialog
+        open={deletingCommentId !== null}
+        onOpenChange={(open) => !open && setDeletingCommentId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer ce commentaire ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Le commentaire ne sera plus visible dans le fil de discussion de ce ticket. Ses pièces
+              jointes restent conservées.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deletingCommentId) onDeleteComment(deletingCommentId)
+                setDeletingCommentId(null)
+              }}
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SectionCard>
   )
 }

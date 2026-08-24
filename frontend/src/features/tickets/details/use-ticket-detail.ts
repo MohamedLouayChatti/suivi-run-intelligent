@@ -18,6 +18,8 @@ import {
   restoreTicket,
   addComment,
   addTicketAttachment,
+  editComment,
+  deleteComment,
   addCommentAttachment,
   deleteTicketAttachment,
   deleteCommentAttachment,
@@ -94,6 +96,15 @@ function useTicketDetail(id: string) {
     mutationFn: (attachmentId: string) => deleteTicketAttachment(id, attachmentId),
     onSuccess: afterMutation,
   })
+  const editCommentMutation = useMutation({
+    mutationFn: ({ commentId, content }: { commentId: string; content: string }) =>
+      editComment(id, commentId, content),
+    onSuccess: afterMutation,
+  })
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: string) => deleteComment(id, commentId),
+    onSuccess: afterMutation,
+  })
   const deleteCommentAttachmentMutation = useMutation({
     mutationFn: ({ commentId, attachmentId }: { commentId: string; attachmentId: string }) =>
       deleteCommentAttachment(id, commentId, attachmentId),
@@ -119,10 +130,14 @@ function useTicketDetail(id: string) {
       addTicketComment.mutate({ authorId, content, files }),
     onUploadTicketAttachment: (file: File) => uploadTicketAttachmentMutation.mutate(file),
     onDeleteTicketAttachment: (attachmentId: string) => deleteTicketAttachmentMutation.mutate(attachmentId),
+    onEditComment: (commentId: string, content: string) =>
+      editCommentMutation.mutate({ commentId, content }),
+    onDeleteComment: (commentId: string) => deleteCommentMutation.mutate(commentId),
     onDeleteCommentAttachment: (commentId: string, attachmentId: string) =>
       deleteCommentAttachmentMutation.mutate({ commentId, attachmentId }),
     ticketAttachmentError: uploadTicketAttachmentMutation.error?.message ?? deleteTicketAttachmentMutation.error?.message ?? null,
     commentAttachmentError: addTicketComment.error?.message ?? deleteCommentAttachmentMutation.error?.message ?? null,
+    commentError: editCommentMutation.error?.message ?? deleteCommentMutation.error?.message ?? null,
   }
 }
 

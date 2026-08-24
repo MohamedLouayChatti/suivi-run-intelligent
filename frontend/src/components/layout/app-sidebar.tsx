@@ -30,6 +30,7 @@ import {
   administrationNavItems,
   primaryNavGroupLabel,
   primaryNavItems,
+  routeRequirements,
   settingsNavItem,
   type NavItem,
 } from "@/components/layout/nav-config";
@@ -39,10 +40,14 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { hasPermission, hasAnyPermission } = usePermissions();
 
+  // Read from `routeRequirements` rather than from the item, so the sidebar and the page it
+  // links to are gated by one declaration. An entry with no requirement is open to anyone
+  // signed in.
   function isVisible(item: NavItem): boolean {
-    if (!item.requires) return true;
-    if (item.requires.permission && !hasPermission(item.requires.permission)) return false;
-    if (item.requires.anyPermission && !hasAnyPermission(item.requires.anyPermission)) return false;
+    const requirement = routeRequirements[item.href];
+    if (!requirement) return true;
+    if (requirement.permission && !hasPermission(requirement.permission)) return false;
+    if (requirement.anyPermission && !hasAnyPermission(requirement.anyPermission)) return false;
     return true;
   }
 

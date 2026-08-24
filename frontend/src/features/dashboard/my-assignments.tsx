@@ -1,8 +1,11 @@
+"use client"
+
 import Link from "next/link"
 
 import { SectionCard } from "@/components/app/page"
 import { StatusBadge, PriorityBadge } from "@/components/app/status"
 import { Button } from "@/components/ui/button"
+import { usePermissions } from "@/lib/auth"
 import type { components } from "@/types/api"
 
 type TicketSummary = components["schemas"]["TicketSummaryResponse"]
@@ -12,6 +15,7 @@ interface MyAssignmentsProps {
 }
 
 function MyAssignments({ tickets }: MyAssignmentsProps) {
+  const { canAccessRoute } = usePermissions()
   const active = tickets
     .filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS")
     .slice(0, 3)
@@ -23,9 +27,11 @@ function MyAssignments({ tickets }: MyAssignmentsProps) {
       description="Tickets qui vous sont affectés, en cours ou à démarrer"
       bodyClassName="p-0"
       action={
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/tickets">Voir tout</Link>
-        </Button>
+        canAccessRoute("/tickets") ? (
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/tickets">Voir tout</Link>
+          </Button>
+        ) : undefined
       }
     >
       {active.length === 0 ? (

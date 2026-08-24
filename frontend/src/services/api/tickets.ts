@@ -103,6 +103,17 @@ async function addComment(ticketId: string, authorId: string, content: string): 
   return data
 }
 
+async function editComment(ticketId: string, commentId: string, content: string): Promise<TicketDetail> {
+  const { data } = await httpClient.patch<TicketDetail>(`/comments/${commentId}`, { content }, {
+    params: { ticket_id: ticketId },
+  })
+  return data
+}
+
+async function deleteComment(ticketId: string, commentId: string): Promise<void> {
+  await httpClient.delete(`/comments/${commentId}`, { params: { ticket_id: ticketId } })
+}
+
 async function addTicketAttachment(ticketId: string, file: File): Promise<TicketDetail> {
   const formData = new FormData()
   formData.append("file", file)
@@ -179,6 +190,8 @@ export {
   restoreTicket,
   addComment,
   addTicketAttachment,
+  editComment,
+  deleteComment,
   addCommentAttachment,
   deleteTicketAttachment,
   deleteCommentAttachment,

@@ -1,5 +1,7 @@
 "use client";
 
+import { routeRequirements } from "@/components/layout/nav-config";
+
 import {
   canActOnApplication,
   canImportForApplication,
@@ -27,6 +29,20 @@ function usePermissions() {
     hasPermission: (name: string) => hasPermission(user, name),
     hasAllPermissions: (names: readonly string[]) => hasAllPermissions(user, names),
     hasAnyPermission: (names: readonly string[]) => hasAnyPermission(user, names),
+    /**
+     * Whether `href` would open rather than show an Access-Denied screen, read from the same
+     * `routeRequirements` the sidebar and `RequireRouteAccess` use. For links that cross into
+     * another page — the Dashboard's shortcuts into Analyses, Tickets and Historique — so a
+     * button is not offered to somebody the destination will refuse. A route with no declared
+     * requirement is open to anyone signed in.
+     */
+    canAccessRoute: (href: string) => {
+      const requirement = routeRequirements[href];
+      if (!requirement) return true;
+      if (requirement.permission && !hasPermission(user, requirement.permission)) return false;
+      if (requirement.anyPermission && !hasAnyPermission(user, requirement.anyPermission)) return false;
+      return true;
+    },
     isTicketAssignee: (ticket: Parameters<typeof isTicketAssignee>[1]) =>
       isTicketAssignee(user, ticket),
     isCommentAuthor: (comment: Parameters<typeof isCommentAuthor>[1]) =>

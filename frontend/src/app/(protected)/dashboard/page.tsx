@@ -5,7 +5,7 @@ import { ArrowUpRight, Plus } from "lucide-react"
 
 import { PageHeader, PageBody } from "@/components/app/page"
 import { Button } from "@/components/ui/button"
-import { useCurrentUser } from "@/lib/auth"
+import { useCurrentUser, usePermissions } from "@/lib/auth"
 import { getPrimaryApplication, getBackupApplication } from "@/services/api/auth"
 import { useTicketsList } from "@/features/tickets/use-tickets-list"
 import { mockConversations } from "@/features/dashboard/mock-data"
@@ -31,6 +31,9 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
 
 export default function DashboardPage() {
   const { data: user } = useCurrentUser()
+  // These shortcuts cross into other pages, so they ask whether the destination opens rather
+  // than naming its permissions again — one declaration, in `routeRequirements`.
+  const { canAccessRoute } = usePermissions()
   const { tickets } = useTicketsList()
   const { data: myKpiSnapshot } = useMyKpiSnapshot()
   const { data: myActivityTrend } = useMyActivityTrend()
@@ -55,16 +58,20 @@ export default function DashboardPage() {
         description={descriptionParts.join(" · ")}
         actions={
           <>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/analytics">
-                Voir les analyses <ArrowUpRight className="size-4" />
-              </Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/tickets">
-                <Plus className="size-4" /> Nouveau ticket
-              </Link>
-            </Button>
+            {canAccessRoute("/analytics") && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/analytics">
+                  Voir les analyses <ArrowUpRight className="size-4" />
+                </Link>
+              </Button>
+            )}
+            {canAccessRoute("/tickets") && (
+              <Button size="sm" asChild>
+                <Link href="/tickets">
+                  <Plus className="size-4" /> Nouveau ticket
+                </Link>
+              </Button>
+            )}
           </>
         }
       />

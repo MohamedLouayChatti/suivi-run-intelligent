@@ -23,7 +23,7 @@ import {
   useJiraMetrics,
   useKpiSnapshot,
 } from "@/features/analytics/use-analytics"
-import { RequirePermission, usePermissions } from "@/lib/auth"
+import { RequireRouteAccess, usePermissions } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 
 export default function AnalyticsPage() {
@@ -60,10 +60,13 @@ export default function AnalyticsPage() {
 
   // FCI has no additional widgets — Application Insights renders nothing for it.
   const showApplicationInsights = filters.application !== "all" && filters.application !== "FCI"
-  const showAdminSections = filters.application === "all"
+  // Both the breadth permission and the cross-application view: `/analytics/admin-overview` is
+  // gated on `analytics.read_any_application` alone, and a caller without it whose account has
+  // no primary application keeps the "all" default, which used to render these into a 403.
+  const showAdminSections = canReadAllApplications && filters.application === "all"
 
   return (
-    <RequirePermission permission="analytics.read">
+    <RequireRouteAccess href="/analytics">
       <PageHeader
         title="Analyses"
         description="Performance opérationnelle du support — tickets, résolution, tendances"
@@ -102,6 +105,6 @@ export default function AnalyticsPage() {
           </>
         )}
       </PageBody>
-    </RequirePermission>
+    </RequireRouteAccess>
   )
 }

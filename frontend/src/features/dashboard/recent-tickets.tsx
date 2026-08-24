@@ -1,8 +1,11 @@
+"use client"
+
 import Link from "next/link"
 
 import { SectionCard } from "@/components/app/page"
 import { StatusBadge } from "@/components/app/status"
 import { Button } from "@/components/ui/button"
+import { usePermissions } from "@/lib/auth"
 import type { components } from "@/types/api"
 
 type TicketSummary = components["schemas"]["TicketSummaryResponse"]
@@ -22,6 +25,7 @@ interface RecentTicketsProps {
 }
 
 function RecentTickets({ tickets }: RecentTicketsProps) {
+  const { canAccessRoute } = usePermissions()
   const completed = tickets
     .filter((t) => t.status === "CLOSED" || t.status === "TRANSFERRED")
     .slice(0, 5)
@@ -55,11 +59,13 @@ function RecentTickets({ tickets }: RecentTicketsProps) {
           </li>
         ))}
       </ul>
-      <div className="border-t border-border px-5 py-3">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href="/history">Voir l&apos;historique</Link>
-        </Button>
-      </div>
+      {canAccessRoute("/history") && (
+        <div className="border-t border-border px-5 py-3">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/history">Voir l&apos;historique</Link>
+          </Button>
+        </div>
+      )}
     </SectionCard>
   )
 }

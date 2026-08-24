@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useTicketDetail } from "@/features/tickets/details/use-ticket-detail"
 import { useSimilarIncidents } from "@/features/tickets/details/use-similar-incidents"
 import { useUserDirectory } from "@/hooks/use-user-directory"
-import { RequirePermission, usePermissions } from "@/lib/auth"
+import { RequireRouteAccess, usePermissions } from "@/lib/auth"
 import { TicketHeader } from "@/features/tickets/details/ticket-header"
 import { DescriptionCard } from "@/features/tickets/details/description-card"
 import { ResolutionCard } from "@/features/tickets/details/resolution-card"
@@ -42,6 +42,8 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
     onUpdateJira,
     onUpdateOperationalHighlight,
     onAddComment,
+    onEditComment,
+    onDeleteComment,
     onUploadTicketAttachment,
     onDeleteTicketAttachment,
     onDeleteCommentAttachment,
@@ -101,7 +103,7 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
   const isResolvedOrTransferred = ticket.status === "RESOLVED" || ticket.status === "TRANSFERRED"
 
   return (
-    <RequirePermission permission="ticket.read">
+    <RequireRouteAccess href="/tickets">
       <TicketHeader
         ticket={ticket}
         fromTicketId={fromTicketId}
@@ -147,6 +149,8 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
               ticket={ticket}
               isLoading={false}
               onAddComment={(content, files) => currentUser && onAddComment(currentUser.id, content, files)}
+              onEditComment={onEditComment}
+              onDeleteComment={onDeleteComment}
               onDeleteCommentAttachment={onDeleteCommentAttachment}
               attachmentError={commentAttachmentError}
             />
@@ -169,6 +173,6 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
           </div>
         </div>
       </PageBody>
-    </RequirePermission>
+    </RequireRouteAccess>
   )
 }

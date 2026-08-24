@@ -28,11 +28,9 @@ import { getPrimaryApplication } from "@/services/api/users"
 import { getRoleName } from "@/features/users/get-role-name"
 import { functionalTeamLabels } from "@/features/users/constants"
 import { UserDetailsSheet } from "@/features/users/user-details-sheet"
+import { usePermissions } from "@/lib/auth"
 import { useRolesList } from "@/hooks/use-roles-list"
-import type { OrganizationalIdentity } from "@/features/users/use-users-admin"
-import type { components } from "@/types/api"
-
-type UserResponse = components["schemas"]["UserResponse"]
+import type { AdminUser, OrganizationalIdentity, UsersAdminCapabilities } from "@/features/users/use-users-admin"
 
 function initials(name: string): string {
   return name
@@ -44,16 +42,28 @@ function initials(name: string): string {
 }
 
 interface UsersTableProps {
-  users: UserResponse[]
+  users: AdminUser[]
+  capabilities: UsersAdminCapabilities
   highlightUserId?: string | null
-  onChangeRole: (userId: string, roleId: string) => void
-  onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void
+  onChangeRole: (userId: string, roleId: string) => void | Promise<void>
+  onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void | Promise<void>
   onToggleActive: (userId: string) => void
-  onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void
+  onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void | Promise<void>
 }
 
-function UsersTable({ users, highlightUserId, onChangeRole, onSaveOrganizationalIdentity, onToggleActive, onSavePermissions }: UsersTableProps) {
-  const { roles } = useRolesList()
+function UsersTable({
+  users,
+  capabilities,
+  highlightUserId,
+  onChangeRole,
+  onSaveOrganizationalIdentity,
+  onToggleActive,
+  onSavePermissions,
+}: UsersTableProps) {
+  // Only fetched when the caller may read every role. Without it the role column and the role
+  // filter simply do not render, rather than the page refusing to open.
+  const { roles } = useRolesList({ enabled: capabilities.readRoles })
+  const { user: currentUser } = usePermissions()
   const [query, setQuery] = useState("")
   const [roleId, setRoleId] = useState("all")
   const [manualSelectedUserId, setManualSelectedUserId] = useState<string | null>(null)
@@ -71,12 +81,32 @@ function UsersTable({ users, highlightUserId, onChangeRole, onSaveOrganizational
     if (isHighlightActive) setHighlightDismissed(true)
   }
 
+  // Both follow the projection rather than being blanked per row: a directory read carries no
+  // email and no role id at all, so there is nothing to put in either column.
+  const showIdentityColumns = capabilities.readAll
+  const showRoleColumn = capabilities.readAll && capabilities.readRoles
+
+  // Whether opening a user is worth offering — the sheet holds nothing for a caller who may
+  // neither read their details nor change anything about them.
+  const canOpenDetails =
+    capabilities.readAll ||
+    capabilities.assignRole ||
+    capabilities.manageOrganization ||
+    capabilities.managePermissions
+
+  function activationLabel(user: AdminUser): string | null {
+    if (user.active) return capabilities.deactivate ? "Désactiver" : null
+    return capabilities.activate ? "Activer" : null
+  }
+
   const rows = users.filter(
     (u) =>
-      (roleId === "all" || u.role_id === roleId) &&
-      (query === "" || (u.display_name + u.email).toLowerCase().includes(query.toLowerCase()))
+      (roleId === "all" || u.detail?.role_id === roleId) &&
+      (query === "" ||
+        (u.display_name + (u.detail?.email ?? "")).toLowerCase().includes(query.toLowerCase()))
   )
   const selectedUser = users.find((u) => u.id === selectedUserId) ?? null
+  const columnCount = 4 + (showRoleColumn ? 1 : 0)
 
   return (
     <SectionCard bodyClassName="p-0">
@@ -86,25 +116,27 @@ function UsersTable({ users, highlightUserId, onChangeRole, onSaveOrganizational
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher un nom ou un email…"
+            placeholder={showIdentityColumns ? "Rechercher un nom ou un email…" : "Rechercher un nom…"}
             className="pl-9"
           />
         </div>
-        <Select value={roleId} onValueChange={setRoleId}>
-          <SelectTrigger className="w-[13rem]"><SelectValue placeholder="Rôle" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les rôles</SelectItem>
-            {roles.map((r) => (
-              <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {showRoleColumn && (
+          <Select value={roleId} onValueChange={setRoleId}>
+            <SelectTrigger className="w-[13rem]"><SelectValue placeholder="Rôle" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les rôles</SelectItem>
+              {roles.map((r) => (
+                <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead>Utilisateur</TableHead>
-            <TableHead>Rôle</TableHead>
+            {showRoleColumn && <TableHead>Rôle</TableHead>}
             <TableHead>Application</TableHead>
             <TableHead>Équipe fonctionnelle</TableHead>
             <TableHead>Statut</TableHead>
@@ -114,55 +146,76 @@ function UsersTable({ users, highlightUserId, onChangeRole, onSaveOrganizational
         <TableBody>
           {rows.length === 0 ? (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={6} className="py-8 text-center whitespace-normal text-sm text-muted-foreground">
+              <TableCell colSpan={columnCount} className="py-8 text-center whitespace-normal text-sm text-muted-foreground">
                 Aucun utilisateur ne correspond à ces critères.
               </TableCell>
             </TableRow>
           ) : (
-            rows.map((u) => (
-              <TableRow
-                key={u.id}
-                className={cn("cursor-pointer", isHighlightActive && u.id === highlightUserId && "bg-primary/5")}
-                onClick={() => setManualSelectedUserId(u.id)}
-              >
-                <TableCell>
-                  <div className="flex min-w-0 items-center gap-3">
-                    <Avatar className="shrink-0">
-                      <AvatarImage src={u.avatar_url ?? undefined} alt={u.display_name} />
-                      <AvatarFallback>{initials(u.display_name)}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{u.display_name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+            rows.map((u) => {
+              const activation = activationLabel(u)
+              const isSelf = currentUser?.id === u.id
+              return (
+                <TableRow
+                  key={u.id}
+                  className={cn(
+                    canOpenDetails && "cursor-pointer",
+                    isHighlightActive && u.id === highlightUserId && "bg-primary/5"
+                  )}
+                  onClick={() => canOpenDetails && setManualSelectedUserId(u.id)}
+                >
+                  <TableCell>
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar className="shrink-0">
+                        <AvatarImage src={u.avatar_url ?? undefined} alt={u.display_name} />
+                        <AvatarFallback>{initials(u.display_name)}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{u.display_name}</p>
+                        {showIdentityColumns && (
+                          <p className="truncate text-xs text-muted-foreground">{u.detail?.email}</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>{getRoleName(u, roles)}</TableCell>
-                <TableCell className="text-muted-foreground">{getPrimaryApplication(u) ?? "—"}</TableCell>
-                <TableCell className="text-muted-foreground">{functionalTeamLabels[u.functional_team]}</TableCell>
-                <TableCell><ActiveBadge active={u.active} /></TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon-sm" aria-label="Actions utilisateur">
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onSelect={() => setManualSelectedUserId(u.id)}>
-                        Voir les détails
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className={u.active ? "text-destructive focus:text-destructive" : undefined}
-                        onSelect={() => onToggleActive(u.id)}
-                      >
-                        {u.active ? "Désactiver" : "Activer"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
+                  </TableCell>
+                  {showRoleColumn && (
+                    <TableCell>{getRoleName(u.detail?.role_id, roles)}</TableCell>
+                  )}
+                  <TableCell className="text-muted-foreground">{getPrimaryApplication(u) ?? "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">{functionalTeamLabels[u.functional_team]}</TableCell>
+                  <TableCell><ActiveBadge active={u.active} /></TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {(canOpenDetails || activation !== null) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon-sm" aria-label="Actions utilisateur">
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {canOpenDetails && (
+                            <DropdownMenuItem onSelect={() => setManualSelectedUserId(u.id)}>
+                              Voir les détails
+                            </DropdownMenuItem>
+                          )}
+                          {/* Deactivation is refused on the actor's own account by
+                              UserAccessPolicy: it can strip their own access, and roles are
+                              seeded reference data, so a self-lockout takes the seeder to undo.
+                              Activation carries no such risk and is not self-restricted. */}
+                          {activation !== null && !(u.active && isSelf) && (
+                            <DropdownMenuItem
+                              className={u.active ? "text-destructive focus:text-destructive" : undefined}
+                              onSelect={() => onToggleActive(u.id)}
+                            >
+                              {activation}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </TableCell>
+                </TableRow>
+              )
+            })
           )}
         </TableBody>
       </Table>
@@ -170,6 +223,7 @@ function UsersTable({ users, highlightUserId, onChangeRole, onSaveOrganizational
       <UserDetailsSheet
         key={selectedUserId ?? "none"}
         user={selectedUser}
+        capabilities={capabilities}
         onOpenChange={(open) => !open && closeSheet()}
         onSaveRole={onChangeRole}
         onSaveOrganizationalIdentity={onSaveOrganizationalIdentity}

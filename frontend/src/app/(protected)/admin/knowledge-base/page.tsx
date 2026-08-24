@@ -4,7 +4,7 @@ import { PageBody, PageHeader } from "@/components/app/page"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BatchImportPanel } from "@/features/knowledge-base/batch-import-panel"
 import { RecalculationPanel } from "@/features/knowledge-base/recalculation-panel"
-import { RequirePermission, usePermissions } from "@/lib/auth"
+import { RequireRouteAccess, usePermissions } from "@/lib/auth"
 
 /**
  * Administration of the Knowledge Base: loading historical tickets in bulk, and governing the
@@ -23,13 +23,7 @@ export default function KnowledgeBasePage() {
   const canReadRecalculation = hasPermission("knowledge_base.read_recalculation") || canManageRecalculation
 
   return (
-    <RequirePermission
-      anyPermissions={[
-        "knowledge_base.batch_import",
-        "knowledge_base.read_recalculation",
-        "knowledge_base.manage_recalculation",
-      ]}
-    >
+    <RequireRouteAccess href="/admin/knowledge-base">
       <PageHeader
         title="Base de connaissances"
         description="Import de tickets historiques et entretien du graphe de similarité"
@@ -60,6 +54,6 @@ export default function KnowledgeBasePage() {
           )}
         </Tabs>
       </PageBody>
-    </RequirePermission>
+    </RequireRouteAccess>
   )
 }

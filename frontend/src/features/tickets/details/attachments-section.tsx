@@ -45,6 +45,13 @@ interface AttachmentsSectionProps {
 
 function AttachmentsSection({ ticket, onUploadAttachment, onDeleteAttachment, error }: AttachmentsSectionProps) {
   const { hasPermission, isTicketAssignee, isAttachmentUploader } = usePermissions()
+
+  // Mirrors AttachmentAccessPolicy's "delete": the uploader's own attachment, and the permission
+  // that performs the deletion. Only the first was checked, so a role without `attachment.delete`
+  // was still offered a button whose request the backend refuses.
+  function canDeleteAttachment(attachment: Parameters<typeof isAttachmentUploader>[0]) {
+    return hasPermission("attachment.delete") && isAttachmentUploader(attachment)
+  }
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [pendingFiles, setPendingFiles] = useState<File[] | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Attachment | null>(null)
@@ -112,7 +119,7 @@ function AttachmentsSection({ ticket, onUploadAttachment, onDeleteAttachment, er
                 <Button variant="outline" size="sm" onClick={() => handleDownload(a)}>
                   <Download className="size-4" /> Télécharger
                 </Button>
-                {isAttachmentUploader(a) && (
+                {canDeleteAttachment(a) && (
                   <Button variant="ghost" size="icon" onClick={() => setPendingDelete(a)}>
                     <X className="size-4" />
                   </Button>

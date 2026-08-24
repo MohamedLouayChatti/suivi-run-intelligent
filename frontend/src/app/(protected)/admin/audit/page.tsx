@@ -7,7 +7,7 @@ import { PageHeader, PageBody } from "@/components/app/page"
 import { Button } from "@/components/ui/button"
 import { AuditLogTable } from "@/features/audit/audit-log-table"
 import { AuditRefreshButton } from "@/features/audit/audit-refresh-button"
-import { RequirePermission } from "@/lib/auth"
+import { RequireRouteAccess } from "@/lib/auth"
 import { exportAuditEntries } from "@/services/api/audit"
 
 export default function AuditPage() {
@@ -30,7 +30,7 @@ export default function AuditPage() {
   }
 
   return (
-    <RequirePermission permission="audit.read">
+    <RequireRouteAccess href="/admin/audit">
       <PageHeader
         title="Audit"
         description="Registre immuable des événements métier et administratifs"
@@ -47,6 +47,6 @@ export default function AuditPage() {
       <PageBody>
         <AuditLogTable moduleFilter={moduleFilter} onModuleFilterChange={setModuleFilter} />
       </PageBody>
-    </RequirePermission>
+    </RequireRouteAccess>
   )
 }

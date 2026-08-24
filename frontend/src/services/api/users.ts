@@ -95,11 +95,17 @@ async function revokePermissionFromRole(roleId: string, permissionId: string): P
   return data
 }
 
-function getPrimaryApplication(user: UserResponse): Application | null {
+/** Anything carrying application assignments: the full record, the directory projection, or an
+ * administration row built from whichever of the two the caller may read. Typed by the one field
+ * these accessors touch rather than by `UserResponse`, so a directory row is not excluded from a
+ * question that has nothing to do with the fields it lacks. */
+type WithApplicationAssignments = Pick<UserResponse, "application_assignments">
+
+function getPrimaryApplication(user: WithApplicationAssignments): Application | null {
   return user.application_assignments.find((a) => a.assignment_type === "PRIMARY")?.application ?? null
 }
 
-function getBackupApplication(user: UserResponse): Application | null {
+function getBackupApplication(user: WithApplicationAssignments): Application | null {
   return user.application_assignments.find((a) => a.assignment_type === "BACKUP")?.application ?? null
 }
 
