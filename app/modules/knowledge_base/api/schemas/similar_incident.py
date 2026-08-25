@@ -16,6 +16,7 @@ class SimilarIncidentResponse(BaseModel):
 	resolution_notes: str | None
 	similarity_score: float
 	rank: int
+	matched_reference: bool
 
 	@classmethod
 	def from_dto(cls, incident: SimilarIncidentDTO) -> SimilarIncidentResponse:
@@ -26,4 +27,5 @@ class SimilarIncidentResponse(BaseModel):
 			resolution_notes=incident.resolution_notes,
 			similarity_score=incident.similarity_score,
 			rank=incident.rank,
+			matched_reference=incident.matched_reference,
 		)

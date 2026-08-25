@@ -14,3 +14,4 @@ class SimilarityResultRowDTO:
 	similar_ticket_id: UUID
 	similarity_score: float
 	rank: int
+	matched_reference: bool

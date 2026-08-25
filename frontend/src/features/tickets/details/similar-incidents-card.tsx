@@ -6,6 +6,7 @@ import { ArrowUpRight, ChevronDown } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
 import { StatusBadge } from "@/components/app/status"
+import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -98,9 +99,15 @@ function SimilarIncidentRow({
             {incident.ticket_id.slice(0, 8)}
           </span>
           <StatusBadge status={incident.status} />
-          <span className="ml-auto text-xs tabular text-muted-foreground">
-            {formatSimilarity(incident.similarity_score)}
-          </span>
+          {incident.matched_reference ? (
+            <Badge variant="info" className="ml-auto">
+              Cité dans ce ticket
+            </Badge>
+          ) : (
+            <span className="ml-auto text-xs tabular text-muted-foreground">
+              {formatSimilarity(incident.similarity_score)}
+            </span>
+          )}
         </div>
         <p className="mt-1.5 flex items-start gap-1 text-sm font-medium group-hover:text-primary">
           <span className="min-w-0 flex-1">{incident.title}</span>

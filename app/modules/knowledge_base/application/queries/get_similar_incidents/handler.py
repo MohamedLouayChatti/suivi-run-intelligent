@@ -36,6 +36,7 @@ class GetSimilarIncidentsHandler:
 					ticket_id=row.similar_ticket_id, title=summary.title, status=summary.status,
 					resolution_notes=summary.resolution_notes,
 					similarity_score=row.similarity_score, rank=row.rank,
+					matched_reference=row.matched_reference,
 				)
 			)
 		return results

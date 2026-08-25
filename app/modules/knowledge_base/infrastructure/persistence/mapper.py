@@ -25,6 +25,7 @@ def similarity_result_to_model(result: SimilarityResult) -> SimilarityResultMode
 		similar_ticket_id=result.similar_ticket_id,
 		similarity_score=result.similarity_score,
 		rank=result.rank,
+		matched_reference=result.matched_reference,
 		generated_at=result.generated_at,
 		embedding_model_version=result.embedding_model_version,
 		algorithm_version=result.algorithm_version,
@@ -36,6 +37,7 @@ def model_to_similarity_result_row_dto(model: SimilarityResultModel) -> Similari
 		similar_ticket_id=model.similar_ticket_id,
 		similarity_score=model.similarity_score,
 		rank=model.rank,
+		matched_reference=model.matched_reference,
 	)
 
 

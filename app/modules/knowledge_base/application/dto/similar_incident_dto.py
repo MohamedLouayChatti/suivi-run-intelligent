@@ -20,3 +20,4 @@ class SimilarIncidentDTO:
 	resolution_notes: str | None
 	similarity_score: float
 	rank: int
+	matched_reference: bool

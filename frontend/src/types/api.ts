@@ -1689,6 +1689,8 @@ export interface components {
             similarity_score: number;
             /** Rank */
             rank: number;
+            /** Matched Reference */
+            matched_reference: boolean;
         };
         /**
          * Status

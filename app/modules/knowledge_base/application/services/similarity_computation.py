@@ -52,6 +52,7 @@ class SimilarityComputation:
 			SimilarityResult.create(
 				id=uuid4(), source_ticket_id=item.source_id, similar_ticket_id=candidate.ticket_id,
 				similarity_score=candidate.similarity_score, rank=candidate.rank,
+				matched_reference=candidate.matched_reference,
 				generated_at=generated_at, embedding_model_version=item.embedding_model_version,
 				algorithm_version=ALGORITHM_VERSION,
 			)
