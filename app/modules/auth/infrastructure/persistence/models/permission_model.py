@@ -39,6 +39,7 @@ class PermissionModel(Base):
 		primaryjoin=lambda: PermissionModel.id == permission_dependencies.c.permission_id,
 		secondaryjoin=lambda: PermissionModel.id == permission_dependencies.c.requires_permission_id,
 		lazy="selectin",
+		join_depth=1,
 	)
 	"""The permissions this one cannot be used without -- direct prerequisites only.
 
