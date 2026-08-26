@@ -8,6 +8,7 @@ import { useCurrentUser } from "@/lib/auth"
 import { useAuthSession } from "@/lib/auth/use-auth-session"
 import { ProfileTab } from "@/features/settings/profile-tab"
 import { AppearanceTab } from "@/features/settings/appearance-tab"
+import { SecurityTab } from "@/features/settings/security-tab"
 
 function splitDisplayName(displayName: string): { prenom: string; nom: string } {
   const [prenom = "", ...rest] = displayName.split(" ")
@@ -63,6 +64,7 @@ export default function SettingsPage() {
           <TabsList>
             <TabsTrigger value="profile">Profil</TabsTrigger>
             <TabsTrigger value="appearance">Apparence</TabsTrigger>
+            <TabsTrigger value="security">Sécurité</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -80,6 +82,10 @@ export default function SettingsPage() {
 
           <TabsContent value="appearance">
             <AppearanceTab />
+          </TabsContent>
+
+          <TabsContent value="security">
+            <SecurityTab />
           </TabsContent>
         </Tabs>
       </PageBody>

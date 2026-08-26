@@ -16,4 +16,15 @@ function clerkErrorMessage(error: ClerkOperationError | null | undefined): strin
   return error.longMessage ?? error.message ?? FALLBACK_MESSAGE;
 }
 
-export { clerkErrorMessage };
+/**
+ * User resource methods (`user.update`, `user.updatePassword`, ...) don't follow the Core 3
+ * `{ error }` return shape above — they throw a `ClerkAPIResponseError` whose `errors` array
+ * carries the same `{ message, longMessage }` shape. Structural here for the same reason as
+ * `ClerkOperationError`: avoids depending on `@clerk/shared` just for `isClerkAPIResponseError`.
+ */
+function clerkThrownErrorMessage(error: unknown): string {
+  const errors = (error as { errors?: ClerkOperationError[] } | null)?.errors;
+  return clerkErrorMessage(errors?.[0]);
+}
+
+export { clerkErrorMessage, clerkThrownErrorMessage };

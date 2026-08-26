@@ -14,6 +14,11 @@ interface AuthSession {
   imageUrl: string | null;
   setProfileImage: (file: File) => Promise<void>;
   setProfileName: (firstName: string, lastName: string) => Promise<void>;
+  updatePassword: (params: {
+    currentPassword: string;
+    newPassword: string;
+    signOutOfOtherSessions: boolean;
+  }) => Promise<void>;
 }
 
 function useAuthSession(): AuthSession {
@@ -33,6 +38,10 @@ function useAuthSession(): AuthSession {
     setProfileName: async (firstName: string, lastName: string) => {
       if (!user) return;
       await user.update({ firstName, lastName });
+    },
+    updatePassword: async ({ currentPassword, newPassword, signOutOfOtherSessions }) => {
+      if (!user) return;
+      await user.updatePassword({ currentPassword, newPassword, signOutOfOtherSessions });
     },
   };
 }
