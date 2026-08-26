@@ -15,7 +15,7 @@ import { RequireRouteAccess, useCurrentUser, usePermissions } from "@/lib/auth"
 import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
 
 export default function TicketsPage() {
-  const { tickets, isLoading, addTicket, uploadAttachment } = useTicketsList()
+  const { addTicket, uploadAttachment } = useTicketsList()
   const { data: currentUser } = useCurrentUser()
   const { hasPermission } = usePermissions()
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
@@ -70,18 +70,8 @@ export default function TicketsPage() {
           canReadAllApplications={canReadAllApplications}
           accessibleApplications={accessibleApplications}
         />
-        <MyActiveTicketsTable
-          tickets={tickets}
-          filters={filters}
-          isLoading={isLoading}
-          currentUserId={currentUser?.id ?? ""}
-        />
-        <TeamActiveTicketsTable
-          tickets={tickets}
-          filters={filters}
-          isLoading={isLoading}
-          currentUserId={currentUser?.id ?? ""}
-        />
+        <MyActiveTicketsTable filters={filters} currentUserId={currentUser?.id ?? ""} />
+        <TeamActiveTicketsTable filters={filters} currentUserId={currentUser?.id ?? ""} />
       </PageBody>
       {canCreate && (
         <CreateTicketDrawer

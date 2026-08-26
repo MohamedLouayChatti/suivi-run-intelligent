@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import Select, and_, select
+from sqlalchemy import Select, and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.audit.application.dto.audit_entry_dto import AuditEntryDTO
@@ -28,8 +28,11 @@ class SqlAlchemyAuditReadRepository(AuditReadRepository):
 		result = await self.session.scalars(stmt)
 		return [mapper.model_to_dto(model) for model in result.all()]
 
-	def _build_list_query(self, query: ListAuditEntriesQuery) -> Select[tuple[AuditEntryModel]]:
-		stmt = select(AuditEntryModel)
+	async def count_entries(self, query: ListAuditEntriesQuery) -> int:
+		stmt = self._apply_list_conditions(select(func.count(AuditEntryModel.id)), query)
+		return await self.session.scalar(stmt) or 0
+
+	def _apply_list_conditions(self, stmt: Select[tuple], query: ListAuditEntriesQuery) -> Select[tuple]:
 		conditions = []
 		if query.module is not None:
 			conditions.append(AuditEntryModel.module == query.module)
@@ -45,6 +48,10 @@ class SqlAlchemyAuditReadRepository(AuditReadRepository):
 			conditions.append(AuditEntryModel.occurred_at <= query.date_to)
 		if conditions:
 			stmt = stmt.where(and_(*conditions))
+		return stmt
+
+	def _build_list_query(self, query: ListAuditEntriesQuery) -> Select[tuple[AuditEntryModel]]:
+		stmt = self._apply_list_conditions(select(AuditEntryModel), query)
 		return stmt.order_by(AuditEntryModel.occurred_at.desc()).limit(query.limit).offset(query.offset)
 
 	async def list_entries_for_export(self, query: ExportAuditEntriesQuery) -> list[AuditEntryDTO]:

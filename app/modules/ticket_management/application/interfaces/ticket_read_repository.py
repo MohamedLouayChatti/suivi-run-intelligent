@@ -13,6 +13,7 @@ from app.modules.ticket_management.application.dto.ticket_dto import (
 	TicketSummaryDTO,
 )
 from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
+from app.modules.ticket_management.application.queries.list_ticket_history.query import ListTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
 
@@ -27,11 +28,26 @@ class TicketReadRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
+	async def count_tickets(self, query: ListTicketsQuery) -> int:
+		"""Same filters as `list_tickets`, without `limit`/`offset` -- the total a paginated
+		caller needs to render a page count, computed by the same WHERE clause rather than the
+		length of an already-bounded page."""
+		raise NotImplementedError
+
+	@abstractmethod
 	async def search_tickets(self, query: SearchTicketsQuery) -> list[TicketSummaryDTO]:
 		raise NotImplementedError
 
 	@abstractmethod
 	async def list_history_for_export(self, query: ExportTicketHistoryQuery) -> list[TicketSummaryDTO]:
+		raise NotImplementedError
+
+	@abstractmethod
+	async def list_history(self, query: ListTicketHistoryQuery) -> list[TicketSummaryDTO]:
+		raise NotImplementedError
+
+	@abstractmethod
+	async def count_history(self, query: ListTicketHistoryQuery) -> int:
 		raise NotImplementedError
 
 	@abstractmethod

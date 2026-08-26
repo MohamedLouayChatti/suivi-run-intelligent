@@ -6,7 +6,6 @@ import { PageBody } from "@/components/app/page"
 import { HistoryHeader } from "@/features/history/history-header"
 import { HistoryFiltersBar } from "@/features/history/history-filters"
 import { HistoryTable } from "@/features/history/history-table"
-import { useHistoryList } from "@/features/history/use-history-list"
 import { defaultHistoryFilters, createDefaultHistoryFilters, type HistoryFilters } from "@/features/history/filter-history"
 import { useUserDirectory } from "@/hooks/use-user-directory"
 import { RequireRouteAccess, useCurrentUser, usePermissions } from "@/lib/auth"
@@ -14,7 +13,6 @@ import { getAccessibleApplications, getPrimaryApplication } from "@/services/api
 import { exportTicketHistory } from "@/services/api/tickets"
 
 export default function HistoryPage() {
-  const { tickets, isLoading } = useHistoryList()
   const { data: currentUser } = useCurrentUser()
   const { hasPermission } = usePermissions()
   // Mirrors the backend's ticket application scope: holding the breadth permission is what lets
@@ -79,7 +77,7 @@ export default function HistoryPage() {
           canReadAllApplications={canReadAllApplications}
           accessibleApplications={accessibleApplications}
         />
-        <HistoryTable tickets={tickets} filters={filters} isLoading={isLoading} />
+        <HistoryTable filters={filters} />
       </PageBody>
     </RequireRouteAccess>
   )

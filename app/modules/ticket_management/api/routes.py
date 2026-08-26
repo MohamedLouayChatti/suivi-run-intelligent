@@ -29,11 +29,14 @@ from app.modules.ticket_management.application.queries.get_ticket.handler import
 from app.modules.ticket_management.application.queries.get_ticket.query import GetTicketQuery
 from app.modules.ticket_management.application.queries.download_attachment.query import DownloadAttachmentQuery
 from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
+from app.modules.ticket_management.application.queries.list_ticket_history.query import ListTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.category import Category
+from app.modules.ticket_management.domain.enums.priority import Priority
 from app.modules.ticket_management.domain.enums.status import Status
+from app.api.pagination import PagedResponse
 from app.shared.security.current_user import CurrentUser, get_current_user
 from app.shared.security.instance_permissions import require_instance_permission
 from app.shared.security.permissions import require_permissions
@@ -45,10 +48,51 @@ now = lambda: datetime.now(UTC)
 async def create_ticket(payload: Annotated[TicketCreateRequest, Depends(dep.require_ticket_creation_authorized)], current_user: Annotated[CurrentUser, Depends(get_current_user)], handler=Depends(dep.get_create_ticket_handler)):
 	return TicketDetailResponse.from_dto(await handler.handle(CreateTicketCommand(ticket_id=uuid4(), created_at=now(), assignee_id=current_user.id, actor_id=current_user.id, **payload.model_dump())))
 
-@router.get("", response_model=list[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
-async def list_tickets(handler=Depends(dep.get_list_tickets_handler), allowed_applications: Annotated[frozenset[Application] | None, Depends(dep.require_ticket_read_scope)] = None, page: int = 1, page_size: int = 100):
-	query = ListTicketsQuery(limit=page_size, offset=(page-1)*page_size, allowed_applications=allowed_applications)
-	return [TicketSummaryResponse.from_dto(x) for x in await handler.handle(query)]
+@router.get("", response_model=PagedResponse[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
+async def list_tickets(
+	handler=Depends(dep.get_list_tickets_handler),
+	allowed_applications: Annotated[frozenset[Application] | None, Depends(dep.require_ticket_read_scope)] = None,
+	application: Application | None = None,
+	status_: Annotated[Status | None, Query(alias="status")] = None,
+	priority: Priority | None = None,
+	category: Category | None = None,
+	assignee_id: UUID | None = None,
+	exclude_assignee_id: UUID | None = None,
+	search: str = "",
+	active_only: bool = False,
+	page: int = 1,
+	page_size: int = 100,
+):
+	query = ListTicketsQuery(
+		application=application, status=status_, priority=priority, category=category,
+		assignee_id=assignee_id, exclude_assignee_id=exclude_assignee_id, search=search,
+		active_only=active_only, limit=page_size, offset=(page - 1) * page_size,
+		allowed_applications=allowed_applications,
+	)
+	result = await handler.handle(query)
+	return PagedResponse(items=[TicketSummaryResponse.from_dto(x) for x in result.items], total=result.total)
+
+@router.get("/history", response_model=PagedResponse[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
+async def list_ticket_history(
+	handler=Depends(dep.get_list_ticket_history_handler),
+	allowed_applications: Annotated[frozenset[Application] | None, Depends(dep.require_ticket_read_scope)] = None,
+	application: Application | None = None,
+	status_: Annotated[Status | None, Query(alias="status")] = None,
+	category: Category | None = None,
+	assignee_id: UUID | None = None,
+	search: str = "",
+	date_from: date | None = None,
+	date_to: date | None = None,
+	page: int = 1,
+	page_size: int = 10,
+):
+	query = ListTicketHistoryQuery(
+		application=application, status=status_, category=category, assignee_id=assignee_id,
+		search=search, date_from=date_from, date_to=date_to, allowed_applications=allowed_applications,
+		limit=page_size, offset=(page - 1) * page_size,
+	)
+	result = await handler.handle(query)
+	return PagedResponse(items=[TicketSummaryResponse.from_dto(x) for x in result.items], total=result.total)
 
 @router.get("/search", response_model=list[TicketSummaryResponse], dependencies=[Depends(require_permissions("ticket.read"))])
 async def search_tickets(term: Annotated[str, Query(min_length=1)], handler=Depends(dep.get_search_tickets_handler), allowed_applications: Annotated[frozenset[Application] | None, Depends(dep.require_ticket_read_scope)] = None, page: int = 1, page_size: int = 50):

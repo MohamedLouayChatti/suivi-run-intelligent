@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useEffect, useMemo, useState } from "react"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { Search } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
@@ -32,10 +32,17 @@ const dateTimeFormatter = new Intl.DateTimeFormat("fr-FR", {
   second: "2-digit",
 })
 
+// The modules that actually publish audited events (see Audit's CLAUDE.md) -- fixed and
+// small, so this is a plain constant rather than derived from whatever page of entries
+// happens to be loaded. Deriving it from the fetched page broke once that page became
+// filtered by module server-side: filtering to one module would then leave only that one
+// module in the set the dropdown offers to switch to.
 const moduleLabels: Record<string, string> = {
   ticket_management: "Tickets",
   auth: "Auth",
+  knowledge_base: "Base de connaissances",
 }
+const auditedModules = Object.keys(moduleLabels)
 
 /** GET /audit always includes ticket_id/user_id/role_id/... under `<resource_type>_id`
  * (see AuditMapper) -- this is the one key every payload shape agrees on. */
@@ -56,29 +63,34 @@ interface AuditLogTableProps {
 
 function AuditLogTable({ moduleFilter, onModuleFilterChange }: AuditLogTableProps) {
   const [query, setQuery] = useState("")
-  const [rawPage, setRawPage] = useState(1)
+  const [page, setPage] = useState(1)
 
-  const { data: entries = [], isLoading } = useQuery({
-    queryKey: auditListQueryKey,
-    queryFn: () => listAuditEntries(),
+  useEffect(() => setPage(1), [moduleFilter])
+
+  const { data, isLoading } = useQuery({
+    queryKey: [...auditListQueryKey, moduleFilter, page] as const,
+    queryFn: () => listAuditEntries({ module: moduleFilter, page, pageSize: PAGE_SIZE }),
+    placeholderData: keepPreviousData,
   })
 
-  const modules = useMemo(() => [...new Set(entries.map((e) => e.module))].sort(), [entries])
+  const entries = data?.items ?? []
+  const total = data?.total ?? 0
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
-  const filtered = useMemo(
+  // Module and pagination are real server-side filters now (GET /audit). The free-text box
+  // stays a client-side refinement over whatever page that returns -- it matches actor
+  // display name, which only exists after a separate cross-module lookup into Auth's user
+  // directory and has no single-query server-side equivalent the way `module` does, so this
+  // narrows within the current page rather than across the whole filtered result.
+  const rows = useMemo(
     () =>
       entries.filter(
         (e) =>
-          (moduleFilter === "all" || e.module === moduleFilter) &&
-          (query === "" ||
-            (getActorLabel(e) + e.action + e.resource_type).toLowerCase().includes(query.toLowerCase()))
+          query === "" ||
+          (getActorLabel(e) + e.action + e.resource_type).toLowerCase().includes(query.toLowerCase())
       ),
-    [entries, query, moduleFilter]
+    [entries, query]
   )
-
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const page = Math.min(rawPage, pageCount)
-  const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <SectionCard bodyClassName="p-0">
@@ -87,25 +99,16 @@ function AuditLogTable({ moduleFilter, onModuleFilterChange }: AuditLogTableProp
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.75} />
           <Input
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value)
-              setRawPage(1)
-            }}
+            onChange={(e) => setQuery(e.target.value)}
             placeholder="Rechercher un acteur, une action ou une ressource…"
             className="pl-9"
           />
         </div>
-        <Select
-          value={moduleFilter}
-          onValueChange={(v) => {
-            onModuleFilterChange(v)
-            setRawPage(1)
-          }}
-        >
+        <Select value={moduleFilter} onValueChange={onModuleFilterChange}>
           <SelectTrigger className="w-[11rem]"><SelectValue placeholder="Module" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les modules</SelectItem>
-            {modules.map((m) => (
+            {auditedModules.map((m) => (
               <SelectItem key={m} value={m}>{moduleLabels[m] ?? m}</SelectItem>
             ))}
           </SelectContent>
@@ -159,7 +162,7 @@ function AuditLogTable({ moduleFilter, onModuleFilterChange }: AuditLogTableProp
           )}
         </TableBody>
       </Table>
-      <Pagination page={page} pageCount={pageCount} onPageChange={setRawPage} className="border-t border-border" />
+      <Pagination page={Math.min(page, pageCount)} pageCount={pageCount} onPageChange={setPage} className="border-t border-border" />
     </SectionCard>
   )
 }

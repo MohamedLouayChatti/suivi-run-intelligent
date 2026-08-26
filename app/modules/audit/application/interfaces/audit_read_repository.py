@@ -18,5 +18,11 @@ class AuditReadRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
+	async def count_entries(self, query: ListAuditEntriesQuery) -> int:
+		"""Same filters as `list_entries`, without `limit`/`offset` -- the total a paginated
+		caller needs to render a page count."""
+		raise NotImplementedError
+
+	@abstractmethod
 	async def list_entries_for_export(self, query: ExportAuditEntriesQuery) -> list[AuditEntryDTO]:
 		raise NotImplementedError

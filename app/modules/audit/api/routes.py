@@ -9,6 +9,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
 
+from app.api.pagination import PagedResponse
 from app.modules.audit.api import dependencies as dep
 from app.modules.audit.api.schemas import AuditEntryResponse
 from app.modules.audit.application.queries.export_audit_entries.query import ExportAuditEntriesQuery
@@ -19,7 +20,7 @@ from app.shared.security.permissions import require_permissions
 router = APIRouter(prefix="/audit", tags=["audit"])
 
 
-@router.get("", response_model=list[AuditEntryResponse], dependencies=[Depends(require_permissions("audit.read"))])
+@router.get("", response_model=PagedResponse[AuditEntryResponse], dependencies=[Depends(require_permissions("audit.read"))])
 async def list_audit_entries(
 	handler=Depends(dep.get_list_audit_entries_handler),
 	module: str | None = None,
@@ -35,7 +36,8 @@ async def list_audit_entries(
 		module=module, event_type=event_type, resource_type=resource_type, actor_id=actor_id,
 		date_from=date_from, date_to=date_to, limit=page_size, offset=(page - 1) * page_size,
 	)
-	return [AuditEntryResponse.from_dto(entry) for entry in await handler.handle(query)]
+	result = await handler.handle(query)
+	return PagedResponse(items=[AuditEntryResponse.from_dto(entry) for entry in result.items], total=result.total)
 
 
 @router.get("/export", dependencies=[Depends(require_permissions("audit.read"))])

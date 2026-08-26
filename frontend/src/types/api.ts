@@ -347,6 +347,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tickets/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Ticket History */
+        get: operations["list_ticket_history_tickets_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tickets/search": {
         parameters: {
             query?: never;
@@ -1593,6 +1610,20 @@ export interface components {
             /** Operational Highlight */
             operational_highlight: boolean;
         };
+        /** PagedResponse[AuditEntryResponse] */
+        PagedResponse_AuditEntryResponse_: {
+            /** Items */
+            items: components["schemas"]["AuditEntryResponse"][];
+            /** Total */
+            total: number;
+        };
+        /** PagedResponse[TicketSummaryResponse] */
+        PagedResponse_TicketSummaryResponse_: {
+            /** Items */
+            items: components["schemas"]["TicketSummaryResponse"][];
+            /** Total */
+            total: number;
+        };
         /** PermissionResponse */
         PermissionResponse: {
             /**
@@ -2703,6 +2734,14 @@ export interface operations {
     list_tickets_tickets_get: {
         parameters: {
             query?: {
+                application?: components["schemas"]["Application"] | null;
+                status?: components["schemas"]["Status"] | null;
+                priority?: components["schemas"]["Priority"] | null;
+                category?: components["schemas"]["Category"] | null;
+                assignee_id?: string | null;
+                exclude_assignee_id?: string | null;
+                search?: string;
+                active_only?: boolean;
                 page?: number;
                 page_size?: number;
             };
@@ -2718,7 +2757,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TicketSummaryResponse"][];
+                    "application/json": components["schemas"]["PagedResponse_TicketSummaryResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -2752,6 +2791,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TicketDetailResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_ticket_history_tickets_history_get: {
+        parameters: {
+            query?: {
+                application?: components["schemas"]["Application"] | null;
+                status?: components["schemas"]["Status"] | null;
+                category?: components["schemas"]["Category"] | null;
+                assignee_id?: string | null;
+                search?: string;
+                date_from?: string | null;
+                date_to?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResponse_TicketSummaryResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -3523,7 +3601,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["AuditEntryResponse"][];
+                    "application/json": components["schemas"]["PagedResponse_AuditEntryResponse_"];
                 };
             };
             /** @description Validation Error */

@@ -25,6 +25,7 @@ import {
   deleteCommentAttachment,
 } from "@/services/api/tickets"
 import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
+import { historyListQueryKey } from "@/features/history/use-history-list"
 
 type Priority = components["schemas"]["Priority"]
 type TransferDestination = components["schemas"]["TransferDestination"]
@@ -45,6 +46,7 @@ function useTicketDetail(id: string) {
   function afterMutation() {
     queryClient.invalidateQueries({ queryKey: ticketDetailQueryKey(id) })
     queryClient.invalidateQueries({ queryKey: ticketsListQueryKey })
+    queryClient.invalidateQueries({ queryKey: historyListQueryKey })
   }
 
   const start = useMutation({ mutationFn: () => startTicket(id), onSuccess: afterMutation })

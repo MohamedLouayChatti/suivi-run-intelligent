@@ -1,32 +1,28 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { SectionCard } from "@/components/app/page"
 import { Pagination } from "@/components/app/pagination"
 import { TicketsTable, type DateColumn } from "@/features/tickets/ticket-table"
-import { applyHistoryFilters, getCompletedAt, type HistoryFilters } from "@/features/history/filter-history"
-import type { components } from "@/types/api"
-
-type TicketSummary = components["schemas"]["TicketSummaryResponse"]
+import { getCompletedAt, type HistoryFilters } from "@/features/history/filter-history"
+import { useHistoryList } from "@/features/history/use-history-list"
 
 const PAGE_SIZE = 10
 
 const completedAtColumn: DateColumn[] = [{ label: "Complété le", getValue: getCompletedAt }]
 
 interface HistoryTableProps {
-  tickets: TicketSummary[]
   filters: HistoryFilters
-  isLoading: boolean
 }
 
-function HistoryTable({ tickets, filters, isLoading }: HistoryTableProps) {
-  const [rawPage, setRawPage] = useState(1)
+function HistoryTable({ filters }: HistoryTableProps) {
+  const [page, setPage] = useState(1)
 
-  const filtered = useMemo(() => applyHistoryFilters(tickets, filters), [tickets, filters])
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const page = Math.min(rawPage, pageCount)
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  useEffect(() => setPage(1), [filters])
+
+  const { tickets, total, isLoading } = useHistoryList({ filters, page, pageSize: PAGE_SIZE })
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <SectionCard
@@ -35,7 +31,7 @@ function HistoryTable({ tickets, filters, isLoading }: HistoryTableProps) {
       bodyClassName="p-0"
     >
       <TicketsTable
-        tickets={paged}
+        tickets={tickets}
         isLoading={isLoading}
         showAssignee
         showPriority={false}
@@ -43,9 +39,9 @@ function HistoryTable({ tickets, filters, isLoading }: HistoryTableProps) {
         emptyMessage="Aucun ticket complété ne correspond à vos filtres."
       />
       <Pagination
-        page={page}
+        page={Math.min(page, pageCount)}
         pageCount={pageCount}
-        onPageChange={setRawPage}
+        onPageChange={setPage}
         className="border-t border-border"
       />
     </SectionCard>

@@ -18,6 +18,7 @@ from app.modules.ticket_management.application.dto.ticket_dto import (
 from app.modules.ticket_management.application.dto.ticket_identity_key import TicketIdentityKey
 from app.modules.ticket_management.application.interfaces.ticket_read_repository import TicketReadRepository
 from app.modules.ticket_management.application.queries.export_ticket_history.query import ExportTicketHistoryQuery
+from app.modules.ticket_management.application.queries.list_ticket_history.query import ListTicketHistoryQuery
 from app.modules.ticket_management.application.queries.list_tickets.query import ListTicketsQuery
 from app.modules.ticket_management.application.queries.search_tickets.query import SearchTicketsQuery
 from app.modules.ticket_management.domain.enums.status import Status
@@ -26,6 +27,7 @@ from app.modules.ticket_management.infrastructure.persistence.models.attachment_
 from app.modules.ticket_management.infrastructure.persistence.models.comment_model import CommentModel
 from app.modules.ticket_management.infrastructure.persistence.models.ticket_model import TicketModel
 
+ACTIVE_STATUSES = (Status.OPEN, Status.IN_PROGRESS, Status.RESOLVED)
 COMPLETED_STATUSES = (Status.CLOSED, Status.TRANSFERRED)
 
 # Postgres has to compare stored tickets the same way the application normalizes the candidate keys
@@ -67,6 +69,10 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 		result = await self.session.scalars(stmt)
 		return [mapper.ticket_model_to_summary_dto(ticket_model) for ticket_model in result.all()]
 
+	async def count_tickets(self, query: ListTicketsQuery) -> int:
+		stmt = self._apply_list_conditions(select(func.count(TicketModel.id)), query)
+		return await self.session.scalar(stmt) or 0
+
 	async def search_tickets(self, query: SearchTicketsQuery) -> list[TicketSummaryDTO]:
 		stmt = self._build_search_query(query)
 		result = await self.session.scalars(stmt)
@@ -76,6 +82,15 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 		stmt = self._build_export_query(query)
 		result = await self.session.scalars(stmt)
 		return [mapper.ticket_model_to_summary_dto(ticket_model) for ticket_model in result.all()]
+
+	async def list_history(self, query: ListTicketHistoryQuery) -> list[TicketSummaryDTO]:
+		stmt = self._build_history_list_query(query)
+		result = await self.session.scalars(stmt)
+		return [mapper.ticket_model_to_summary_dto(ticket_model) for ticket_model in result.all()]
+
+	async def count_history(self, query: ListTicketHistoryQuery) -> int:
+		stmt = self._build_history_count_query(query)
+		return await self.session.scalar(stmt) or 0
 
 	async def get_ticket_id_for_comment(self, comment_id: UUID) -> UUID | None:
 		return await self.session.scalar(select(CommentModel.ticket_id).where(CommentModel.id == comment_id))
@@ -131,9 +146,19 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 			for row in rows
 		]
 
-	def _build_list_query(self, query: ListTicketsQuery) -> Select[tuple[TicketModel]]:
-		stmt = select(TicketModel)
+	def _apply_list_conditions(self, stmt: Select[tuple], query: ListTicketsQuery) -> Select[tuple]:
 		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.functional_team, query.category, query.operational_highlight, query.include_archived, query.allowed_applications)
+		if query.exclude_assignee_id is not None:
+			stmt = stmt.where(TicketModel.assignee_id != query.exclude_assignee_id)
+		if query.status is None and query.active_only:
+			stmt = stmt.where(TicketModel.status.in_(ACTIVE_STATUSES))
+		if query.search.strip():
+			pattern = f"%{query.search.strip()}%"
+			stmt = stmt.where(or_(TicketModel.title.ilike(pattern), cast(TicketModel.id, String).ilike(pattern)))
+		return stmt
+
+	def _build_list_query(self, query: ListTicketsQuery) -> Select[tuple[TicketModel]]:
+		stmt = self._apply_list_conditions(select(TicketModel), query)
 		return stmt.order_by(TicketModel.created_at.desc(), TicketModel.updated_at.desc()).limit(query.limit).offset(query.offset)
 
 	def _build_search_query(self, query: SearchTicketsQuery) -> Select[tuple[TicketModel]]:
@@ -143,19 +168,43 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 		stmt = stmt.where(or_(TicketModel.title.ilike(pattern), TicketModel.description.ilike(pattern)))
 		return stmt.order_by(TicketModel.created_at.desc(), TicketModel.updated_at.desc()).limit(query.limit).offset(query.offset)
 
-	def _build_export_query(self, query: ExportTicketHistoryQuery) -> Select[tuple[TicketModel]]:
-		stmt = select(TicketModel)
-		stmt = self._apply_common_filters(stmt, query.application, None, None, query.assignee_id, None, query.category, None, False, query.allowed_applications)
-		statuses = (query.status,) if query.status is not None else COMPLETED_STATUSES
+	def _apply_history_conditions(self, stmt: Select[tuple], *, application, status, category, assignee_id, search: str, date_from, date_to, allowed_applications) -> Select[tuple]:
+		"""Shared by the CSV export and the on-screen history list -- both mean "completed
+		tickets matching these filters," they differ only in whether the result is bounded."""
+		stmt = self._apply_common_filters(stmt, application, None, None, assignee_id, None, category, None, False, allowed_applications)
+		statuses = (status,) if status is not None else COMPLETED_STATUSES
 		stmt = stmt.where(TicketModel.status.in_(statuses))
-		if query.search.strip():
-			pattern = f"%{query.search.strip()}%"
+		if search.strip():
+			pattern = f"%{search.strip()}%"
 			stmt = stmt.where(or_(TicketModel.title.ilike(pattern), cast(TicketModel.id, String).ilike(pattern)))
-		if query.date_from is not None:
-			stmt = stmt.where(TicketModel.updated_at >= datetime.combine(query.date_from, time.min, tzinfo=UTC))
-		if query.date_to is not None:
-			stmt = stmt.where(TicketModel.updated_at <= datetime.combine(query.date_to, time.max, tzinfo=UTC))
+		if date_from is not None:
+			stmt = stmt.where(TicketModel.updated_at >= datetime.combine(date_from, time.min, tzinfo=UTC))
+		if date_to is not None:
+			stmt = stmt.where(TicketModel.updated_at <= datetime.combine(date_to, time.max, tzinfo=UTC))
+		return stmt
+
+	def _build_export_query(self, query: ExportTicketHistoryQuery) -> Select[tuple[TicketModel]]:
+		stmt = self._apply_history_conditions(
+			select(TicketModel), application=query.application, status=query.status, category=query.category,
+			assignee_id=query.assignee_id, search=query.search, date_from=query.date_from, date_to=query.date_to,
+			allowed_applications=query.allowed_applications,
+		)
 		return stmt.order_by(TicketModel.updated_at.desc())
+
+	def _build_history_list_query(self, query: ListTicketHistoryQuery) -> Select[tuple[TicketModel]]:
+		stmt = self._apply_history_conditions(
+			select(TicketModel), application=query.application, status=query.status, category=query.category,
+			assignee_id=query.assignee_id, search=query.search, date_from=query.date_from, date_to=query.date_to,
+			allowed_applications=query.allowed_applications,
+		)
+		return stmt.order_by(TicketModel.updated_at.desc()).limit(query.limit).offset(query.offset)
+
+	def _build_history_count_query(self, query: ListTicketHistoryQuery) -> Select[tuple[int]]:
+		return self._apply_history_conditions(
+			select(func.count(TicketModel.id)), application=query.application, status=query.status,
+			category=query.category, assignee_id=query.assignee_id, search=query.search,
+			date_from=query.date_from, date_to=query.date_to, allowed_applications=query.allowed_applications,
+		)
 
 	def _apply_common_filters(self, stmt: Select[tuple[TicketModel]], application, status, priority, assignee_id, functional_team, category, operational_highlight, include_archived: bool, allowed_applications=None) -> Select[tuple[TicketModel]]:
 		conditions = []

@@ -3,15 +3,23 @@ import type { components } from "@/types/api"
 import { httpClient } from "./client"
 
 type AuditEntry = components["schemas"]["AuditEntryResponse"]
+type PagedAuditEntries = components["schemas"]["PagedResponse_AuditEntryResponse_"]
+
+interface ListAuditEntriesQuery {
+  module: "all" | string
+  page: number
+  pageSize: number
+}
 
 /**
- * Mirrors listTickets/listUsers: fetch one large page from the backend, filter/search/
- * paginate client-side (see audit-log-table.tsx) rather than round-tripping per filter
- * change — same convention used everywhere else in this app.
+ * Server-side filtered (by module) and paginated. The audit log's free-text search box stays
+ * a client-side refinement over whatever page this returns (see audit-log-table.tsx) — it
+ * matches actor display name, which only exists after a separate cross-module lookup into
+ * Auth's user directory, so it has no single-query server-side equivalent the way `module` does.
  */
-async function listAuditEntries(pageSize = 100): Promise<AuditEntry[]> {
-  const { data } = await httpClient.get<AuditEntry[]>("/audit", {
-    params: { page: 1, page_size: pageSize },
+async function listAuditEntries({ module, page, pageSize }: ListAuditEntriesQuery): Promise<PagedAuditEntries> {
+  const { data } = await httpClient.get<PagedAuditEntries>("/audit", {
+    params: { module: module === "all" ? undefined : module, page, page_size: pageSize },
   })
   return data
 }

@@ -1,34 +1,40 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { SectionCard } from "@/components/app/page"
 import { Pagination } from "@/components/app/pagination"
 import { TicketsTable } from "@/features/tickets/ticket-table"
-import { applyTicketFilters, type TicketFilters } from "@/features/tickets/filter-tickets"
-import type { components } from "@/types/api"
-
-type TicketSummary = components["schemas"]["TicketSummaryResponse"]
+import { useActiveTickets } from "@/features/tickets/use-tickets-list"
+import type { TicketFilters } from "@/features/tickets/filter-tickets"
 
 const PAGE_SIZE = 5
 
 interface MyActiveTicketsTableProps {
-  tickets: TicketSummary[]
   filters: TicketFilters
-  isLoading: boolean
   currentUserId: string
 }
 
-function MyActiveTicketsTable({ tickets, filters, isLoading, currentUserId }: MyActiveTicketsTableProps) {
-  const [rawPage, setRawPage] = useState(1)
+function MyActiveTicketsTable({ filters, currentUserId }: MyActiveTicketsTableProps) {
+  const [page, setPage] = useState(1)
 
-  const filtered = useMemo(
-    () => applyTicketFilters(tickets, filters).filter((t) => t.assignee?.id === currentUserId),
-    [tickets, filters, currentUserId]
-  )
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const page = Math.min(rawPage, pageCount)
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  useEffect(() => setPage(1), [filters])
+
+  // "Assigned to me" and the assignee filter are both equality constraints on the same
+  // column -- if the filter names someone else, the two can never both hold, so there is
+  // nothing to fetch rather than a request that can only come back empty.
+  const matchesAssigneeFilter = filters.assigneeId === "all" || filters.assigneeId === currentUserId
+  const enabled = Boolean(currentUserId) && matchesAssigneeFilter
+
+  const { tickets, total, isLoading } = useActiveTickets({
+    filters,
+    page,
+    pageSize: PAGE_SIZE,
+    assigneeId: currentUserId,
+    enabled,
+  })
+
+  const pageCount = enabled ? Math.max(1, Math.ceil(total / PAGE_SIZE)) : 1
 
   return (
     <SectionCard
@@ -37,15 +43,15 @@ function MyActiveTicketsTable({ tickets, filters, isLoading, currentUserId }: My
       bodyClassName="p-0"
     >
       <TicketsTable
-        tickets={paged}
-        isLoading={isLoading}
+        tickets={enabled ? tickets : []}
+        isLoading={enabled && isLoading}
         showAssignee={false}
         emptyMessage="Aucun ticket actif ne correspond à ces filtres."
       />
       <Pagination
-        page={page}
+        page={Math.min(page, pageCount)}
         pageCount={pageCount}
-        onPageChange={setRawPage}
+        onPageChange={setPage}
         className="border-t border-border"
       />
     </SectionCard>

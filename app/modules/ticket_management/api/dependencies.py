@@ -106,6 +106,9 @@ def get_search_tickets_handler(repository: Annotated[SqlAlchemyTicketReadReposit
 def get_export_ticket_history_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)], users: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]):
 	from app.modules.ticket_management.application.queries.export_ticket_history.handler import ExportTicketHistoryHandler
 	return ExportTicketHistoryHandler(repository, users)
+def get_list_ticket_history_handler(repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_read_repository)], users: Annotated[SqlAlchemyUserReadRepository, Depends(get_user_read_repository)]):
+	from app.modules.ticket_management.application.queries.list_ticket_history.handler import ListTicketHistoryHandler
+	return ListTicketHistoryHandler(repository, users)
 
 def _crud_provider(handler_name):
 	def provider(uow: Annotated[SqlAlchemyUnitOfWork, Depends(get_unit_of_work)], publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)]):

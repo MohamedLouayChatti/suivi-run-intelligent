@@ -1,34 +1,35 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { SectionCard } from "@/components/app/page"
 import { Pagination } from "@/components/app/pagination"
 import { TicketsTable } from "@/features/tickets/ticket-table"
-import { applyTicketFilters, type TicketFilters } from "@/features/tickets/filter-tickets"
-import type { components } from "@/types/api"
-
-type TicketSummary = components["schemas"]["TicketSummaryResponse"]
+import { useActiveTickets } from "@/features/tickets/use-tickets-list"
+import type { TicketFilters } from "@/features/tickets/filter-tickets"
 
 const PAGE_SIZE = 5
 
 interface TeamActiveTicketsTableProps {
-  tickets: TicketSummary[]
   filters: TicketFilters
-  isLoading: boolean
   currentUserId: string
 }
 
-function TeamActiveTicketsTable({ tickets, filters, isLoading, currentUserId }: TeamActiveTicketsTableProps) {
-  const [rawPage, setRawPage] = useState(1)
+function TeamActiveTicketsTable({ filters, currentUserId }: TeamActiveTicketsTableProps) {
+  const [page, setPage] = useState(1)
 
-  const filtered = useMemo(
-    () => applyTicketFilters(tickets, filters).filter((t) => t.assignee?.id !== currentUserId),
-    [tickets, filters, currentUserId]
-  )
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  const page = Math.min(rawPage, pageCount)
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  useEffect(() => setPage(1), [filters])
+
+  const { tickets, total, isLoading } = useActiveTickets({
+    filters,
+    page,
+    pageSize: PAGE_SIZE,
+    assigneeId: filters.assigneeId === "all" ? undefined : filters.assigneeId,
+    excludeAssigneeId: currentUserId,
+    enabled: Boolean(currentUserId),
+  })
+
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
     <SectionCard
@@ -37,15 +38,15 @@ function TeamActiveTicketsTable({ tickets, filters, isLoading, currentUserId }: 
       bodyClassName="p-0"
     >
       <TicketsTable
-        tickets={paged}
+        tickets={tickets}
         isLoading={isLoading}
         showAssignee
         emptyMessage="Aucun ticket actif ne correspond à ces filtres."
       />
       <Pagination
-        page={page}
+        page={Math.min(page, pageCount)}
         pageCount={pageCount}
-        onPageChange={setRawPage}
+        onPageChange={setPage}
         className="border-t border-border"
       />
     </SectionCard>

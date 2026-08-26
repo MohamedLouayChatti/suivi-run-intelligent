@@ -6,18 +6,91 @@ type TicketSummary = components["schemas"]["TicketSummaryResponse"]
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
 type TicketCreateRequest = components["schemas"]["TicketCreateRequest"]
 type Priority = components["schemas"]["Priority"]
+type Application = components["schemas"]["Application"]
+type Status = components["schemas"]["Status"]
+type Category = components["schemas"]["Category"]
 type TransferDestination = components["schemas"]["TransferDestination"]
 type JiraDetailsUpdateRequest = components["schemas"]["JiraDetailsUpdateRequest"]
+type PagedTicketSummary = components["schemas"]["PagedResponse_TicketSummaryResponse_"]
 
 /**
- * The list endpoint only accepts page/page_size — the richer filter fields on the
- * backend's ListTicketsQuery (status, priority, application, ...) are never read from
- * the request, so callers filter/sort the fetched page client-side (see filter-tickets.ts
- * / filter-history.ts) rather than passing them here.
+ * Backs the Dashboard's "recent activity" style widgets (see useTicketsList) — deliberately
+ * unfiltered by status, unlike listActiveTickets below, since those widgets show a user's
+ * recently-touched tickets regardless of where they ended up.
  */
 async function listTickets(pageSize = 100): Promise<TicketSummary[]> {
-  const { data } = await httpClient.get<TicketSummary[]>("/tickets", {
+  const { data } = await httpClient.get<PagedTicketSummary>("/tickets", {
     params: { page: 1, page_size: pageSize },
+  })
+  return data.items
+}
+
+interface ActiveTicketsFilters {
+  search: string
+  application: Application | "all"
+  priority: Priority | "all"
+  status: Status | "all"
+  category: Category | "all"
+}
+
+interface ActiveTicketsQuery {
+  filters: ActiveTicketsFilters
+  assigneeId?: string
+  excludeAssigneeId?: string
+  page: number
+  pageSize: number
+}
+
+/** Backs the Tickets page's "Mes tickets actifs"/"Tickets actifs de l'équipe" tables: a real
+ * server-side filtered, paginated fetch (GET /tickets with active_only=true) rather than
+ * filtering/paginating an unfiltered top-100 page in the browser. */
+async function listActiveTickets({
+  filters,
+  assigneeId,
+  excludeAssigneeId,
+  page,
+  pageSize,
+}: ActiveTicketsQuery): Promise<PagedTicketSummary> {
+  const { data } = await httpClient.get<PagedTicketSummary>("/tickets", {
+    params: {
+      application: filters.application === "all" ? undefined : filters.application,
+      status: filters.status === "all" ? undefined : filters.status,
+      priority: filters.priority === "all" ? undefined : filters.priority,
+      category: filters.category === "all" ? undefined : filters.category,
+      search: filters.search.trim() || undefined,
+      assignee_id: assigneeId,
+      exclude_assignee_id: excludeAssigneeId,
+      active_only: true,
+      page,
+      page_size: pageSize,
+    },
+  })
+  return data
+}
+
+interface TicketHistoryQuery {
+  filters: HistoryExportFilters
+  page: number
+  pageSize: number
+}
+
+/** Backs the Historique page's table: GET /tickets/history mirrors the export endpoint's
+ * filter semantics (completed tickets, search over id/title, date range over the completion
+ * date) but paginates instead of returning the whole matching set. Shares `HistoryExportFilters`
+ * with exportTicketHistory below — same filter bar, same shape. */
+async function listTicketHistory({ filters, page, pageSize }: TicketHistoryQuery): Promise<PagedTicketSummary> {
+  const { data } = await httpClient.get<PagedTicketSummary>("/tickets/history", {
+    params: {
+      application: filters.application === "all" ? undefined : filters.application,
+      status: filters.status === "all" ? undefined : filters.status,
+      category: filters.category === "all" ? undefined : filters.category,
+      assignee_id: filters.assigneeId === "all" ? undefined : filters.assigneeId,
+      search: filters.search.trim() || undefined,
+      date_from: filters.dateFrom || undefined,
+      date_to: filters.dateTo || undefined,
+      page,
+      page_size: pageSize,
+    },
   })
   return data
 }
@@ -197,4 +270,7 @@ export {
   deleteCommentAttachment,
   downloadAttachment,
   exportTicketHistory,
+  listActiveTickets,
+  listTicketHistory,
 }
+export type { ActiveTicketsFilters }
