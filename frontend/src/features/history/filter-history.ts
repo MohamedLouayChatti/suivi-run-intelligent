@@ -15,6 +15,11 @@ interface HistoryFilters {
   dateTo: string
 }
 
+// Floor for the date range filter. The earliest completed ticket in the database (checked
+// directly) closes on 2025-09-30 -- this sits comfortably before that with margin for
+// historical backfills, rather than tracking the exact earliest row.
+const HISTORY_MIN_DATE = "2025-01-01"
+
 const defaultHistoryFilters: HistoryFilters = {
   search: "",
   application: "all",
@@ -38,5 +43,5 @@ function getCompletedAt(ticket: TicketSummary): string {
   return ticket.updated_at
 }
 
-export { defaultHistoryFilters, createDefaultHistoryFilters, getCompletedAt }
+export { defaultHistoryFilters, createDefaultHistoryFilters, getCompletedAt, HISTORY_MIN_DATE }
 export type { HistoryFilters }

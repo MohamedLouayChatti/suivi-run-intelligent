@@ -11,9 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { DateRangeFilter } from "@/components/app/date-range-filter"
 import { statusConfig } from "@/components/app/status"
 import type { components } from "@/types/api"
-import type { HistoryFilters } from "@/features/history/filter-history"
+import { HISTORY_MIN_DATE, type HistoryFilters } from "@/features/history/filter-history"
 import {
   applicationOptions,
   completedStatusOptions,
@@ -142,22 +143,13 @@ function HistoryFiltersBar({
         </SelectContent>
       </Select>
 
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs text-muted-foreground">Du</span>
-        <Input
-          type="date"
-          value={filters.dateFrom}
-          onChange={(e) => onChange({ dateFrom: e.target.value })}
-          className="w-[150px]"
-        />
-        <span className="text-xs text-muted-foreground">au</span>
-        <Input
-          type="date"
-          value={filters.dateTo}
-          onChange={(e) => onChange({ dateTo: e.target.value })}
-          className="w-[150px]"
-        />
-      </div>
+      <DateRangeFilter
+        value={{ from: filters.dateFrom, to: filters.dateTo }}
+        onChange={(range) => onChange({ dateFrom: range.from, dateTo: range.to })}
+        minDate={HISTORY_MIN_DATE}
+        placeholder="Période"
+        className="w-[240px]"
+      />
 
       <Button variant="ghost" size="sm" onClick={onReset}>
         <RotateCcw className="size-4" /> Réinitialiser
