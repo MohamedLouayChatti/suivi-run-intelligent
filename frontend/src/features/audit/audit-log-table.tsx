@@ -44,6 +44,14 @@ const moduleLabels: Record<string, string> = {
 }
 const auditedModules = Object.keys(moduleLabels)
 
+// Every `action` the backend sends is "<resource>.<verb>" (see AuditMapper) -- split once here
+// so the column can render it over two lines instead of forcing the whole table to scroll.
+function splitAction(action: string): { resource: string; verb: string } {
+  const dotIndex = action.indexOf(".")
+  if (dotIndex === -1) return { resource: action, verb: "" }
+  return { resource: action.slice(0, dotIndex), verb: action.slice(dotIndex + 1) }
+}
+
 /** GET /audit always includes ticket_id/user_id/role_id/... under `<resource_type>_id`
  * (see AuditMapper) -- this is the one key every payload shape agrees on. */
 function getResourceId(entry: AuditEntry): string | null {
@@ -144,13 +152,17 @@ function AuditLogTable({ moduleFilter, onModuleFilterChange }: AuditLogTableProp
           ) : (
             rows.map((e) => {
               const resourceId = getResourceId(e)
+              const { resource: actionResource, verb: actionVerb } = splitAction(e.action)
               return (
                 <TableRow key={e.id} className="hover:bg-transparent">
                   <TableCell className="font-mono text-xs text-muted-foreground tabular">
                     {dateTimeFormatter.format(new Date(e.occurred_at))}
                   </TableCell>
                   <TableCell className="font-medium">{getActorLabel(e)}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{e.action}</TableCell>
+                  <TableCell className="font-mono text-xs leading-tight text-muted-foreground">
+                    <span className="block">{actionResource}/</span>
+                    <span className="block">{actionVerb}</span>
+                  </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{moduleLabels[e.module] ?? e.module}</TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">
                     {e.resource_type ?? "—"}
