@@ -22,12 +22,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PermissionGroupList } from "@/components/app/permission-group-list"
 import { Switch } from "@/components/ui/switch"
 import { ActiveBadge } from "@/components/app/status"
-import { getPrimaryApplication, getBackupApplication } from "@/services/api/users"
+import { getPrimaryApplication, getBackupApplication, getReadOnlyApplications } from "@/services/api/users"
 import { getRoleName } from "@/features/users/get-role-name"
 import { functionalTeamLabels } from "@/features/users/constants"
 import { applicationOptions, functionalTeamOptionsForApplications } from "@/features/tickets/constants"
@@ -46,12 +47,18 @@ const NO_APPLICATION = "none"
 
 function buildAssignments(
   primary: Application | null,
-  backup: Application | null
+  backup: Application | null,
+  readOnly: readonly Application[]
 ): OrganizationalIdentity["application_assignments"] {
   const assignments: NonNullable<OrganizationalIdentity["application_assignments"]> = []
   if (primary) assignments.push({ application: primary, assignment_type: "PRIMARY" })
   if (backup) assignments.push({ application: backup, assignment_type: "BACKUP" })
+  for (const application of readOnly) assignments.push({ application, assignment_type: "READ_ONLY" })
   return assignments
+}
+
+function sameApplicationSet(a: ReadonlySet<Application>, b: readonly Application[]): boolean {
+  return a.size === b.length && b.every((application) => a.has(application))
 }
 
 interface UserDetailsSheetProps {
@@ -107,9 +114,27 @@ function UserDetailsSheet({
 
   const currentPrimary = user ? getPrimaryApplication(user) : null
   const currentBackup = user ? getBackupApplication(user) : null
+  const currentReadOnly = user ? getReadOnlyApplications(user) : []
   const [primaryApplication, setPrimaryApplication] = useState<Application | null>(currentPrimary)
   const [backupApplication, setBackupApplication] = useState<Application | null>(currentBackup)
+  const [readOnlyApplications, setReadOnlyApplications] = useState<Set<Application>>(new Set(currentReadOnly))
   const [functionalTeam, setFunctionalTeam] = useState<FunctionalTeam>(user?.functional_team ?? "SUPPORT")
+
+  // Read-only applications available to pick: never the one already held as primary or backup —
+  // the aggregate refuses the same application under two assignment types, so this only avoids
+  // offering a choice that would be rejected on save.
+  const readOnlyOptions = applicationOptions.filter(
+    (application) => application !== primaryApplication && application !== backupApplication
+  )
+
+  function toggleReadOnlyApplication(application: Application, checked: boolean) {
+    setReadOnlyApplications((prev) => {
+      const next = new Set(prev)
+      if (checked) next.add(application)
+      else next.delete(application)
+      return next
+    })
+  }
 
   // The same rule the User aggregate enforces: AERO and VIO have no Paramétrage team, so holding
   // either — as primary or as backup — leaves Support the only answer. Chosen for the admin rather
@@ -196,11 +221,14 @@ function UserDetailsSheet({
     // Staffing is written before the role, never after: assigning a role that requires a primary
     // application to a user who is only being given one in this same save would otherwise be
     // refused by a backend that has not seen the application yet.
-    const assignmentsChanged = primaryApplication !== currentPrimary || backupApplication !== currentBackup
+    const assignmentsChanged =
+      primaryApplication !== currentPrimary ||
+      backupApplication !== currentBackup ||
+      !sameApplicationSet(readOnlyApplications, currentReadOnly)
     if (mayEditStaffing && (assignmentsChanged || effectiveFunctionalTeam !== user.functional_team)) {
       await onSaveOrganizationalIdentity(user.id, {
         functional_team: effectiveFunctionalTeam,
-        application_assignments: buildAssignments(primaryApplication, backupApplication),
+        application_assignments: buildAssignments(primaryApplication, backupApplication, [...readOnlyApplications]),
       })
     }
 
@@ -239,7 +267,14 @@ function UserDetailsSheet({
       : []),
     [
       "Application",
-      currentBackup ? `${currentPrimary} (principal), ${currentBackup} (secours)` : (currentPrimary ?? "—"),
+      [
+        currentBackup ? `${currentPrimary} (principal), ${currentBackup} (secours)` : (currentPrimary ?? "—"),
+        currentReadOnly.length > 0
+          ? `${currentReadOnly.join(", ")} (lecture seule)`
+          : null,
+      ]
+        .filter((part): part is string => part !== null)
+        .join(" · "),
     ],
     ["Équipe fonctionnelle", functionalTeamLabels[user.functional_team]],
     [
@@ -320,6 +355,15 @@ function UserDetailsSheet({
                       // primary. Cleared visibly here rather than left to be refused on save, the same
                       // way the AERO/VIO team rule is resolved for the admin instead of rejected.
                       if (next === null) setBackupApplication(null)
+                      // An application cannot be both staffed and read-only at once — the aggregate
+                      // refuses the same application under two assignment types.
+                      if (next !== null && readOnlyApplications.has(next)) {
+                        setReadOnlyApplications((prev) => {
+                          const nextSet = new Set(prev)
+                          nextSet.delete(next)
+                          return nextSet
+                        })
+                      }
                     }}
                   >
                     <SelectTrigger id="primary-application" className="w-full"><SelectValue /></SelectTrigger>
@@ -336,9 +380,18 @@ function UserDetailsSheet({
                   <Select
                     value={backupApplication ?? NO_APPLICATION}
                     disabled={primaryApplication === null}
-                    onValueChange={(value) =>
-                      setBackupApplication(value === NO_APPLICATION ? null : (value as Application))
-                    }
+                    onValueChange={(value) => {
+                      const next = value === NO_APPLICATION ? null : (value as Application)
+                      setBackupApplication(next)
+                      // Same cardinality rule as primary above: never both staffed and read-only.
+                      if (next !== null && readOnlyApplications.has(next)) {
+                        setReadOnlyApplications((prev) => {
+                          const nextSet = new Set(prev)
+                          nextSet.delete(next)
+                          return nextSet
+                        })
+                      }
+                    }}
                   >
                     <SelectTrigger id="backup-application" className="w-full"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -375,6 +428,32 @@ function UserDetailsSheet({
                       AERO et VIO sont assurées par l&apos;équipe SN3 uniquement.
                     </p>
                   )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Applications en lecture seule</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Accès en lecture aux tickets et analyses de ces applications, sans pouvoir en
+                    créer ni en gérer.
+                  </p>
+                  <div className="space-y-2">
+                    {readOnlyOptions.map((application) => (
+                      <div key={application} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`read-only-${application}`}
+                          checked={readOnlyApplications.has(application)}
+                          onCheckedChange={(value) => toggleReadOnlyApplication(application, value === true)}
+                        />
+                        <Label htmlFor={`read-only-${application}`} className="cursor-pointer font-normal">
+                          {application}
+                        </Label>
+                      </div>
+                    ))}
+                    {readOnlyOptions.length === 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Aucune application disponible : déjà principale ou de secours.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

@@ -57,6 +57,11 @@ def has_primary_application_assignment(current_user: CurrentUser, application: T
 	return current_user.has_primary_application_assignment(application)
 
 
+def has_actionable_application_assignment(current_user: CurrentUser, application: TicketApplication) -> bool:
+	"""Staffed on `application` -- PRIMARY or BACKUP, never a READ_ONLY reach-only assignment."""
+	return current_user.has_actionable_application_assignment(application)
+
+
 def is_same_functional_team(current_user: CurrentUser, functional_team: TicketFunctionalTeam) -> bool:
 	return current_user.functional_team.value == functional_team.value
 

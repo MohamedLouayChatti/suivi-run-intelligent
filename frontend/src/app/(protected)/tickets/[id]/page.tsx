@@ -82,13 +82,17 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
   // ticket.py) plus ReassignTicketHandler's (application/commands/reassign_ticket/handler.py)
   // — the backend rejects an inactive/mismatched-team/mismatched-application target, and
   // rejects reassigning to the current assignee (no-op), so the picker only offers candidates
-  // that would actually be accepted.
+  // that would actually be accepted. A read-only assignment grants reach without staffing, so
+  // it does not qualify a candidate here — only a primary/backup assignment describes someone
+  // actually working the application.
   const reassignCandidates = users.filter(
     (u) =>
       u.active &&
       u.id !== ticket.assignee?.id &&
       u.functional_team === ticket.functional_team &&
-      u.application_assignments.some((a) => a.application === ticket.application)
+      u.application_assignments.some(
+        (a) => a.application === ticket.application && a.assignment_type !== "READ_ONLY"
+      )
   )
 
   // Mirrors Ticket._transition_to's allowed map and the explicit checks in resume()/close()

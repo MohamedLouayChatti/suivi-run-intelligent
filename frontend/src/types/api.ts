@@ -1256,7 +1256,7 @@ export interface components {
          * AssignmentType
          * @enum {string}
          */
-        AssignmentType: "PRIMARY" | "BACKUP";
+        AssignmentType: "PRIMARY" | "BACKUP" | "READ_ONLY";
         /** AttachmentResponse */
         AttachmentResponse: {
             /**

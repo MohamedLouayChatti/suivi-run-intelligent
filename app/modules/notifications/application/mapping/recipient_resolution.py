@@ -103,12 +103,19 @@ class RecipientResolver:
 		"""functional_team_value narrows to users whose own functional_team matches --
 		needed for destinations that split by team (Support vs Configuration FCI/COLORIS).
 		Pass None for destinations with no such split (AERO, VIO), where any user
-		assigned to the application is a valid recipient regardless of their team."""
+		assigned to the application is a valid recipient regardless of their team.
+
+		READ_ONLY assignments are excluded: this backs the ticket-transferred notification,
+		which means "someone needs to pick this up" -- not something a read-only viewer can do,
+		so telling them would just be noise."""
 		users = await self._all_active_users()
 		return {
 			user.id
 			for user in users
 			if user.active
-			and any(assignment.application.value == application_value for assignment in user.application_assignments)
+			and any(
+				assignment.application.value == application_value and assignment.assignment_type.value != "READ_ONLY"
+				for assignment in user.application_assignments
+			)
 			and (functional_team_value is None or user.functional_team.value == functional_team_value)
 		}

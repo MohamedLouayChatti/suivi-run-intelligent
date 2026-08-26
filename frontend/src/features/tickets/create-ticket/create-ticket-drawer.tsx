@@ -20,7 +20,7 @@ import { AssignmentFields } from "@/features/tickets/create-ticket/assignment-fi
 import { BusinessFields } from "@/features/tickets/create-ticket/business-fields"
 import { ReferencesFields } from "@/features/tickets/create-ticket/references-fields"
 import { useCurrentUser } from "@/lib/auth"
-import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
+import { getActionableApplications, getPrimaryApplication } from "@/services/api/auth"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
@@ -36,7 +36,9 @@ interface CreateTicketDrawerProps {
 function CreateTicketDrawer({ open, onOpenChange, onCreated, onUploadAttachment }: CreateTicketDrawerProps) {
   const { data: currentUser } = useCurrentUser()
   const primaryApplication = currentUser ? getPrimaryApplication(currentUser) : null
-  const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
+  // Staffed applications only (primary/backup) — a read-only assignment grants reach without
+  // staffing, and ticket creation is TicketCreationPolicy's, which requires the latter.
+  const accessibleApplications = currentUser ? getActionableApplications(currentUser) : []
   const { values, setField, setApplication, addFiles, removeFile, reset, isValid } = useCreateTicketForm(
     primaryApplication ?? "FCI"
   )

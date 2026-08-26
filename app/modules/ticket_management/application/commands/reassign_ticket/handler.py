@@ -25,7 +25,12 @@ class ReassignTicketHandler:
 			raise AssigneeNotFound()
 		if candidate.functional_team.value != ticket.functional_team.value:
 			raise AssigneeNotAuthorized()
-		if not any(assignment.application.value == ticket.application.value for assignment in candidate.application_assignments):
+		# READ_ONLY grants reach into an application without staffing, so it does not make its
+		# holder a valid assignee -- only PRIMARY/BACKUP describe someone actually working it.
+		if not any(
+			assignment.application.value == ticket.application.value and assignment.assignment_type.value != "READ_ONLY"
+			for assignment in candidate.application_assignments
+		):
 			raise AssigneeNotAuthorized()
 
 		ticket.reassign(command.assignee_id, command.reassigned_at)

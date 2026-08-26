@@ -107,15 +107,22 @@ class User:
 		)
 
 	def _validate_functional_team_against_assignments(self) -> None:
-		"""AERO and VIO are staffed by Support alone, so nobody else may be assigned to them.
+		"""AERO and VIO are staffed by Support alone, so nobody else may be *staffed* on them.
 
-		Checked against every assignment rather than just the primary one: a backup covers the
-		application for real, and a Configuration engineer covering AERO would be as unable to
-		touch its tickets as one who owned it outright.
+		Checked against every PRIMARY/BACKUP assignment rather than just the primary one: a
+		backup covers the application for real, and a Configuration engineer covering AERO would
+		be as unable to touch its tickets as one who owned it outright.
+
+		READ_ONLY is deliberately exempt: it confers reach, not staffing, so a Configuration
+		engineer can be given read-only visibility into AERO or VIO without that implying they
+		could ever be assigned to work its tickets.
 		"""
 		if self.functional_team == FunctionalTeam.SUPPORT:
 			return
-		if any(assignment.application in SUPPORT_ONLY_APPLICATIONS for assignment in self.application_assignments):
+		if any(
+			assignment.application in SUPPORT_ONLY_APPLICATIONS and assignment.assignment_type != AssignmentType.READ_ONLY
+			for assignment in self.application_assignments
+		):
 			raise FunctionalTeamNotAllowedForApplication()
 
 	@classmethod

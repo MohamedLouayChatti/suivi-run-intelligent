@@ -109,6 +109,13 @@ function getBackupApplication(user: WithApplicationAssignments): Application | n
   return user.application_assignments.find((a) => a.assignment_type === "BACKUP")?.application ?? null
 }
 
+/** Plural, unlike its primary/backup siblings: a user holds 0-N read-only applications. */
+function getReadOnlyApplications(user: WithApplicationAssignments): Application[] {
+  return user.application_assignments
+    .filter((a) => a.assignment_type === "READ_ONLY")
+    .map((a) => a.application)
+}
+
 export {
   listUsers,
   listUserDirectory,
@@ -124,4 +131,5 @@ export {
   revokePermissionFromRole,
   getPrimaryApplication,
   getBackupApplication,
+  getReadOnlyApplications,
 }

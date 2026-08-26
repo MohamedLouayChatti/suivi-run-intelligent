@@ -12,18 +12,20 @@ import { useTicketsList } from "@/features/tickets/use-tickets-list"
 import { defaultTicketFilters, createDefaultTicketFilters, type TicketFilters } from "@/features/tickets/filter-tickets"
 import { useUserDirectory } from "@/hooks/use-user-directory"
 import { RequireRouteAccess, useCurrentUser, usePermissions } from "@/lib/auth"
-import { getAccessibleApplications, getPrimaryApplication } from "@/services/api/auth"
+import { getAccessibleApplications, getActionableApplications, getPrimaryApplication } from "@/services/api/auth"
 
 export default function TicketsPage() {
   const { addTicket, uploadAttachment } = useTicketsList()
   const { data: currentUser } = useCurrentUser()
   const { hasPermission } = usePermissions()
   const accessibleApplications = currentUser ? getAccessibleApplications(currentUser) : []
-  // Mirrors TicketCreationPolicy, not just the permission: creating a ticket also requires an
-  // assignment to the application it is filed against, with no breadth override. Someone holding
-  // `ticket.create` but staffed nowhere has no application to file against, and the drawer's
-  // application picker would be empty — a form that cannot be submitted.
-  const canCreate = hasPermission("ticket.create") && accessibleApplications.length > 0
+  const actionableApplications = currentUser ? getActionableApplications(currentUser) : []
+  // Mirrors TicketCreationPolicy, not just the permission: creating a ticket also requires a
+  // staffed (primary/backup) assignment to the application it is filed against, with no breadth
+  // override. Someone holding `ticket.create` but staffed nowhere — including someone with only
+  // read-only applications — has no application to file against, and the drawer's application
+  // picker would be empty — a form that cannot be submitted.
+  const canCreate = hasPermission("ticket.create") && actionableApplications.length > 0
   // Mirrors the backend's ticket application scope: holding the breadth permission is what lets
   // a caller span every application, rather than belonging to any particular role.
   const canReadAllApplications = hasPermission("ticket.read_any_application")

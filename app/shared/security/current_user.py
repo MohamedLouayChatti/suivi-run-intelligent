@@ -73,6 +73,20 @@ class CurrentUser:
 			for assignment in self.application_assignments
 		)
 
+	def has_actionable_application_assignment(self, application: Enum) -> bool:
+		"""Whether the caller is *staffed* on `application` -- PRIMARY or BACKUP, never READ_ONLY.
+
+		`has_application_assignment` above answers "can they reach it" (READ_ONLY included, since
+		that assignment exists precisely to grant reach without staffing); this answers "may they
+		act on it" -- the gate ticket creation and reassignment-target eligibility need, neither
+		of which a read-only assignment was ever meant to satisfy.
+		"""
+		return any(
+			assignment.application.value == application.value
+			and assignment.assignment_type is not AssignmentType.READ_ONLY
+			for assignment in self.application_assignments
+		)
+
 
 _bearer_scheme = HTTPBearer(auto_error=False)
 

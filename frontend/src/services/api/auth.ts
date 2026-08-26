@@ -73,12 +73,32 @@ function getBackupApplication(user: CurrentUser): components["schemas"]["Applica
   );
 }
 
-/** Applications the user may act on/filter by — their primary, plus backup if they have one. */
+/**
+ * Applications the user has *reach* into — every assignment regardless of type, including
+ * READ_ONLY. Mirrors `has_application_assignment`: what scopes a list/filter view (tickets,
+ * history, analytics) and what lets someone comment on a ticket, never what lets them act on
+ * one. For ticket-creation eligibility, use `getActionableApplications` instead.
+ */
 function getAccessibleApplications(user: CurrentUser): components["schemas"]["Application"][] {
+  return [...new Set(user.applicationAssignments.map((a) => a.application))];
+}
+
+/**
+ * Applications the user is *staffed* on — their primary, plus backup if they have one. Mirrors
+ * `has_actionable_application_assignment`: excludes READ_ONLY, since that assignment grants
+ * reach without staffing. Use this to gate ticket creation, never `getAccessibleApplications`.
+ */
+function getActionableApplications(user: CurrentUser): components["schemas"]["Application"][] {
   const primary = getPrimaryApplication(user);
   const backup = getBackupApplication(user);
   return [primary, backup].filter((a): a is components["schemas"]["Application"] => a !== null);
 }
 
-export { getCurrentUser, getPrimaryApplication, getBackupApplication, getAccessibleApplications };
+export {
+  getCurrentUser,
+  getPrimaryApplication,
+  getBackupApplication,
+  getAccessibleApplications,
+  getActionableApplications,
+};
 export type { CurrentUser, CurrentUserApplicationAssignment, CurrentUserPermission, CurrentUserRole };
