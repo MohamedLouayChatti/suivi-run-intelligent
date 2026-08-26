@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { ChevronDown, LogOut, User } from "lucide-react";
 
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -31,12 +29,7 @@ export function SiteHeader({
   onLogout,
 }: SiteHeaderProps) {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border px-4">
-      <div className="flex items-center gap-3">
-        <SidebarTrigger />
-        <Separator orientation="vertical" className="h-6" />
-      </div>
-
+    <header className="flex h-14 shrink-0 items-center justify-end gap-3 border-b border-border px-4">
       <div className="flex items-center gap-1">
         <NotificationBell />
 
