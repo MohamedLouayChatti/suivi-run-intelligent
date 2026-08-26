@@ -1,11 +1,9 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Lock } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
+import { PermissionGroupList } from "@/components/app/permission-group-list"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -141,45 +139,19 @@ function RolesPanel() {
 
         {capabilities.readPermissions && (
           <SectionCard title="Permissions" description="Capacités accordées pour ce rôle" bodyClassName="p-0">
-            <ul className="divide-y divide-border">
-              {permissions.map((p) => {
-                const granted = grantedIds.has(p.id)
-                // A role cannot hold a permission without the ones it is built on, so the box
-                // stays disabled until they are granted. The backend refuses such a grant
-                // outright; this only avoids offering it.
-                const missing = granted ? new Set<string>() : graph.missingPrerequisites(p.id, grantedIds)
-                const blocked = missing.size > 0
-                const editable = granted ? capabilities.revokePermission : capabilities.grantPermission
-                return (
-                  <li key={p.id} className="flex items-start gap-3 px-5 py-3">
-                    <Checkbox
-                      id={`role-perm-${p.id}`}
-                      checked={granted}
-                      disabled={!editable || blocked}
-                      className="mt-0.5"
-                      onCheckedChange={() => requestChange(p.id, p.name, !granted)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <Label
-                        htmlFor={`role-perm-${p.id}`}
-                        className={cn("font-mono text-xs", editable && !blocked && "cursor-pointer")}
-                      >
-                        {p.name}
-                      </Label>
-                      {blocked && (
-                        <p className="mt-0.5 flex items-start gap-1 text-[11px] leading-snug text-muted-foreground">
-                          <Lock className="mt-px size-3 shrink-0" />
-                          <span>Nécessite {namesOf(missing).join(", ")}</span>
-                        </p>
-                      )}
-                    </div>
-                    <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-                      {granted ? "Accordée" : "Non accordée"}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
+            <PermissionGroupList
+              permissions={permissions}
+              graph={graph}
+              heldIds={grantedIds}
+              isEditable={(_p, granted) => (granted ? capabilities.revokePermission : capabilities.grantPermission)}
+              onToggle={(p, granted) => requestChange(p.id, p.name, granted)}
+              renderTrailing={(_p, granted) => (
+                <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+                  {granted ? "Accordée" : "Non accordée"}
+                </span>
+              )}
+              idPrefix="role-perm"
+            />
           </SectionCard>
         )}
       </div>

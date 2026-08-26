@@ -15,3 +15,5 @@ export { usePermissions } from "./use-permissions";
 export { RequireRouteAccess } from "./require-permission";
 export { buildPermissionGraph } from "./permission-graph";
 export type { PermissionGraph } from "./permission-graph";
+export { groupPermissions } from "./permission-groups";
+export type { PermissionGroup } from "./permission-groups";

@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check, Lock, Minus } from "lucide-react"
+import { Check, Minus } from "lucide-react"
 
 import {
   Sheet,
@@ -22,9 +22,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { PermissionGroupList } from "@/components/app/permission-group-list"
 import { Switch } from "@/components/ui/switch"
 import { ActiveBadge } from "@/components/app/status"
 import { getPrimaryApplication, getBackupApplication } from "@/services/api/users"
@@ -394,49 +394,22 @@ function UserDetailsSheet({
                     Permissions du rôle « {selectedRole?.name} », appliquées après enregistrement.
                   </p>
                 )}
-                <ul className="divide-y divide-border rounded-md border border-border">
-                  {permissions.map((p) => {
-                    const checked = displayedPermissionIds.has(p.id)
-                    // A permission cannot be held without the ones it is built on, so it stays
-                    // disabled until they are ticked. The backend refuses such a grant outright;
-                    // this only avoids offering it.
-                    const missing = checked
-                      ? new Set<string>()
-                      : graph.missingPrerequisites(p.id, displayedPermissionIds)
-                    const blocked = missing.size > 0
-                    const editable = mayEditPermissions && !roleChangeStaged
-                    return (
-                      <li key={p.id} className="flex items-start gap-3 px-3 py-2">
-                        <Checkbox
-                          id={`perm-${p.id}`}
-                          checked={checked}
-                          disabled={!editable || blocked}
-                          onCheckedChange={(value) => togglePermission(p.id, value === true)}
-                          className="mt-0.5"
-                        />
-                        <div className="min-w-0 flex-1">
-                          <Label
-                            htmlFor={`perm-${p.id}`}
-                            className={`font-mono text-xs ${editable && !blocked ? "cursor-pointer" : ""}`}
-                          >
-                            {p.name}
-                          </Label>
-                          {blocked && (
-                            <p className="mt-0.5 flex items-start gap-1 text-[11px] leading-snug text-muted-foreground">
-                              <Lock className="mt-px size-3 shrink-0" />
-                              <span>Nécessite {namesOf(missing).join(", ")}</span>
-                            </p>
-                          )}
-                        </div>
-                        {checked ? (
-                          <Check className="mt-0.5 size-3.5 shrink-0 text-primary" />
-                        ) : (
-                          <Minus className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-                        )}
-                      </li>
+                <PermissionGroupList
+                  permissions={permissions}
+                  graph={graph}
+                  heldIds={displayedPermissionIds}
+                  isEditable={() => mayEditPermissions && !roleChangeStaged}
+                  onToggle={(p, checked) => togglePermission(p.id, checked)}
+                  renderTrailing={(_p, checked) =>
+                    checked ? (
+                      <Check className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                    ) : (
+                      <Minus className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
                     )
-                  })}
-                </ul>
+                  }
+                  idPrefix="perm"
+                  className="rounded-md border border-border"
+                />
               </div>
             )}
           </div>
