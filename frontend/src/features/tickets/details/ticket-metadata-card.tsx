@@ -1,7 +1,7 @@
 import { SectionCard } from "@/components/app/page"
 import { StatusBadge, PriorityBadge } from "@/components/app/status"
 import { Badge } from "@/components/ui/badge"
-import { functionalTeamLabels } from "@/features/tickets/constants"
+import { functionalTeamLabels, formatEnumValue } from "@/features/tickets/constants"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
@@ -43,8 +43,8 @@ function TicketMetadataCard({ ticket }: { ticket: TicketDetail }) {
         {functionalTeamLabels[ticket.functional_team]}
       </MetadataRow>
       <MetadataRow label="Ingénieur affecté">{ticket.assignee?.display_name ?? "Non affecté"}</MetadataRow>
-      <MetadataRow label="Offre">{ticket.offer ?? "—"}</MetadataRow>
-      <MetadataRow label="Version">{ticket.version ?? "—"}</MetadataRow>
+      <MetadataRow label="Offre">{ticket.offer ? formatEnumValue(ticket.offer) : "—"}</MetadataRow>
+      <MetadataRow label="Version">{ticket.version ? formatEnumValue(ticket.version) : "—"}</MetadataRow>
       <MetadataRow label="Point d'attention">
         {ticket.operational_highlight ? <Badge variant="warning">Oui</Badge> : "Non"}
       </MetadataRow>

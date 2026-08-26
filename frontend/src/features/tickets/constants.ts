@@ -22,13 +22,13 @@ const activeStatusOptions: Status[] = ["OPEN", "IN_PROGRESS", "RESOLVED"]
 const completedStatusOptions: Status[] = ["CLOSED", "TRANSFERRED"]
 
 const functionalTeamLabels: Record<FunctionalTeam, string> = {
-  SUPPORT: "Support",
+  SUPPORT: "SN3",
   CONFIGURATION: "Paramétrage",
 }
 
 const functionalTeamOptions: FunctionalTeam[] = ["SUPPORT", "CONFIGURATION"]
 
-// AERO and VIO are staffed by Support alone — they have no Paramétrage team, which is the same
+// AERO and VIO are staffed by SN3 alone — they have no Paramétrage team, which is the same
 // fact the transfer destinations encode by giving each of them one entry where FCI and COLORIS
 // get one per team. The backend refuses the other combination outright (both on the User and on
 // the Ticket), so this list only stops a form from offering a choice that would be rejected.
@@ -99,6 +99,29 @@ const elementOptions: Element[] = [
 ]
 
 const vioAppOptions: VioApp[] = ["FOP", "PARC", "SAGIC", "VIGIE"]
+
+// Version and Offer both carry a "Not Specified" member (backend enum value, sent/received as-is
+// over the API — see app/modules/ticket_management/domain/enums/{version,offer}.py) — the one
+// member of either enum that is an English phrase rather than a code, so unlike "V2" or "GCFTTX"
+// it needs a display translation. The import file's accepted-spellings text still shows the raw
+// value, since that's what a user must literally type in the file for the backend to accept it.
+function formatEnumValue(value: string): string {
+  return value === "Not Specified" ? "Non spécifié" : value
+}
+
+// TransferDestination (backend enum, sent/received as-is over the API — see
+// app/modules/ticket_management/domain/enums/transfer_destination.py) spells two of its members
+// with the business's old "Support" name for the team the org now calls SN3. Display-only, like
+// formatEnumValue above: the value posted to `transferTicket`/read back from ticket history stays
+// "Support FCI"/"Support COLORIS" unchanged.
+const TRANSFER_DESTINATION_LABELS: Partial<Record<TransferDestination, string>> = {
+  "Support FCI": "SN3 FCI",
+  "Support COLORIS": "SN3 COLORIS",
+}
+
+function formatTransferDestination(value: string): string {
+  return TRANSFER_DESTINATION_LABELS[value as TransferDestination] ?? value
+}
 
 // ~190-value COLORIS offer code list; the full enum is rendered through a searchable
 // Combobox (not a plain Select) so this many options stays usable.
@@ -320,6 +343,8 @@ export {
   functionalTeamOptionsFor,
   functionalTeamOptionsForApplications,
   supportOnlyApplications,
+  formatEnumValue,
+  formatTransferDestination,
   categoryOptions,
   versionOptions,
   elementOptions,

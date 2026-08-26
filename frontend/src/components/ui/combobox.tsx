@@ -15,6 +15,8 @@ interface ComboboxProps {
   searchPlaceholder?: string
   emptyText?: string
   className?: string
+  /** Formats an option's display text without changing the value it selects. Defaults to the option itself. */
+  getOptionLabel?: (option: string) => string
 }
 
 /**
@@ -30,6 +32,7 @@ function Combobox({
   searchPlaceholder = "Rechercher…",
   emptyText = "Aucun résultat.",
   className,
+  getOptionLabel = (option) => option,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -43,7 +46,9 @@ function Combobox({
             className
           )}
         >
-          <span className={cn("truncate", !value && "text-muted-foreground")}>{value || placeholder}</span>
+          <span className={cn("truncate", !value && "text-muted-foreground")}>
+            {value ? getOptionLabel(value) : placeholder}
+          </span>
           <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground" />
         </button>
       </PopoverPrimitive.Trigger>
@@ -58,6 +63,7 @@ function Combobox({
             value={value}
             searchPlaceholder={searchPlaceholder}
             emptyText={emptyText}
+            getOptionLabel={getOptionLabel}
             onSelect={(option) => {
               onValueChange(option)
               setOpen(false)
@@ -74,12 +80,13 @@ interface ComboboxListProps {
   value: string | undefined
   searchPlaceholder: string
   emptyText: string
+  getOptionLabel: (option: string) => string
   onSelect: (option: string) => void
 }
 
 // Only mounted while the popover is open, so `search` always starts fresh — same
 // pattern used by JiraDetailsDialog to avoid syncing state back via an effect.
-function ComboboxList({ options, value, searchPlaceholder, emptyText, onSelect }: ComboboxListProps) {
+function ComboboxList({ options, value, searchPlaceholder, emptyText, getOptionLabel, onSelect }: ComboboxListProps) {
   const [search, setSearch] = React.useState("")
   const filtered = React.useMemo(() => {
     const term = search.trim().toLowerCase()
@@ -117,7 +124,7 @@ function ComboboxList({ options, value, searchPlaceholder, emptyText, onSelect }
               <span className="relative flex size-4 shrink-0 items-center justify-center">
                 {option === value && <CheckIcon className="size-4" />}
               </span>
-              <span className="truncate">{option}</span>
+              <span className="truncate">{getOptionLabel(option)}</span>
             </button>
           ))
         )}

@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { priorityOptions, transferDestinationOptions } from "@/features/tickets/constants"
+import { priorityOptions, transferDestinationOptions, formatTransferDestination } from "@/features/tickets/constants"
 import { ResolveTicketDialog } from "@/features/tickets/details/resolve-ticket-dialog"
 import { JiraDetailsDialog } from "@/features/tickets/details/jira-details-dialog"
 import type { components } from "@/types/api"
@@ -127,7 +127,7 @@ function TicketActions({
           <DropdownMenuContent align="end">
             {transferDestinationOptions.map((dest) => (
               <DropdownMenuItem key={dest} onSelect={() => onTransfer(dest)}>
-                {dest}
+                {formatTransferDestination(dest)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

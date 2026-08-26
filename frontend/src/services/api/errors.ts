@@ -95,8 +95,10 @@ function normalizeApiError(error: AxiosError<BackendErrorBody>): ApiError {
   const code = typeof detail === "string" ? detail : null;
   // `message` first when the backend wrote one: it is a sentence meant for the person reading it,
   // where `detail` is only ever the exception's class name. Falling back to the type name keeps
-  // every other error exactly as it behaved before.
-  const message = data?.message ?? code ?? error.message;
+  // every other error exactly as it behaved before. `error.message` is Axios's own English
+  // sentence ("Request failed with status code 500") and is never shown to the user — a response
+  // this shapeless (no `detail` at all) gets the same generic French fallback as no response.
+  const message = data?.message ?? code ?? "Une erreur est survenue. Veuillez réessayer.";
 
   return new ApiError(message, status, [], code, data);
 }

@@ -56,7 +56,7 @@ export default function SettingsPage() {
     <>
       <PageHeader
         title="Paramètres"
-        description="Configuration personnelle de votre compte"
+        description="Paramètres personnels de votre compte"
         breadcrumbs={[{ label: "Suivi Run", href: "/" }, { label: "Paramètres" }]}
       />
       <PageBody>

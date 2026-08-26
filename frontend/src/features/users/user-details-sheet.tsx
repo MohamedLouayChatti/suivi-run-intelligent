@@ -372,7 +372,7 @@ function UserDetailsSheet({
                   </Select>
                   {availableFunctionalTeams.length === 1 && (
                     <p className="text-xs text-muted-foreground">
-                      AERO et VIO sont assurées par l&apos;équipe Support uniquement.
+                      AERO et VIO sont assurées par l&apos;équipe SN3 uniquement.
                     </p>
                   )}
                 </div>

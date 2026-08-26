@@ -18,7 +18,7 @@ import { ContinueConversations } from "@/features/dashboard/continue-conversatio
 import { RecentTickets } from "@/features/dashboard/recent-tickets"
 
 const functionalTeamLabels: Record<string, string> = {
-  SUPPORT: "Support",
+  SUPPORT: "SN3",
   CONFIGURATION: "Paramétrage",
 }
 

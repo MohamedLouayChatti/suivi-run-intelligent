@@ -3,7 +3,7 @@ import { Combobox } from "@/components/ui/combobox"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { FormField } from "@/features/tickets/create-ticket/form-field"
-import { offerOptions, versionOptions, elementOptions } from "@/features/tickets/constants"
+import { offerOptions, versionOptions, elementOptions, formatEnumValue } from "@/features/tickets/constants"
 import type { CreateTicketFormState } from "@/features/tickets/create-ticket/use-create-ticket-form"
 
 interface BusinessFieldsProps {
@@ -23,6 +23,7 @@ function BusinessFields({ values, setField }: BusinessFieldsProps) {
               onValueChange={(v) => setField("offer", v as CreateTicketFormState["offer"])}
               placeholder="Sélectionner une offre"
               searchPlaceholder="Rechercher une offre…"
+              getOptionLabel={formatEnumValue}
             />
           </FormField>
 
@@ -37,7 +38,7 @@ function BusinessFields({ values, setField }: BusinessFieldsProps) {
               <SelectContent>
                 {versionOptions.map((v) => (
                   <SelectItem key={v} value={v}>
-                    {v}
+                    {formatEnumValue(v)}
                   </SelectItem>
                 ))}
               </SelectContent>

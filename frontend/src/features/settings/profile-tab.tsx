@@ -113,7 +113,7 @@ function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved,
           <Input id="nom" value={nom} onChange={(e) => onNomChange(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">E-mail</Label>
           <Input id="email" type="email" defaultValue={user.email} readOnly className="bg-surface" />
         </div>
         <div className="space-y-2">

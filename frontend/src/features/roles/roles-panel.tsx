@@ -32,7 +32,7 @@ const roleDescriptions: Record<string, string> = {
   Admin: "Accès complet à la plateforme, y compris l'administration des utilisateurs, des rôles et des permissions.",
   "Ingénieur Support": "Prend en charge la résolution des tickets au quotidien et la contribution aux connaissances.",
   "Chef de projet":
-    "Ingénieur support qui pilote une application : il agit sur tous les tickets de son application principale, même ceux qui ne lui sont pas assignés, et gère la base de connaissances.",
+    "Ingénieur SN3 qui pilote une application : il agit sur tous les tickets de son application principale, même ceux qui ne lui sont pas assignés, et gère la base de connaissances.",
   Lecteur: "Consulte les tickets et peut y ajouter des commentaires ou des pièces jointes, sans gérer leur cycle de vie.",
 }
 

@@ -2,7 +2,7 @@ import { Fragment } from "react"
 
 import { SectionCard } from "@/components/app/page"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { versionOptions } from "@/features/tickets/constants"
+import { versionOptions, formatEnumValue } from "@/features/tickets/constants"
 import type { ColorisHeatmapCell } from "@/features/analytics/types"
 
 interface ColorisHeatmapProps {
@@ -31,16 +31,16 @@ function ColorisHeatmap({ cells }: ColorisHeatmapProps) {
           <div />
           {versionOptions.map((version) => (
             <div key={version} className="pb-2 text-center text-xs font-medium text-muted-foreground">
-              {version}
+              {formatEnumValue(version)}
             </div>
           ))}
           {offers.map((offer) => (
             <Fragment key={offer}>
               <div
                 className="flex items-center truncate pr-3 text-xs font-medium text-muted-foreground"
-                title={offer}
+                title={formatEnumValue(offer)}
               >
-                {offer}
+                {formatEnumValue(offer)}
               </div>
               {versionOptions.map((version) => {
                 const count = cellFor(offer, version)

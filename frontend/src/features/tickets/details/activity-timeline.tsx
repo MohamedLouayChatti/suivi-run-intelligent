@@ -1,5 +1,6 @@
 import { SectionCard } from "@/components/app/page"
 import { statusConfig, priorityConfig } from "@/components/app/status"
+import { formatTransferDestination } from "@/features/tickets/constants"
 import type { components } from "@/types/api"
 
 type TicketDetail = components["schemas"]["TicketDetailResponse"]
@@ -28,7 +29,7 @@ function historyEntryLabel(entry: HistoryEntry): string {
     case "REASSIGNED":
       return `Réaffecté à ${entry.assignee?.display_name ?? "un utilisateur inconnu"}`
     case "TRANSFERRED":
-      return `Transféré vers ${entry.transferred_to ?? "une autre file"}`
+      return `Transféré vers ${entry.transferred_to ? formatTransferDestination(entry.transferred_to) : "une autre file"}`
     case "ARCHIVED":
       return "Ticket archivé"
     case "RESTORED":

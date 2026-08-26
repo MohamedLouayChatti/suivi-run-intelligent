@@ -39,7 +39,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("fr-FR", {
 // module in the set the dropdown offers to switch to.
 const moduleLabels: Record<string, string> = {
   ticket_management: "Tickets",
-  auth: "Auth",
+  auth: "Authentification",
   knowledge_base: "Base de connaissances",
 }
 const auditedModules = Object.keys(moduleLabels)
