@@ -11,6 +11,7 @@ from app.modules.audit import bootstrap as audit_bootstrap
 from app.modules.notifications import bootstrap as notifications_bootstrap
 from app.modules.analytics import bootstrap as analytics_bootstrap
 from app.modules.knowledge_base import bootstrap as knowledge_base_bootstrap
+from app.modules.conversational_assistant import bootstrap as conversational_assistant_bootstrap
 from app.shared.events.event_bus import InMemoryEventBus
 from app.shared.events.subscriptions import SubscriptionRegistry
 from app.shared.security.instance_authorization_registry import InstanceAuthorizationRegistry
@@ -33,6 +34,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 	notifications_bootstrap.register_subscriptions(registry)
 	analytics_bootstrap.register_subscriptions(registry, event_bus)
 	knowledge_base_bootstrap.register_subscriptions(registry, event_bus)
+	# Also takes instance_authorization_registry (unlike its siblings above): the agent runner
+	# bound here needs it so tools can authorize resource-level access exactly as HTTP routes do.
+	conversational_assistant_bootstrap.register_subscriptions(registry, event_bus, instance_authorization_registry)
 
 	ticket_management_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 	auth_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
@@ -40,6 +44,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 	notifications_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 	analytics_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 	knowledge_base_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
+	conversational_assistant_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 
 	# Recurring work is registered before the scheduler starts, so nothing can fire against a
 	# half-built registration. Knowledge Base's hook is async because it reads the configured

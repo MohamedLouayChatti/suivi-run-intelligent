@@ -50,6 +50,7 @@ _SUPPORT_ENGINEER_PERMISSIONS: tuple[str, ...] = (
 	"attachment.read",
 	"notification.read",
 	"analytics.read",
+	"conversational_assistant.use",
 )
 
 SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
@@ -102,6 +103,7 @@ SEEDED_ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
 			"attachment.read",
 			"notification.read",
 			"analytics.read",
+			"conversational_assistant.use",
 		)
 	),
 )

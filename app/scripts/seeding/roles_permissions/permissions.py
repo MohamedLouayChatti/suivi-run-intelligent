@@ -77,6 +77,14 @@ PERMISSION_CATALOG: tuple[PermissionDefinition, ...] = (
 	# surface that offers it, not a reason to withhold a permission another one depends on.
 	PermissionDefinition("knowledge_base.batch_import", "Importer un fichier de tickets en masse et l'intégrer à la base de connaissances.", requires=("ticket.create",)),
 	PermissionDefinition("knowledge_base.import_any_application", "Importer un fichier de tickets pour n'importe quelle application, au-delà de celle dont on a la charge.", requires=("knowledge_base.batch_import",)),
+	# The umbrella "may this user reach the assistant at all" gate. No requires=: the assistant is
+	# still meaningful with zero tools bound (a general chat interface with no data access), so
+	# declaring a static prerequisite on any one underlying tool permission (ticket.read,
+	# analytics.read, user.read) would be false, and declaring all of them would force every future
+	# user of the assistant to hold every one of today's tool permissions -- defeating the point of
+	# per-tool gating. Individual tools re-check their own existing permission independently at
+	# bind time (conversational_assistant.application.tools.registry.build_available_tools).
+	PermissionDefinition("conversational_assistant.use", "Utiliser l'assistant conversationnel."),
 )
 
 PERMISSIONS_BY_NAME = {permission.name: permission for permission in PERMISSION_CATALOG}

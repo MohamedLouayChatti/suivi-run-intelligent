@@ -48,6 +48,10 @@ from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import 
 
 from app.modules.analytics.domain.events.application_health_became_critical import ApplicationHealthBecameCritical
 
+from app.modules.conversational_assistant.domain.events.agent_run_completed import AgentRunCompleted
+from app.modules.conversational_assistant.domain.events.agent_run_failed import AgentRunFailed
+from app.modules.conversational_assistant.domain.events.user_message_received import UserMessageReceived
+
 # Knowledge Base joins the two modules already audited here, and brings the first entries that are
 # not a person acting on a resource: two of its five are outcomes of a background pass with no
 # actor at all. They belong in this log for the same reason the rest do -- something happened that
@@ -73,6 +77,12 @@ AUDITED_EVENT_TYPES = (
 	SimilarityRecalculationScheduleUpdated, SimilarityRecalculationRequested,
 	SimilarityGraphRecalculated, SimilarityGraphRecalculationFailed, TicketBatchImportFailed,
 	ApplicationHealthBecameCritical,
+	# Mirrors Knowledge Base's own actor/no-actor triple: UserMessageReceived carries the real
+	# actor (the person who sent it), AgentRunCompleted/Failed carry None (nothing authenticated
+	# exists inside the background job that publishes them). None of the three carries message or
+	# response text -- ids, counts, and a short failure string only, same as everywhere else in
+	# this log.
+	UserMessageReceived, AgentRunCompleted, AgentRunFailed,
 )
 
 

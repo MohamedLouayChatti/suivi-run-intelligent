@@ -55,17 +55,6 @@ function ChatPanel({ messages, isStreaming, onSend }: ChatPanelProps) {
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}
-
-        {isStreaming && (
-          <div className="flex gap-4">
-            <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md bg-primary text-[11px] font-semibold text-primary-foreground">
-              SR
-            </span>
-            <p className="animate-pulse text-sm text-muted-foreground">
-              Recherche dans les sources internes…
-            </p>
-          </div>
-        )}
         <div ref={endRef} />
       </div>
 

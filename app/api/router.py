@@ -6,6 +6,10 @@ from app.modules.audit.module import router as audit_router
 from app.modules.notifications.module import router as notifications_router, sse_router as notifications_sse_router
 from app.modules.analytics.module import router as analytics_router
 from app.modules.knowledge_base.module import router as knowledge_base_router
+from app.modules.conversational_assistant.module import (
+    router as conversational_assistant_router,
+    sse_router as conversational_assistant_sse_router,
+)
 
 api_router = APIRouter()
 api_router.include_router(auth_router)
@@ -18,3 +22,5 @@ api_router.include_router(notifications_router)
 api_router.include_router(notifications_sse_router)
 api_router.include_router(analytics_router)
 api_router.include_router(knowledge_base_router)
+api_router.include_router(conversational_assistant_router)
+api_router.include_router(conversational_assistant_sse_router)

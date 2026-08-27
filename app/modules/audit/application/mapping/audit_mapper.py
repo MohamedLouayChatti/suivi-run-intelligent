@@ -50,6 +50,10 @@ from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import 
 
 from app.modules.analytics.domain.events.application_health_became_critical import ApplicationHealthBecameCritical
 
+from app.modules.conversational_assistant.domain.events.agent_run_completed import AgentRunCompleted
+from app.modules.conversational_assistant.domain.events.agent_run_failed import AgentRunFailed
+from app.modules.conversational_assistant.domain.events.user_message_received import UserMessageReceived
+
 
 def _assignments_payload(assignments: Iterable[ApplicationAssignment]) -> list[dict[str, str]]:
 	"""A user's application assignments, ordered so two payloads can be compared as written.
@@ -109,6 +113,9 @@ class AuditMapper:
 			SimilarityGraphRecalculationFailed: self._similarity_graph_recalculation_failed,
 			TicketBatchImportFailed: self._ticket_batch_import_failed,
 			ApplicationHealthBecameCritical: self._application_health_became_critical,
+			UserMessageReceived: self._user_message_received,
+			AgentRunCompleted: self._agent_run_completed,
+			AgentRunFailed: self._agent_run_failed,
 		}
 
 	def to_entry(self, event: DomainEvent) -> AuditEntry | None:
@@ -510,5 +517,37 @@ class AuditMapper:
 				"avg_resolution_hours": round(event.avg_resolution_hours, 3),
 				"active_count_critical_threshold": round(event.active_count_critical_threshold, 3),
 				"resolution_hours_critical_threshold": round(event.resolution_hours_critical_threshold, 3),
+			},
+		)
+
+	# -- Conversational Assistant --------------------------------------------
+
+	def _user_message_received(self, event: UserMessageReceived) -> AuditEntry:
+		"""Who used the assistant and when -- the accountability question this log exists to
+		answer. Never the message content itself, same as every other entry here recording that
+		something happened rather than restating it."""
+		return self._entry(
+			event, module="conversational_assistant", event_type="UserMessageReceived",
+			action="conversational_assistant.message_sent", resource_type="conversation",
+			payload={"conversation_id": str(event.conversation_id), "run_id": str(event.run_id)},
+		)
+
+	def _agent_run_completed(self, event: AgentRunCompleted) -> AuditEntry:
+		return self._entry(
+			event, module="conversational_assistant", event_type="AgentRunCompleted",
+			action="conversational_assistant.run_completed", resource_type="conversation",
+			payload={
+				"conversation_id": str(event.conversation_id), "run_id": str(event.run_id),
+				"tool_call_count": event.tool_call_count,
+			},
+		)
+
+	def _agent_run_failed(self, event: AgentRunFailed) -> AuditEntry:
+		return self._entry(
+			event, module="conversational_assistant", event_type="AgentRunFailed",
+			action="conversational_assistant.run_failed", resource_type="conversation",
+			payload={
+				"conversation_id": str(event.conversation_id), "run_id": str(event.run_id),
+				"failure_reason": event.failure_reason,
 			},
 		)
