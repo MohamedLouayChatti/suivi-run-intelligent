@@ -6,15 +6,16 @@ import { Send, BookOpen, CornerDownLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/features/chatbot/chat-message"
-import { suggestedPrompts, type ChatMessage as ChatMessageType } from "@/features/chatbot/mock-data"
+import { suggestedPrompts, type ChatMessage as ChatMessageType } from "@/features/chatbot/types"
 
 interface ChatPanelProps {
   messages: ChatMessageType[]
   isStreaming: boolean
+  isLoadingMessages: boolean
   onSend: (content: string) => void
 }
 
-function ChatPanel({ messages, isStreaming, onSend }: ChatPanelProps) {
+function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPanelProps) {
   const [input, setInput] = useState("")
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
@@ -37,7 +38,11 @@ function ChatPanel({ messages, isStreaming, onSend }: ChatPanelProps) {
   return (
     <div className="flex min-w-0 flex-col rounded-lg border border-border bg-card">
       <div className="min-h-[26rem] flex-1 space-y-8 overflow-y-auto p-6">
-        {messages.length === 0 && (
+        {isLoadingMessages && (
+          <div className="py-10 text-center text-sm text-muted-foreground">Chargement de la conversation…</div>
+        )}
+
+        {!isLoadingMessages && messages.length === 0 && (
           <div className="mx-auto max-w-xl py-10 text-center">
             <div className="mx-auto grid size-11 place-items-center rounded-lg border border-border bg-surface">
               <BookOpen className="size-5 text-primary" strokeWidth={1.5} />
