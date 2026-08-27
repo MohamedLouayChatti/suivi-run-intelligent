@@ -47,12 +47,10 @@ function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPan
             <div className="mx-auto grid size-11 place-items-center rounded-lg border border-border bg-surface">
               <BookOpen className="size-5 text-primary" strokeWidth={1.5} />
             </div>
-            <h2 className="mt-4 text-sm font-semibold">
-              Posez une question sur un incident, un runbook ou un ticket
-            </h2>
+            <h2 className="mt-4 text-sm font-semibold">Interrogez vos données opérationnelles</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              L&apos;assistant répond uniquement à partir des sources internes indexées et cite
-              toujours ses sources.
+              Recherchez des tickets, explorez les incidents similaires et consultez vos indicateurs,
+              tendances ou informations d&apos;équipe selon vos autorisations.
             </p>
           </div>
         )}
@@ -69,7 +67,8 @@ function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPan
             <button
               key={prompt}
               onClick={() => handleSend(prompt)}
-              className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+              disabled={isStreaming}
+              className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               {prompt}
             </button>
@@ -87,7 +86,7 @@ function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPan
                 handleSend(input)
               }
             }}
-            placeholder="Décrivez le problème, collez une trace d'erreur ou demandez un runbook…"
+            placeholder="Recherchez un ticket, un incident similaire ou un indicateur d'activité…"
             className="min-h-[5rem] resize-none border-0 bg-transparent focus-visible:ring-0"
           />
           <div className="flex items-center justify-between border-t border-border px-3 py-2">

@@ -11,7 +11,7 @@ function ChatbotHeader({ onNewConversation }: ChatbotHeaderProps) {
   return (
     <PageHeader
       title="Assistant IA"
-      description="Réponses fondées sur les runbooks, les incidents et l'historique des tickets."
+      description="Recherchez et analysez les données de tickets auxquelles vous avez accès."
       actions={
         <Button variant="outline" size="sm" onClick={onNewConversation}>
           <Plus className="size-4" /> Nouvelle conversation

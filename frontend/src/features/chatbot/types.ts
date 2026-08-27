@@ -14,10 +14,10 @@ interface ChatMessage {
 }
 
 const suggestedPrompts: string[] = [
-  "Résumer les incidents Sev2 ouverts des 30 derniers jours",
-  "Quel runbook couvre le renouvellement des certificats TLS ?",
-  "Afficher les tickets similaires à SR-4821",
-  "Expliquer la politique SLA pour les tickets de priorité critique",
+  "Recherche les tickets ouverts liés à une erreur API",
+  "Quels incidents sont similaires au ticket à analyser ?",
+  "Quel est mon bilan d'activité récent ?",
+  "Quels sont les indicateurs de mon équipe ?",
 ]
 
 export { suggestedPrompts }

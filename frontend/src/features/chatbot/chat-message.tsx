@@ -1,24 +1,56 @@
 "use client"
 
 import { useState } from "react"
-import { ThumbsUp, ThumbsDown, Copy, Check } from "lucide-react"
+import { Check, Copy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 import type { ChatMessage as ChatMessageType } from "@/features/chatbot/types"
 
 interface ChatMessageProps {
   message: ChatMessageType
 }
 
-function ChatMessage({ message }: ChatMessageProps) {
-  const [feedback, setFeedback] = useState<"helpful" | "not-helpful" | null>(null)
-  const [copied, setCopied] = useState(false)
+async function copyToClipboard(content: string) {
+  try {
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(content)
+      return
+    }
+  } catch {
+    // Some browsers expose the Clipboard API but reject it because of a permission policy.
+    // Fall back to the legacy copy command in that case.
+  }
 
-  function handleCopy() {
-    navigator.clipboard.writeText(message.content)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+  const textarea = document.createElement("textarea")
+  textarea.value = content
+  textarea.setAttribute("readonly", "")
+  textarea.style.position = "fixed"
+  textarea.style.opacity = "0"
+  document.body.appendChild(textarea)
+  textarea.select()
+
+  const copied = document.execCommand("copy")
+  textarea.remove()
+
+  if (!copied) throw new Error("Clipboard unavailable")
+}
+
+function ChatMessage({ message }: ChatMessageProps) {
+  const [copied, setCopied] = useState(false)
+  const [copyFailed, setCopyFailed] = useState(false)
+
+  async function handleCopy() {
+    if (!message.content.trim()) return
+
+    try {
+      await copyToClipboard(message.content)
+      setCopied(true)
+      setCopyFailed(false)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      setCopyFailed(true)
+      setTimeout(() => setCopyFailed(false), 3000)
+    }
   }
 
   if (message.role === "USER") {
@@ -47,22 +79,12 @@ function ChatMessage({ message }: ChatMessageProps) {
           <Button
             variant="ghost"
             size="sm"
-            className={cn(feedback === "helpful" && "text-primary")}
-            onClick={() => setFeedback("helpful")}
+            onClick={handleCopy}
+            disabled={!message.content.trim()}
+            aria-live="polite"
           >
-            <ThumbsUp className="size-3.5" /> Utile
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(feedback === "not-helpful" && "text-primary")}
-            onClick={() => setFeedback("not-helpful")}
-          >
-            <ThumbsDown className="size-3.5" /> Pas utile
-          </Button>
-          <Button variant="ghost" size="sm" onClick={handleCopy}>
             {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-            {copied ? "Copié" : "Copier"}
+            {copied ? "Copié" : copyFailed ? "Copie impossible" : "Copier"}
           </Button>
         </div>
       </div>
