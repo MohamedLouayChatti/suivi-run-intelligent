@@ -20,8 +20,11 @@ class LLMProviderUnavailable(RuntimeError):
 
 def _to_ollama_message(message: ChatMessage) -> dict:
 	payload: dict = {"role": message.role, "content": message.content}
-	if message.tool_call_id is not None:
-		payload["tool_call_id"] = message.tool_call_id
+	# Ollama's message schema has no `tool_call_id` -- its client drops unknown keys silently, so
+	# sending one produced a bare {"role": "tool", "content": ...} that never told the model which
+	# tool had answered. `tool_name` is the field it actually correlates on.
+	if message.tool_name is not None:
+		payload["tool_name"] = message.tool_name
 	if message.tool_calls:
 		payload["tool_calls"] = [
 			{"function": {"name": call.name, "arguments": call.arguments}} for call in message.tool_calls
@@ -99,9 +102,11 @@ class OllamaLLMProvider(LLMProvider):
 		async for chunk in stream:
 			message = chunk.message
 			done = bool(getattr(chunk, "done", False))
-			# Tool calls arrive as a completed structured field on the final chunk, never
-			# incrementally the way prose content does.
-			tool_calls = _from_ollama_tool_calls(getattr(message, "tool_calls", None)) if done else ()
+			# Ollama emits tool calls complete, on their own chunk, *before* the done chunk --
+			# reading them off the done chunk alone silently discarded every one of them, which
+			# left the agent unable to call a tool at all. They are forwarded from whichever
+			# chunk carries them, per ChatDelta's own contract.
+			tool_calls = _from_ollama_tool_calls(getattr(message, "tool_calls", None))
 			yield ChatDelta(content=message.content or "", done=done, tool_calls=tool_calls)
 
 	async def _open_stream(self, messages: list[dict], tools: list[dict]):

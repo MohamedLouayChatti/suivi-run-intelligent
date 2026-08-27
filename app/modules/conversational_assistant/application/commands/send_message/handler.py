@@ -46,6 +46,7 @@ class SendMessageHandler:
 		)
 
 		try:
+			await self.uow.conversations.save(conversation)
 			await self.uow.commit()
 		except Exception:
 			await self.uow.rollback()

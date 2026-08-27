@@ -12,6 +12,7 @@ from app.modules.conversational_assistant.application.interfaces.agent_run_runne
 from app.modules.conversational_assistant.application.tools.base import ToolContext
 from app.modules.conversational_assistant.application.tools.registry import build_available_tools
 from app.modules.conversational_assistant.domain.events.agent_run_completed import AgentRunCompleted
+from app.modules.conversational_assistant.domain.exceptions import ConversationDomainError
 from app.modules.conversational_assistant.domain.events.agent_run_failed import AgentRunFailed
 from app.modules.conversational_assistant.infrastructure.agent.graph import build_agent_graph
 from app.modules.conversational_assistant.infrastructure.delivery.agent_run_connection_manager import (
@@ -63,9 +64,16 @@ class ConversationalAgentRunner(AgentRunRunner):
 		try:
 			uow = SqlAlchemyUnitOfWork(session)
 			conversation = await uow.conversations.get(conversation_id)
+			if conversation is None:
+				# Nothing to mark, and nothing to record a failure against either -- _record_failure
+				# would reload the same missing row. Only reachable if the conversation vanished
+				# between the accepted request and this job.
+				logger.error("Agent run %s: conversation %s no longer exists.", run_id, conversation_id)
+				return
 			conversation.mark_run_running(run_id=run_id, at=datetime.now(UTC))
 			# Committed early so a client polling GET .../messages sees RUNNING promptly, without
 			# waiting for the whole turn.
+			await uow.conversations.save(conversation)
 			await uow.commit()
 
 			current_user = await rebuild_current_user(conversation.user_id, session)
@@ -99,10 +107,19 @@ class ConversationalAgentRunner(AgentRunRunner):
 				raise RuntimeError("Agent graph produced no final state.")
 
 			answer = final_state["messages"][-1].content
+			if not answer.strip():
+				# Caught here rather than left to Message.create's EmptyMessageContent, which
+				# reports an empty *domain* message and says nothing about the model having
+				# returned nothing. A turn with no text and no tool call is a failed turn.
+				raise RuntimeError(
+					f"The model returned an empty final message after {final_state['iterations']} "
+					f"iteration(s) and {len(final_state['tool_calls_made'])} tool call(s)."
+				)
 			response_message = conversation.complete_run(
 				run_id=run_id, response_message_id=uuid4(), content=answer,
 				tool_invocations=final_state["tool_calls_made"], completed_at=datetime.now(UTC),
 			)
+			await uow.conversations.save(conversation)
 			await uow.commit()
 			await self._publish(
 				AgentRunCompleted(
@@ -135,10 +152,20 @@ class ConversationalAgentRunner(AgentRunRunner):
 			conversation = await uow.conversations.get(conversation_id)
 			if conversation is None:
 				return
-			conversation.fail_run(
-				run_id=run_id, failure_reason=_GENERIC_FAILURE_REASON,
-				failure_detail=f"{type(exc).__name__}: {exc}", completed_at=datetime.now(UTC),
-			)
+			try:
+				conversation.fail_run(
+					run_id=run_id, failure_reason=_GENERIC_FAILURE_REASON,
+					failure_detail=f"{type(exc).__name__}: {exc}", completed_at=datetime.now(UTC),
+				)
+			except ConversationDomainError:
+				# The run is not in a state that can fail -- it was never started, or it already
+				# completed and the exception came from the announcing that followed. Recording
+				# the run is all this method exists to do, so there is nothing left to try; the
+				# original failure is already logged by the caller. Raising here would replace it
+				# with a second, less informative one, which is what used to happen.
+				logger.exception("Agent run %s could not be recorded as failed.", run_id)
+				return
+			await uow.conversations.save(conversation)
 			await uow.commit()
 		finally:
 			await session.close()

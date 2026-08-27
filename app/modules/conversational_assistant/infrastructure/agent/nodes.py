@@ -49,7 +49,9 @@ def build_agent_node(llm_provider: LLMProvider, tool_specs: Sequence[ToolSpec]):
 			if delta.content:
 				content_parts.append(delta.content)
 				writer({"type": "message_delta", "content": delta.content})
-			if delta.done:
+			# Captured from whichever chunk carries them, not from the `done` chunk: a provider is
+			# free to emit them earlier, and Ollama does (see ChatDelta's contract).
+			if delta.tool_calls:
 				tool_calls = delta.tool_calls
 
 		message = ChatMessage(role="assistant", content="".join(content_parts), tool_calls=tool_calls)
@@ -85,7 +87,9 @@ def build_tools_node(tool_specs: Sequence[ToolSpec], tool_context: ToolContext):
 
 			if spec is None:
 				error = f"Outil inconnu : {call.name}."
-				tool_messages.append(ChatMessage(role="tool", content=error, tool_call_id=call.id))
+				tool_messages.append(
+					ChatMessage(role="tool", content=error, tool_call_id=call.id, tool_name=call.name)
+				)
 				recorded.append(
 					ToolInvocation.failed(
 						id=uuid4(), tool_name=call.name, arguments=call.arguments, error=error,
@@ -99,7 +103,9 @@ def build_tools_node(tool_specs: Sequence[ToolSpec], tool_context: ToolContext):
 				validated_args = spec.args_model.model_validate(call.arguments)
 			except Exception:
 				error = "Arguments invalides pour cet outil."
-				tool_messages.append(ChatMessage(role="tool", content=error, tool_call_id=call.id))
+				tool_messages.append(
+					ChatMessage(role="tool", content=error, tool_call_id=call.id, tool_name=call.name)
+				)
 				recorded.append(
 					ToolInvocation.failed(
 						id=uuid4(), tool_name=call.name, arguments=call.arguments, error=error,
@@ -113,7 +119,14 @@ def build_tools_node(tool_specs: Sequence[ToolSpec], tool_context: ToolContext):
 			completed_at = datetime.now(UTC)
 			if result.ok:
 				tool_messages.append(
-					ChatMessage(role="tool", content=json.dumps(result.payload), tool_call_id=call.id)
+					ChatMessage(
+						# ensure_ascii=False keeps accented French readable (and cheaper) rather than
+						# \uXXXX-escaped; default=str is a safety net so one stray non-JSON-native
+						# value degrades that field instead of raising out of this node and failing
+						# the whole run.
+						role="tool", content=json.dumps(result.payload, ensure_ascii=False, default=str),
+						tool_call_id=call.id, tool_name=call.name,
+					)
 				)
 				recorded.append(
 					ToolInvocation.succeeded(
@@ -124,7 +137,9 @@ def build_tools_node(tool_specs: Sequence[ToolSpec], tool_context: ToolContext):
 				writer({"type": "tool_call", "name": call.name, "status": "completed"})
 			else:
 				tool_messages.append(
-					ChatMessage(role="tool", content=result.error or "", tool_call_id=call.id)
+					ChatMessage(
+						role="tool", content=result.error or "", tool_call_id=call.id, tool_name=call.name,
+					)
 				)
 				recorded.append(
 					ToolInvocation.failed(

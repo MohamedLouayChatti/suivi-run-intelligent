@@ -34,9 +34,19 @@ class ToolSchema:
 
 @dataclass(frozen=True, slots=True)
 class ChatMessage:
+	"""One message in a chat turn's context.
+
+	A `role="tool"` message carries both `tool_call_id` and `tool_name`, because providers
+	correlate a result back to its call differently: OpenAI-style APIs match on the call id,
+	Ollama's chat API has no id field at all and matches on the tool's name. Carrying both keeps
+	the port provider-agnostic -- each adapter forwards whichever its wire format actually has,
+	and a result that identifies its tool by neither is one the model cannot interpret.
+	"""
+
 	role: Literal["system", "user", "assistant", "tool"]
 	content: str
 	tool_call_id: str | None = None
+	tool_name: str | None = None
 	tool_calls: tuple[ToolCallRequest, ...] = ()
 
 
@@ -45,9 +55,11 @@ class ChatDelta:
 	"""One incremental chunk of a streamed chat turn.
 
 	`content` is the text fragment carried by this chunk, empty if this chunk carries none.
-	`tool_calls` is populated only on the final chunk (`done=True`), if the model is invoking
-	tools for this turn -- providers report tool calls as a completed structured field rather
-	than incrementally, unlike prose content.
+	`tool_calls` is a *complete* set of calls, never a partial one -- providers report tool calls
+	as a finished structured field rather than incrementally, unlike prose content. It is NOT
+	guaranteed to land on the final chunk: Ollama, for one, emits the calls on their own chunk
+	well before `done=True`. A consumer must therefore capture tool calls from whichever chunk
+	carries them and must not read them off the `done` chunk alone.
 	"""
 
 	content: str
@@ -83,6 +95,7 @@ class LLMProvider(ABC):
 	def stream_chat(
 		self, *, messages: Sequence[ChatMessage], tools: Sequence[ToolSchema]
 	) -> AsyncIterator[ChatDelta]:
-		"""One LLM turn, yielded incrementally. The final yielded ChatDelta has done=True and
-		carries the complete tool_calls tuple, if the model is invoking any."""
+		"""One LLM turn, yielded incrementally. The final yielded ChatDelta has done=True; any
+		tool calls the model is invoking arrive complete on whichever chunk carries them, which
+		is not necessarily that last one."""
 		raise NotImplementedError

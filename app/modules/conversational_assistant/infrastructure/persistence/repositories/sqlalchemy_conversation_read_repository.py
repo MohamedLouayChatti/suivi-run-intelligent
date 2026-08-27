@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.conversational_assistant.application.dto.conversation_messages_dto import ConversationMessagesDTO
 from app.modules.conversational_assistant.application.dto.conversation_summary_dto import ConversationSummaryDTO
+from app.modules.conversational_assistant.application.dto.run_replay_dto import RunReplayDTO
 from app.modules.conversational_assistant.application.interfaces.conversation_read_repository import (
 	ConversationReadRepository,
 )
@@ -34,6 +35,25 @@ class SqlAlchemyConversationReadRepository(ConversationReadRepository):
 			.where(RunModel.id == run_id)
 		)
 		return await self.session.scalar(stmt)
+
+	async def get_run_replay(self, run_id: UUID) -> RunReplayDTO | None:
+		run_model = await self.session.scalar(select(RunModel).where(RunModel.id == run_id))
+		if run_model is None:
+			return None
+
+		response_message_model = None
+		if run_model.response_message_id is not None:
+			response_message_model = await self.session.scalar(
+				select(MessageModel).where(MessageModel.id == run_model.response_message_id)
+			)
+		return RunReplayDTO(
+			run_id=run_model.id,
+			status=run_model.status,
+			failure_reason=run_model.failure_reason,
+			response_message=(
+				None if response_message_model is None else mapper.message_model_to_dto(response_message_model)
+			),
+		)
 
 	async def get_messages(
 		self, conversation_id: UUID, *, limit: int, offset: int
