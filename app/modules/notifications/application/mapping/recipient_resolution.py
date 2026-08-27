@@ -99,6 +99,24 @@ class RecipientResolver:
 		async with self._user_repository_scope() as users:
 			return await users.find_active_user_ids_with_permission(permission_name)
 
+	async def active_user_ids_with_primary_application_and_permission(
+		self, application_value: str, permission_name: str
+	) -> set[UUID]:
+		"""Whoever runs `application_value` as their PRIMARY assignment and also holds
+		`permission_name` -- the Chef de projet audience for application-health notifications,
+		which is neither "everyone staffed on this application" (BACKUP/READ_ONLY are cover,
+		not ownership) nor "everyone with the permission" (most holders run a different
+		application, or none)."""
+		permitted = await self.active_user_ids_with_permission(permission_name)
+		users = await self._all_active_users()
+		primary_for_application = {
+			user.id for user in users if user.active and any(
+				assignment.application.value == application_value and assignment.assignment_type.value == "PRIMARY"
+				for assignment in user.application_assignments
+			)
+		}
+		return permitted & primary_for_application
+
 	async def active_user_ids_with_application(self, application_value: str, functional_team_value: str | None = None) -> set[UUID]:
 		"""functional_team_value narrows to users whose own functional_team matches --
 		needed for destinations that split by team (Support vs Configuration FCI/COLORIS).

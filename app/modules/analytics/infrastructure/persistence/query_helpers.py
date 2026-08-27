@@ -44,6 +44,13 @@ def resolved_in(window: DateWindow) -> ColumnElement[bool]:
 	)
 
 
+def resolved() -> ColumnElement[bool]:
+	"""The all-time counterpart of resolved_in -- every resolved, non-archived ticket regardless
+	of when. A dedicated helper rather than a DateWindow spanning all time, for clarity at call
+	sites (the health baseline's resolution-hours history) that genuinely mean "no window"."""
+	return and_(TicketModel.resolved_at.is_not(None), not_archived())
+
+
 def application_filter(applications: frozenset[Application] | None) -> ColumnElement[bool] | None:
 	if applications is None:
 		return None

@@ -59,6 +59,8 @@ from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_
 )
 from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
 
+from app.modules.analytics.domain.events.application_health_became_critical import ApplicationHealthBecameCritical
+
 # Knowledge Base contributes four of its six events, and what unites them is that none of it is
 # observable from the product. The schedule is a change nobody can see; a rebuild leaves the graph
 # looking identical whether it ran, and the two failures otherwise leave no durable trace at all.
@@ -73,6 +75,11 @@ from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import 
 # Requested is an administrator's own button press, answered by the button and by the status card
 # beside it, and the pass it starts reports its outcome here a few minutes later. Both are in the
 # audit log, which is where a reader goes looking rather than being interrupted.
+#
+# ApplicationHealthBecameCritical is Analytics' first contribution, for the same underlying
+# reason: an application quietly running worse than its own history is invisible everywhere else
+# in the product, since nothing about the ticket list or the dashboard changes shape when it
+# happens.
 NOTIFIED_EVENT_TYPES = (
 	TicketReassigned, PriorityChanged, TicketStatusChanged, CommentAdded, CommentEdited, CommentDeleted,
 	AttachmentAdded, AttachmentDeleted, TicketArchived, TicketRestored, TicketTransferred,
@@ -80,6 +87,7 @@ NOTIFIED_EVENT_TYPES = (
 	PermissionGrantedToUser, PermissionRevokedFromUser, RolePermissionGranted, RolePermissionRevoked, UserCreated,
 	SimilarityRecalculationScheduleUpdated, SimilarityGraphRecalculated, SimilarityGraphRecalculationFailed,
 	TicketBatchImportFailed,
+	ApplicationHealthBecameCritical,
 )
 
 

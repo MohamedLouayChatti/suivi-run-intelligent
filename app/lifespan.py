@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 	auth_bootstrap.register_subscriptions(registry)
 	audit_bootstrap.register_subscriptions(registry)
 	notifications_bootstrap.register_subscriptions(registry)
-	analytics_bootstrap.register_subscriptions(registry)
+	analytics_bootstrap.register_subscriptions(registry, event_bus)
 	knowledge_base_bootstrap.register_subscriptions(registry, event_bus)
 
 	ticket_management_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
@@ -42,10 +42,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 	knowledge_base_bootstrap.register_instance_authorization_policies(instance_authorization_registry)
 
 	# Recurring work is registered before the scheduler starts, so nothing can fire against a
-	# half-built registration. Knowledge Base is the only module with a scheduled job today; its
-	# hook is async because it reads the configured schedule from the database, which is where an
-	# administrator's changes live between restarts.
+	# half-built registration. Knowledge Base's hook is async because it reads the configured
+	# schedule from the database, which is where an administrator's changes live between
+	# restarts; Analytics' is async too, for shape parity, even though its schedule is a fixed
+	# constant in code with nothing to read.
 	await knowledge_base_bootstrap.register_scheduled_jobs(job_scheduler)
+	await analytics_bootstrap.register_scheduled_jobs(job_scheduler)
 	await job_scheduler.start()
 
 	yield

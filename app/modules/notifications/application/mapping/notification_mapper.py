@@ -59,6 +59,8 @@ from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_
 )
 from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
 
+from app.modules.analytics.domain.events.application_health_became_critical import ApplicationHealthBecameCritical
+
 # Only these 6 TransferDestination members correspond to a Ticket Management/Auth
 # Application value -- the other 9 (EEP, CLIP, BANCO, ULYSSE, ACACIA, SANTAFE,
 # PROXIMA, HABILITATION, DEVELOPMENT_TEAM) have no matching user application
@@ -149,6 +151,15 @@ _BATCH_IMPORT_AUDIENCE = "knowledge_base.batch_import"
 # notification's deep link into the users page reachable for every recipient rather than for
 # whichever roles happen to bundle both.
 _NEW_USER_AUDIENCE = "user.activate"
+
+# Who is told an application just became critical: whoever can see the cross-application
+# overview (the same breadth permission that unlocks it), union whoever runs this one
+# application as their own project. The latter is named by the permission that already draws
+# exactly this line -- ticket.manage_primary_application is the one thing that distinguishes a
+# Chef de projet from an ordinary Ingénieur Support -- rather than a role, so granting either
+# permission to someone new moves this notification with it.
+_ANALYTICS_ADMIN_AUDIENCE = "analytics.read_any_application"
+_HEALTH_CRITICAL_CHEF_PERMISSION = "ticket.manage_primary_application"
 
 _MAX_LISTED_CAPABILITIES = 3
 """How many revoked capabilities a single notification spells out before counting the rest.
@@ -250,6 +261,7 @@ class NotificationMapper:
 			SimilarityGraphRecalculated: self._similarity_recalculation_completed,
 			SimilarityGraphRecalculationFailed: self._similarity_recalculation_failed,
 			TicketBatchImportFailed: self._batch_import_failed,
+			ApplicationHealthBecameCritical: self._application_health_became_critical,
 		}
 
 	async def to_notifications(self, event: DomainEvent) -> list[Notification]:
@@ -732,6 +744,43 @@ class NotificationMapper:
 				)
 			)
 		return notifications
+
+	# -- Analytics ---------------------------------------------------------
+
+	async def _application_health_became_critical(self, event: ApplicationHealthBecameCritical) -> list[Notification]:
+		"""Tell whoever can act on this application that it just crossed into critical.
+
+		Reaches two unranked audiences the same way `_ticket_transferred` reaches one split by
+		team: administrators who can see every application's health at once, union the Chef de
+		projet who runs this specific one -- neither on its own is the right audience, since an
+		administrator running no application is not staffed to act on it, and a Chef de projet
+		for a different application has no reach here at all.
+
+		No action: like every other Knowledge Base/Auth administrative notification, the page
+		this concerns (the admin analytics overview) has no per-resource route to deep-link into.
+		"""
+		admin_ids = await self._recipients.active_user_ids_with_permission(_ANALYTICS_ADMIN_AUDIENCE)
+		chef_ids = await self._recipients.active_user_ids_with_primary_application_and_permission(
+			event.application.value, _HEALTH_CRITICAL_CHEF_PERMISSION,
+		)
+		message = (
+			f"L'application {event.application.value} est passée à l'état critique : "
+			f"{event.active_tickets} ticket(s) actif(s) et {event.avg_resolution_hours:.1f} h de "
+			f"résolution moyenne sur les 30 derniers jours."
+		)
+		return self._for_recipients(
+			event, admin_ids | chef_ids,
+			title="Application en état critique", message=message,
+			type=NotificationType.APPLICATION_HEALTH_CRITICAL, action=None,
+			metadata={
+				"application": event.application.value,
+				"previous_health_level": event.previous_health_level.value,
+				"active_tickets": event.active_tickets,
+				"avg_resolution_hours": round(event.avg_resolution_hours, 1),
+				"active_count_critical_threshold": round(event.active_count_critical_threshold, 1),
+				"resolution_hours_critical_threshold": round(event.resolution_hours_critical_threshold, 1),
+			},
+		)
 
 	@staticmethod
 	def _day_list(days: tuple[Weekday, ...]) -> str:

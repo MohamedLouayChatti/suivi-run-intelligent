@@ -15,11 +15,15 @@ from app.modules.analytics.application.queries.get_kpi_snapshot.handler import G
 from app.modules.analytics.application.queries.get_my_activity_trend.handler import GetMyActivityTrendHandler
 from app.modules.analytics.application.queries.get_my_kpi_snapshot.handler import GetMyKpiSnapshotHandler
 from app.modules.analytics.application.security.access_scope import READ_ANY_APPLICATION_PERMISSION
+from app.modules.analytics.domain.repositories.health_baseline_repository import HealthBaselineRepository
 from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_admin_analytics_read_repository import (
 	SqlAlchemyAdminAnalyticsReadRepository,
 )
 from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_analytics_read_repository import (
 	SqlAlchemyAnalyticsReadRepository,
+)
+from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_health_baseline_repository import (
+	SqlAlchemyHealthBaselineRepository,
 )
 from app.modules.analytics.infrastructure.persistence.repositories.sqlalchemy_application_insights_read_repository import (
 	SqlAlchemyApplicationInsightsReadRepository,
@@ -62,6 +66,14 @@ async def get_personal_analytics_read_repository() -> AsyncIterator[SqlAlchemyPe
 	session = create_session()
 	try:
 		yield SqlAlchemyPersonalAnalyticsReadRepository(session)
+	finally:
+		await session.close()
+
+
+async def get_health_baseline_repository() -> AsyncIterator[SqlAlchemyHealthBaselineRepository]:
+	session = create_session()
+	try:
+		yield SqlAlchemyHealthBaselineRepository(session)
 	finally:
 		await session.close()
 
@@ -113,8 +125,9 @@ def get_application_insights_handler(
 def get_admin_overview_handler(
 	repository: Annotated[SqlAlchemyAdminAnalyticsReadRepository, Depends(get_admin_analytics_read_repository)],
 	user_repository: Annotated[UserReadRepository, Depends(get_user_read_repository)],
+	health_baselines: Annotated[HealthBaselineRepository, Depends(get_health_baseline_repository)],
 ) -> GetAdminOverviewHandler:
-	return GetAdminOverviewHandler(repository, user_repository)
+	return GetAdminOverviewHandler(repository, user_repository, health_baselines)
 
 
 def get_my_kpi_snapshot_handler(

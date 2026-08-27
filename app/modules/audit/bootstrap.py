@@ -46,6 +46,8 @@ from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_
 )
 from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
 
+from app.modules.analytics.domain.events.application_health_became_critical import ApplicationHealthBecameCritical
+
 # Knowledge Base joins the two modules already audited here, and brings the first entries that are
 # not a person acting on a resource: two of its five are outcomes of a background pass with no
 # actor at all. They belong in this log for the same reason the rest do -- something happened that
@@ -56,6 +58,10 @@ from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import 
 # no actor and no decision behind it, recording that a computation ran; TicketCreated is already
 # written at the same instant, so auditing it too would double this table's growth rate to say
 # something the log already says better.
+#
+# ApplicationHealthBecameCritical brings Analytics into this log for the first time -- the same
+# shape of actor-less background outcome as SimilarityGraphRecalculated/Failed, the difference
+# being that what triggers it is a ticket event rather than a clock.
 AUDITED_EVENT_TYPES = (
 	TicketCreated, TicketStatusChanged, TicketReassigned, PriorityChanged, TicketTransferred,
 	CommentAdded, CommentEdited, CommentDeleted, AttachmentAdded, AttachmentDeleted,
@@ -66,6 +72,7 @@ AUDITED_EVENT_TYPES = (
 	PermissionGrantedToUser, PermissionRevokedFromUser, RolePermissionGranted, RolePermissionRevoked,
 	SimilarityRecalculationScheduleUpdated, SimilarityRecalculationRequested,
 	SimilarityGraphRecalculated, SimilarityGraphRecalculationFailed, TicketBatchImportFailed,
+	ApplicationHealthBecameCritical,
 )
 
 

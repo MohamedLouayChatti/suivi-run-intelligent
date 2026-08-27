@@ -2,17 +2,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import date
-from enum import StrEnum
 from uuid import UUID
 
 from app.modules.analytics.application.dto.user_summary_dto import UserSummaryDTO
 from app.modules.ticket_management.domain.enums.application import Application
 
+# Re-exported rather than imported at each call site: HealthLevel moved to Domain once tiering
+# became a domain service, and this DTO module was already every downstream caller's import
+# path for it (api/schemas/admin_overview.py included), so re-exporting here means nothing
+# downstream had to change.
+from app.modules.analytics.domain.enums.health_level import HealthLevel
 
-class HealthLevel(StrEnum):
-	GOOD = "good"
-	WARNING = "warning"
-	CRITICAL = "critical"
+__all__ = [
+	"AdminOverviewDTO", "AppJiraDependencyDTO", "AppMonthlyTrendPointDTO", "AppResolutionTimeDTO",
+	"AppTransferRateDTO", "AppWorkloadRowDTO", "ApplicationHealthDTO", "EngineerDatumDTO",
+	"HealthLevel", "TeamOverviewDTO",
+]
 
 
 @dataclass(frozen=True)

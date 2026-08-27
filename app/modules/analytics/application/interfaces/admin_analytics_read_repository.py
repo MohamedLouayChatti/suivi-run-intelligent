@@ -4,9 +4,11 @@ from abc import ABC, abstractmethod
 
 from app.modules.analytics.application.dto.admin_overview_dto import (
 	AppJiraDependencyDTO, AppMonthlyTrendPointDTO, AppResolutionTimeDTO, AppTransferRateDTO,
-	AppWorkloadRowDTO, ApplicationHealthDTO, TeamOverviewDTO,
+	AppWorkloadRowDTO, TeamOverviewDTO,
 )
+from app.modules.analytics.application.dto.health_signal_dto import ApplicationHealthSignalDTO
 from app.modules.analytics.application.support.time_range import DateWindow
+from app.modules.ticket_management.domain.enums.application import Application
 
 
 class AdminAnalyticsReadRepository(ABC):
@@ -19,7 +21,17 @@ class AdminAnalyticsReadRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
-	async def get_health(self, window: DateWindow) -> list[ApplicationHealthDTO]:
+	async def get_health(self, window: DateWindow) -> list[ApplicationHealthSignalDTO]:
+		"""Live signals only -- no tiering. Tiering against a cached baseline is a domain
+		decision the caller makes (see GetAdminOverviewHandler), not something the read side
+		computes."""
+		raise NotImplementedError
+
+	@abstractmethod
+	async def get_health_signal(self, application: Application, window: DateWindow) -> ApplicationHealthSignalDTO:
+		"""The same live signals as get_health, for one application -- backs the reactive
+		per-ticket-event health check, which only ever needs to re-evaluate one application at a
+		time."""
 		raise NotImplementedError
 
 	@abstractmethod

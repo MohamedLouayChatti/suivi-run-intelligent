@@ -48,6 +48,8 @@ from app.modules.knowledge_base.domain.events.similarity_recalculation_schedule_
 )
 from app.modules.knowledge_base.domain.events.ticket_batch_import_failed import TicketBatchImportFailed
 
+from app.modules.analytics.domain.events.application_health_became_critical import ApplicationHealthBecameCritical
+
 
 def _assignments_payload(assignments: Iterable[ApplicationAssignment]) -> list[dict[str, str]]:
 	"""A user's application assignments, ordered so two payloads can be compared as written.
@@ -106,6 +108,7 @@ class AuditMapper:
 			SimilarityGraphRecalculated: self._similarity_graph_recalculated,
 			SimilarityGraphRecalculationFailed: self._similarity_graph_recalculation_failed,
 			TicketBatchImportFailed: self._ticket_batch_import_failed,
+			ApplicationHealthBecameCritical: self._application_health_became_critical,
 		}
 
 	def to_entry(self, event: DomainEvent) -> AuditEntry | None:
@@ -478,5 +481,34 @@ class AuditMapper:
 				"ticket_count": event.ticket_count,
 				"reason": event.reason,
 				"tickets_discarded": event.tickets_discarded,
+			},
+		)
+
+	# -- Analytics -----------------------------------------------------------
+	#
+	# resource_type is "application_health" rather than "ticket" or any existing value -- this is
+	# neither a single ticket nor the whole similarity graph, it is one application's aggregate
+	# standing against its own history. No InstanceAuthorizationPolicy is registered under it, the
+	# same reason recalculation_schedule/similarity_graph have none: a reactive computed outcome
+	# has no owner and no single resource_id anyone could be authorized against.
+
+	def _application_health_became_critical(self, event: ApplicationHealthBecameCritical) -> AuditEntry:
+		"""An application's live signals crossed into CRITICAL against its own cached baseline.
+
+		Recorded rather than left to the notification alone, for the same reason a failed
+		recalculation is: the notification reaches whoever was online to read it, while this row
+		is what answers "when did this application last turn critical, and against what
+		numbers" for someone reconstructing the incident afterwards.
+		"""
+		return self._entry(
+			event, module="analytics", event_type="ApplicationHealthBecameCritical",
+			action="analytics.application_health_became_critical", resource_type="application_health",
+			payload={
+				"application": event.application.value,
+				"previous_health_level": event.previous_health_level.value,
+				"active_tickets": event.active_tickets,
+				"avg_resolution_hours": round(event.avg_resolution_hours, 3),
+				"active_count_critical_threshold": round(event.active_count_critical_threshold, 3),
+				"resolution_hours_critical_threshold": round(event.resolution_hours_critical_threshold, 3),
 			},
 		)

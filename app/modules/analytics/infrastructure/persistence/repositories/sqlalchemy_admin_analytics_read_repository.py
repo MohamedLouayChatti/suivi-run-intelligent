@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.analytics.application.dto.admin_overview_dto import (
 	AppJiraDependencyDTO, AppMonthlyTrendPointDTO, AppResolutionTimeDTO, AppTransferRateDTO,
-	AppWorkloadRowDTO, ApplicationHealthDTO, EngineerDatumDTO, HealthLevel, TeamOverviewDTO,
+	AppWorkloadRowDTO, EngineerDatumDTO, TeamOverviewDTO,
 )
+from app.modules.analytics.application.dto.health_signal_dto import ApplicationHealthSignalDTO
 from app.modules.analytics.application.interfaces.admin_analytics_read_repository import AdminAnalyticsReadRepository
-from app.modules.analytics.application.queries.get_attention_required.query import DEFAULT_ATTENTION_THRESHOLD_DAYS
 from app.modules.analytics.application.support.time_range import DateWindow
 from app.modules.analytics.infrastructure.persistence.query_helpers import (
 	ACTIVE_STATUSES, DURATION_HOURS, created_in, ever_transferred, not_archived, resolved_in,
@@ -19,35 +19,6 @@ from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.priority import Priority
 from app.modules.ticket_management.domain.enums.status import Status
 from app.modules.ticket_management.infrastructure.persistence.models.ticket_model import TicketModel
-
-# Application-health tiering -- no rule existed anywhere in the codebase for this, so
-# these thresholds are Analytics' own explicit business constants (see module docs).
-# Whichever signal is worse wins: an application is only "good" if both are good.
-_RESOLUTION_GOOD_MAX_HOURS = 12.0
-_RESOLUTION_WARNING_MAX_HOURS = 24.0
-_AGING_SHARE_GOOD_MAX = 0.10
-_AGING_SHARE_WARNING_MAX = 0.25
-_HEALTH_RANK = {HealthLevel.GOOD: 0, HealthLevel.WARNING: 1, HealthLevel.CRITICAL: 2}
-
-
-def _resolution_tier(avg_resolution_hours: float) -> HealthLevel:
-	if avg_resolution_hours <= _RESOLUTION_GOOD_MAX_HOURS:
-		return HealthLevel.GOOD
-	if avg_resolution_hours <= _RESOLUTION_WARNING_MAX_HOURS:
-		return HealthLevel.WARNING
-	return HealthLevel.CRITICAL
-
-
-def _aging_share_tier(aging_share: float) -> HealthLevel:
-	if aging_share <= _AGING_SHARE_GOOD_MAX:
-		return HealthLevel.GOOD
-	if aging_share <= _AGING_SHARE_WARNING_MAX:
-		return HealthLevel.WARNING
-	return HealthLevel.CRITICAL
-
-
-def _worse(a: HealthLevel, b: HealthLevel) -> HealthLevel:
-	return a if _HEALTH_RANK[a] >= _HEALTH_RANK[b] else b
 
 
 class SqlAlchemyAdminAnalyticsReadRepository(AdminAnalyticsReadRepository):
@@ -73,16 +44,13 @@ class SqlAlchemyAdminAnalyticsReadRepository(AdminAnalyticsReadRepository):
 			for app in Application
 		]
 
-	async def get_health(self, window: DateWindow) -> list[ApplicationHealthDTO]:
-		now = datetime.now(UTC)
-		aging_cutoff = now - timedelta(days=DEFAULT_ATTENTION_THRESHOLD_DAYS)
+	async def get_health(self, window: DateWindow) -> list[ApplicationHealthSignalDTO]:
 		active_cond = and_(TicketModel.status.in_(ACTIVE_STATUSES), not_archived())
 
 		live_stmt = select(
 			TicketModel.application,
 			func.count().filter(active_cond).label("active"),
 			func.count().filter(and_(active_cond, TicketModel.priority == Priority.CRITICAL)).label("urgent"),
-			func.count().filter(and_(active_cond, TicketModel.created_at <= aging_cutoff)).label("aging"),
 		).group_by(TicketModel.application)
 		live_rows = {row.application: row for row in (await self.session.execute(live_stmt)).all()}
 
@@ -91,20 +59,34 @@ class SqlAlchemyAdminAnalyticsReadRepository(AdminAnalyticsReadRepository):
 		).where(resolved_in(window)).group_by(TicketModel.application)
 		resolution_rows = {row.application: row.avg_resolution_hours for row in (await self.session.execute(resolution_stmt)).all()}
 
-		results: list[ApplicationHealthDTO] = []
+		results: list[ApplicationHealthSignalDTO] = []
 		for app in Application:
 			live = live_rows.get(app)
 			active = live.active if live else 0
 			urgent = live.urgent if live else 0
-			aging = live.aging if live else 0
 			avg_resolution_hours = round(float(resolution_rows.get(app) or 0.0), 1)
-			aging_share = (aging / active) if active > 0 else 0.0
-			health = _worse(_resolution_tier(avg_resolution_hours), _aging_share_tier(aging_share))
-			results.append(ApplicationHealthDTO(
-				application=app, health=health, active_tickets=active,
+			results.append(ApplicationHealthSignalDTO(
+				application=app, active_tickets=active,
 				avg_resolution_hours=avg_resolution_hours, urgent_tickets=urgent,
 			))
 		return results
+
+	async def get_health_signal(self, application: Application, window: DateWindow) -> ApplicationHealthSignalDTO:
+		active_cond = and_(TicketModel.status.in_(ACTIVE_STATUSES), not_archived(), TicketModel.application == application)
+
+		live_stmt = select(
+			func.count().filter(active_cond).label("active"),
+			func.count().filter(and_(active_cond, TicketModel.priority == Priority.CRITICAL)).label("urgent"),
+		)
+		live_row = (await self.session.execute(live_stmt)).one()
+
+		resolution_stmt = select(func.avg(DURATION_HOURS)).where(resolved_in(window), TicketModel.application == application)
+		avg_resolution_hours = round(float((await self.session.execute(resolution_stmt)).scalar() or 0.0), 1)
+
+		return ApplicationHealthSignalDTO(
+			application=application, active_tickets=live_row.active,
+			avg_resolution_hours=avg_resolution_hours, urgent_tickets=live_row.urgent,
+		)
 
 	async def get_resolution_time_comparison(self, window: DateWindow) -> list[AppResolutionTimeDTO]:
 		stmt = select(
