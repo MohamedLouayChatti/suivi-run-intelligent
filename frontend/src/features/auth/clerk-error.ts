@@ -2,6 +2,14 @@ import { frFR } from "@clerk/localizations";
 
 const FALLBACK_MESSAGE = "Une erreur est survenue. Veuillez réessayer.";
 
+// `frFR.unstable__errors` does not currently include every Frontend API code.
+// Keep the known custom-flow fallbacks in French instead of exposing Clerk's
+// English longMessage to users.
+const CUSTOM_ERROR_MESSAGES: Record<string, string> = {
+  session_reverification_required:
+    "Pour modifier votre mot de passe, veuillez d’abord confirmer votre identité.",
+};
+
 // Clerk's own French translations for its error codes (the same catalog `ClerkProvider`'s
 // `localization` prop uses for its hosted components) — reused here so a custom-flow error
 // gets the official French wording instead of the English `message`/`longMessage` the Frontend
@@ -24,7 +32,8 @@ interface ClerkOperationError {
 function clerkErrorMessage(error: ClerkOperationError | null | undefined): string {
   if (!error) return FALLBACK_MESSAGE;
   const translated = error.code ? unstableErrors[error.code] : undefined;
-  return translated ?? error.longMessage ?? error.message ?? FALLBACK_MESSAGE;
+  const customMessage = error.code ? CUSTOM_ERROR_MESSAGES[error.code] : undefined;
+  return translated ?? customMessage ?? error.longMessage ?? error.message ?? FALLBACK_MESSAGE;
 }
 
 /**

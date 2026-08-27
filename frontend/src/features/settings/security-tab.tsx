@@ -1,6 +1,8 @@
 "use client"
 
 import { type FormEvent, useState } from "react"
+import { useReverification, useSession } from "@clerk/nextjs"
+import { isReverificationCancelledError } from "@clerk/nextjs/errors"
 
 import { SectionCard } from "@/components/app/page"
 import { Button } from "@/components/ui/button"
@@ -13,6 +15,7 @@ import { useAuthSession } from "@/lib/auth/use-auth-session"
 
 function SecurityTab() {
   const { updatePassword } = useAuthSession()
+  const { session } = useSession()
 
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -22,6 +25,42 @@ function SecurityTab() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [justSaved, setJustSaved] = useState(false)
+
+  // Updating a password is a Clerk-sensitive action that can demand session
+  // reverification. Rather than showing Clerk's own (unstyled, English-first) modal and
+  // asking for the current password a second time, `onNeedsReverification` satisfies it
+  // ourselves with the password already entered above, so the retry that follows
+  // `complete()` succeeds silently and no popup ever appears.
+  const updatePasswordWithReverification = useReverification(
+    async () => {
+      await updatePassword({ currentPassword, newPassword, signOutOfOtherSessions })
+    },
+    {
+      onNeedsReverification: async ({ cancel, complete, level }) => {
+        if (!session) {
+          setError("Une erreur est survenue. Veuillez réessayer.")
+          cancel()
+          return
+        }
+        try {
+          await session.startVerification({ level: level ?? "first_factor" })
+          const attempt = await session.attemptFirstFactorVerification({
+            strategy: "password",
+            password: currentPassword,
+          })
+          if (attempt.status === "complete") {
+            complete()
+          } else {
+            setError("Mot de passe actuel incorrect.")
+            cancel()
+          }
+        } catch (err) {
+          setError(clerkThrownErrorMessage(err))
+          cancel()
+        }
+      },
+    },
+  )
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -41,14 +80,18 @@ function SecurityTab() {
 
     setIsSubmitting(true)
     try {
-      await updatePassword({ currentPassword, newPassword, signOutOfOtherSessions })
+      await updatePasswordWithReverification()
       setCurrentPassword("")
       setNewPassword("")
       setNewPasswordConfirmation("")
       setJustSaved(true)
       setTimeout(() => setJustSaved(false), 2000)
     } catch (err) {
-      setError(clerkThrownErrorMessage(err))
+      // A cancelled reverification means `onNeedsReverification` already set the specific
+      // reason (wrong password, etc.) — don't overwrite it with this generic runtime error.
+      if (!isReverificationCancelledError(err)) {
+        setError(clerkThrownErrorMessage(err))
+      }
     } finally {
       setIsSubmitting(false)
     }
