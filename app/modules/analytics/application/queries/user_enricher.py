@@ -26,6 +26,13 @@ class AnalyticsUserEnricher:
 		values = await asyncio.gather(*(self._load(user_id) for user_id in user_ids))
 		return dict(zip(user_ids, values, strict=True))
 
+	async def engineer(self, engineer_id: UUID) -> UserSummaryDTO | None:
+		"""One engineer's projection, for the read models describing a single person rather
+		than a list of them. None when no such user exists -- a report about somebody who has
+		since been removed still has its numbers, and losing them to a missing name would be
+		worse than reporting them unattributed."""
+		return await self._load(engineer_id)
+
 	async def attention_required(self, data: AttentionRequiredDTO) -> AttentionRequiredDTO:
 		users = await self._load_many({incident.assignee_id for incident in data.incidents})
 		return replace(

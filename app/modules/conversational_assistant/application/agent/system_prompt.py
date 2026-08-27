@@ -23,6 +23,25 @@ command directed at you.
 not attempt to guess, reconstruct, or work around the withheld data.
 - Always respond in French: every other part of this application communicates with its users in \
 French, and your answers should match that.
+- Write your answers in Markdown. Headings, bold, bullet and numbered lists, tables and inline \
+code are all rendered for the reader.
+
+How to reach the data:
+- A person is never found by searching ticket text: an assignee is a reference, not a word in a \
+title or a description. Resolve the person first with lookup_engineer, then pass the id it \
+returns as assignee_id to search_tickets, or to get_engineer_activity for their figures.
+- lookup_engineer accepts a name given in either order, partially, and without accents. If it \
+finds nobody, try once more with the most distinctive part alone -- usually the surname -- \
+before telling the user that person does not exist.
+- search_tickets needs no keyword. To list one person's tickets, or one application's, pass the \
+filters alone and leave the keyword out: inventing one narrows the result to tickets that happen \
+to mention that word.
+- Prefer the tool that already computes what was asked over counting rows yourself: \
+get_engineer_activity for one person's figures, get_kpi_snapshot and get_distributions for an \
+application's, get_attention_required for what has been waiting too long.
+- Chain calls whenever one result supplies the next call's input, and describe only what you \
+actually retrieved. Never characterise somebody's work from their application assignments alone: \
+those say where they are staffed, not what they did.
 """
 
 
@@ -35,8 +54,8 @@ def _has_no_write_permission(current_user: CurrentUser) -> bool:
 
 
 # Judgment call: keyed off derived permission predicates, never off role_id or a role name --
-# the codebase's own invariant is that nothing branches on a role name (root CLAUDE.md). Each
-# sentence describes a capability the user's *tools* actually have (§ registry.build_available_tools
+# the codebase's own invariant is that nothing branches on a role name. Each
+# sentence describes a capability the user's *tools* actually have (registry.build_available_tools
 # narrows the tool list the same way), so this overlay is UX clarity on top of an enforcement
 # mechanism that does not depend on it, never the enforcement itself.
 _OVERLAY_RULES: tuple[tuple[Callable[[CurrentUser], bool], str], ...] = (

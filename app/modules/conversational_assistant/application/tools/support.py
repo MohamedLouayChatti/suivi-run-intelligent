@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import re
+import unicodedata
 from enum import Enum
 from typing import TypeVar
 
 from app.shared.security.current_user import CurrentUser
 
 ApplicationEnum = TypeVar("ApplicationEnum", bound=Enum)
+
+_NON_WORD = re.compile(r"[^0-9a-z]+")
 
 
 def compute_application_scope(
@@ -21,3 +25,47 @@ def compute_application_scope(
 	return frozenset(
 		application_enum(assignment.application.value) for assignment in current_user.application_assignments
 	)
+
+
+def name_tokens(value: str) -> tuple[str, ...]:
+	"""A person's name reduced to comparable pieces: accents folded away, case dropped, and
+	every separator (space, hyphen, apostrophe, dot) treated alike.
+
+	Accent folding is NFKD decomposition minus the combining marks, so "Bejaoui" and "Béjaoui"
+	produce the same tokens -- a name typed into a chat box carries no guarantee of the accents
+	the directory happens to store.
+	"""
+	decomposed = unicodedata.normalize("NFKD", value)
+	folded = "".join(char for char in decomposed if not unicodedata.combining(char)).casefold()
+	return tuple(token for token in _NON_WORD.split(folded) if token)
+
+
+def name_matches(needle: str, candidate: str) -> bool:
+	"""Whether `candidate` (a stored display name) answers to `needle` (whatever the user typed).
+
+	Order-independent and per-token, because a person is named in both orders in practice: a
+	directory holding "Namouchi Ala" must be found by "Ala Namouchi" just as readily. Plain
+	substring containment -- which this replaced -- could only ever match the one order the
+	directory happened to store, so half the ways a colleague is named returned "no such
+	engineer" for someone who plainly exists.
+
+	Each typed token must prefix-match some token of the candidate, so a partial surname
+	("namou") still finds its owner while an unrelated name does not.
+	"""
+	needle_parts = name_tokens(needle)
+	if not needle_parts:
+		return False
+	candidate_parts = name_tokens(candidate)
+	return all(
+		any(part.startswith(needle_part) for part in candidate_parts) for needle_part in needle_parts
+	)
+
+
+def name_match_rank(needle: str, candidate: str) -> tuple[int, int]:
+	"""Sort key ordering matches best-first: a candidate whose tokens are exactly the typed ones
+	(in any order) outranks one merely prefixed by them, and a shorter name outranks a longer one
+	carrying the same tokens. Lower is better.
+	"""
+	needle_parts = set(name_tokens(needle))
+	candidate_parts = set(name_tokens(candidate))
+	return (0 if needle_parts == candidate_parts else 1, len(candidate_parts))

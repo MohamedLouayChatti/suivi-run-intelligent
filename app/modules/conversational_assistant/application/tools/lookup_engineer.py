@@ -8,6 +8,7 @@ from app.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_re
 	SqlAlchemyUserReadRepository,
 )
 from app.modules.conversational_assistant.application.tools.base import ToolContext, ToolResult, ToolSpec
+from app.modules.conversational_assistant.application.tools.support import name_match_rank, name_matches
 
 # One page is enough to cover this application's whole user base (including seeded historical
 # users) without paging -- the directory this mirrors, GET /users/directory, has no pagination
@@ -27,8 +28,24 @@ async def _execute(args: LookupEngineerArgs, ctx: ToolContext) -> ToolResult:
 	try:
 		handler = ListUsersHandler(SqlAlchemyUserReadRepository(session))
 		users = await handler.handle(ListUsersQuery(limit=_DIRECTORY_PAGE_SIZE, offset=0))
-		needle = args.name.strip().casefold()
-		matches = [user for user in users if needle in user.display_name.casefold()][:_MAX_RESULTS]
+		# Token-wise and accent-insensitive rather than substring containment: the directory
+		# stores one name order and callers type either, so "Ala Namouchi" has to reach
+		# "Namouchi Ala". Ranked so the closest match leads, since a partial surname can
+		# legitimately answer for several people.
+		matches = sorted(
+			(user for user in users if name_matches(args.name, user.display_name)),
+			key=lambda user: name_match_rank(args.name, user.display_name),
+		)[:_MAX_RESULTS]
+
+		if not matches:
+			return ToolResult(
+				ok=False,
+				error=(
+					f"Aucun ingénieur ne correspond à « {args.name} ». Essayez un nom partiel "
+					"(nom de famille seul, par exemple)."
+				),
+			)
+
 		return ToolResult(
 			ok=True,
 			# Same low-exposure shape as UserDirectoryResponse: id/display_name/active/team/
@@ -60,8 +77,10 @@ async def _execute(args: LookupEngineerArgs, ctx: ToolContext) -> ToolResult:
 LOOKUP_ENGINEER = ToolSpec(
 	name="lookup_engineer",
 	description=(
-		"Recherche un ingénieur par nom (recherche partielle, insensible à la casse) et retourne "
-		"son équipe fonctionnelle et ses affectations applicatives."
+		"Recherche un ingénieur par nom et retourne son identifiant, son équipe fonctionnelle "
+		"et ses affectations applicatives. Le nom peut être donné dans n'importe quel ordre "
+		"(prénom d'abord ou nom d'abord), partiellement et sans accents. "
+		"Utilisez l'identifiant retourné pour interroger son activité ou ses tickets."
 	),
 	args_model=LookupEngineerArgs,
 	required_permission="user.read",

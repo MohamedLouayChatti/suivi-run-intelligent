@@ -17,8 +17,10 @@ logger = logging.getLogger(__name__)
 
 # Safety cap on the agent loop, not a product limit anyone is meant to reach: a bounded, "clean"
 # agent should never need more than a handful of tool round-trips to answer one question. Exceeding
-# it fails the run rather than looping forever.
-MAX_ITERATIONS = 6
+# it fails the run rather than looping forever. Raised from 6 when the tool set grew a people
+# group: questions about a colleague are answered by chaining (resolve the person, read their
+# figures, then their tickets), and three chained calls plus a retry left no room under the old cap.
+MAX_ITERATIONS = 9
 
 
 class AgentIterationLimitExceeded(RuntimeError):

@@ -1,27 +1,40 @@
 from __future__ import annotations
 
 from app.modules.conversational_assistant.application.tools.base import ToolSpec
+from app.modules.conversational_assistant.application.tools.get_attention_required import GET_ATTENTION_REQUIRED
+from app.modules.conversational_assistant.application.tools.get_distributions import GET_DISTRIBUTIONS
+from app.modules.conversational_assistant.application.tools.get_engineer_activity import GET_ENGINEER_ACTIVITY
+from app.modules.conversational_assistant.application.tools.get_jira_metrics import GET_JIRA_METRICS
 from app.modules.conversational_assistant.application.tools.get_kpi_snapshot import GET_KPI_SNAPSHOT
 from app.modules.conversational_assistant.application.tools.get_my_activity_trend import GET_MY_ACTIVITY_TREND
 from app.modules.conversational_assistant.application.tools.get_my_kpi_snapshot import GET_MY_KPI_SNAPSHOT
 from app.modules.conversational_assistant.application.tools.get_similar_incidents import GET_SIMILAR_INCIDENTS
+from app.modules.conversational_assistant.application.tools.get_ticket_comments import GET_TICKET_COMMENTS
 from app.modules.conversational_assistant.application.tools.get_ticket_detail import GET_TICKET_DETAIL
 from app.modules.conversational_assistant.application.tools.lookup_engineer import LOOKUP_ENGINEER
 from app.modules.conversational_assistant.application.tools.search_tickets import SEARCH_TICKETS
 from app.shared.security.current_user import CurrentUser
 
-# A curated v1 set, not the whole application: one ticket lookup, one search, similar-incidents,
-# two personal analytics tools, one team/application analytics tool, and an engineer lookup.
-# Deliberately excludes raw comment threads, attachment access, Jira metrics, distributions and
-# attention-required feeds -- addable later as more ToolSpecs with no change to the graph/loop.
+# Grouped by what a question is *about* rather than by which module answers it: tickets, people,
+# and the aggregate view. The people group is the one the v1 set was missing outright -- it could
+# name an engineer but say nothing about their work, so every question about a colleague ended in
+# an apology for data the application plainly holds.
 ALL_TOOL_SPECS: tuple[ToolSpec, ...] = (
+	# Tickets
 	GET_TICKET_DETAIL,
+	GET_TICKET_COMMENTS,
 	SEARCH_TICKETS,
 	GET_SIMILAR_INCIDENTS,
+	# People
+	LOOKUP_ENGINEER,
+	GET_ENGINEER_ACTIVITY,
 	GET_MY_KPI_SNAPSHOT,
 	GET_MY_ACTIVITY_TREND,
+	# Aggregate reporting
 	GET_KPI_SNAPSHOT,
-	LOOKUP_ENGINEER,
+	GET_DISTRIBUTIONS,
+	GET_ATTENTION_REQUIRED,
+	GET_JIRA_METRICS,
 )
 
 
