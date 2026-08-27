@@ -163,6 +163,19 @@ def _assignment_for(assignments: Iterable[ApplicationAssignment], assignment_typ
 	return next((x.application.value for x in assignments if x.assignment_type == assignment_type), None)
 
 
+def _read_only_applications(assignments: Iterable[ApplicationAssignment]) -> list[str]:
+	"""Unlike PRIMARY/BACKUP, READ_ONLY has no cardinality limit -- a user can hold several --
+	so this collects rather than picks one."""
+	return sorted(x.application.value for x in assignments if x.assignment_type == AssignmentType.READ_ONLY)
+
+
+def _join_fr(items: list[str]) -> str:
+	"""Join a list into French prose: "A, B et C"."""
+	if len(items) <= 1:
+		return "".join(items)
+	return f"{', '.join(items[:-1])} et {items[-1]}"
+
+
 def _applications_metadata(assignments: Iterable[ApplicationAssignment]) -> list[dict[str, str]]:
 	"""Ordered, because the event carries a set and a set has no order to preserve."""
 	return sorted(
@@ -183,15 +196,18 @@ def _organizational_identity_sentence(
 	assignments = list(assignments)
 	primary = _assignment_for(assignments, AssignmentType.PRIMARY)
 	backup = _assignment_for(assignments, AssignmentType.BACKUP)
+	read_only = _read_only_applications(assignments)
 	team = _FUNCTIONAL_TEAM_LABELS_FR[functional_team]
-	if primary is not None and backup is not None:
-		scope = f"avec {primary} en application principale et {backup} en application de secours"
-	elif primary is not None:
-		scope = f"avec {primary} en application principale"
-	elif backup is not None:
-		scope = f"avec {backup} en application de secours"
-	else:
-		scope = "sans application affectée"
+
+	scope_parts = []
+	if primary is not None:
+		scope_parts.append(f"{primary} en application principale")
+	if backup is not None:
+		scope_parts.append(f"{backup} en application de secours")
+	if read_only:
+		scope_parts.append(f"{_join_fr(read_only)} en lecture seule")
+
+	scope = f"avec {_join_fr(scope_parts)}" if scope_parts else "sans application affectée"
 	return f"Vous êtes désormais rattaché à l'équipe {team}, {scope}."
 
 
