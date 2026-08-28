@@ -9,6 +9,7 @@ import {
   Building2,
   BrainCircuit,
   FileUp,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react"
 
@@ -53,6 +54,8 @@ const notificationTypeIcons: Record<NotificationType, LucideIcon> = {
   SIMILARITY_RECALCULATION_COMPLETED: BrainCircuit,
   SIMILARITY_RECALCULATION_FAILED: BrainCircuit,
   BATCH_IMPORT_FAILED: FileUp,
+  // Application health transition into CRITICAL — the one Analytics notification type.
+  APPLICATION_HEALTH_CRITICAL: AlertTriangle,
 }
 
 export { notificationTypeIcons }
