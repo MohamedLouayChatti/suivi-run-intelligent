@@ -45,6 +45,27 @@ class AgentRunConnectionManager:
 	def publish_tool_call(self, run_id: UUID, name: str, status: str) -> None:
 		self._publish(run_id, event="tool_call", data={"name": name, "status": status})
 
+	def publish_title(self, run_id: UUID, conversation_id: UUID, title: str) -> None:
+		"""The conversation's generated title, pushed down the stream the client already has open.
+
+		Not a terminal event, and not part of the run: title generation is its own background job,
+		started by the same request and finished independently. The run stream carries it only
+		because it is the connection the client is already holding -- keyed by run_id like every
+		other event here, while the payload names the conversation the title belongs to, since that
+		is what the client updates.
+
+		It therefore arrives, or does not, on its own schedule: in practice well before the run
+		resolves (one short call, no tools, against a whole agent turn), but a title finishing after
+		the terminal event finds the stream closed and is published to nobody. Nothing is lost --
+		the title is already stored, and the conversation list is the reconciliation path, exactly
+		as GET .../messages is for a run.
+		"""
+		self._publish(
+			run_id,
+			event="conversation_title",
+			data={"conversation_id": str(conversation_id), "title": title},
+		)
+
 	def publish_completed(self, run_id: UUID, message: MessageDTO) -> None:
 		self._publish(run_id, event="message_complete", data=message)
 

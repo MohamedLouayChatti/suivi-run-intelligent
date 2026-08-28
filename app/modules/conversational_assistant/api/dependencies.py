@@ -19,6 +19,9 @@ from app.modules.conversational_assistant.infrastructure.events.in_memory_event_
 	InMemoryEventPublisher,
 )
 from app.modules.conversational_assistant.infrastructure.jobs.agent_run_runner import agent_run_runner
+from app.modules.conversational_assistant.infrastructure.jobs.conversation_title_runner import (
+	conversation_title_runner,
+)
 from app.modules.conversational_assistant.infrastructure.persistence.repositories.sqlalchemy_conversation_read_repository import (
 	SqlAlchemyConversationReadRepository,
 )
@@ -63,9 +66,9 @@ def get_send_message_handler(
 	publisher: Annotated[InMemoryEventPublisher, Depends(get_event_publisher)],
 	queue: Annotated[JobQueue, Depends(get_job_queue)],
 ) -> SendMessageHandler:
-	# agent_run_runner is a process-wide singleton (mirrors similarity_recalculation_runner),
-	# injected directly rather than through Depends since it is not request-scoped.
-	return SendMessageHandler(uow, publisher, queue, agent_run_runner)
+	# Both runners are process-wide singletons (mirroring similarity_recalculation_runner),
+	# injected directly rather than through Depends since neither is request-scoped.
+	return SendMessageHandler(uow, publisher, queue, agent_run_runner, conversation_title_runner)
 
 
 def get_get_conversation_messages_handler(

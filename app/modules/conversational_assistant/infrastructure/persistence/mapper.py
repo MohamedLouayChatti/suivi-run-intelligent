@@ -28,7 +28,20 @@ def conversation_to_model(conversation: Conversation) -> ConversationModel:
 
 
 def sync_conversation_model(conversation_model: ConversationModel, conversation: Conversation) -> ConversationModel:
-	conversation_model.title = conversation.title
+	# `title` is deliberately absent, and must stay absent. This function is a full overwrite from
+	# whatever aggregate it is handed -- fine for `updated_at`, `messages` and `runs`, which have a
+	# single writer each (the run appending to them), and wrong for `title`, which has two: the
+	# request that crops an interim one and the background job that generates the real one.
+	#
+	# Assigning it here restored the title an agent run had loaded at the start of its turn, undoing
+	# the generated one written meanwhile -- and did so *intermittently*, which is what made it look
+	# like it worked. SQLAlchemy's identity map is weakly referenced, so over a turn long enough for
+	# a GC cycle the ConversationModel loaded at the start is collected; the save at the end then
+	# re-reads a fresh instance whose committed title is the generated one, and assigning the stale
+	# crop over it is a real change that flushes as an UPDATE. Back-to-back saves keep the same
+	# instance, where the same assignment is a no-op and nothing is written.
+	#
+	# Titles are written by ConversationRepository.set_title alone -- one field, one writer.
 	conversation_model.updated_at = conversation.updated_at
 	_sync_messages(conversation_model, conversation.messages)
 	_sync_runs(conversation_model, conversation.runs)

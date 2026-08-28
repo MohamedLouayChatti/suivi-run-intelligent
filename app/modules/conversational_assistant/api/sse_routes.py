@@ -64,6 +64,13 @@ async def stream_agent_run(
 	then exactly one terminal event (`message_complete` or `run_failed`) before closing -- a run
 	resolves once, unlike Notifications' open-ended per-user feed.
 
+	One event on this stream is not about the run: `conversation_title` carries the title generated
+	for a conversation by its own background job, which the same request started and which finishes
+	independently. It rides here because this is the connection the client already holds, and it
+	needs no handling of its own below -- a non-terminal event is forwarded as it stands. A title
+	that lands after the terminal event is simply not delivered; it is already stored, and the
+	conversation list is what reconciles it, exactly as GET .../messages does for a run.
+
 	Auth stays header-based (Authorization: Bearer), same as every other route -- the frontend
 	needs the existing fetch-based SSE client, not the native browser EventSource API, which
 	cannot set that header.

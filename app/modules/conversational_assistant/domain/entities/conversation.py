@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -11,14 +12,55 @@ from app.modules.conversational_assistant.domain.entities.tool_invocation import
 from app.modules.conversational_assistant.domain.enums.message_role import MessageRole
 from app.modules.conversational_assistant.domain.exceptions import RunNotFound
 
-_TITLE_MAX_LENGTH = 60
+TITLE_MAX_LENGTH = 60
+
+# What a summarizing model wraps its answer in rather than says: a quoted title, a "Titre :"
+# preamble, a Markdown heading, a trailing full stop, a reasoning block a thinking model failed to
+# keep out of its content. Stripped here rather than only asked against in the prompt, because the
+# prompt is a request and this is the rule.
+_THINKING_BLOCK = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+_TITLE_PREFIX = re.compile(r"^\s*(?:titre|title)\s*[:\-–]\s*", re.IGNORECASE)
+# Stripped from both ends, not just the leading one: a model that emphasises its answer wraps it
+# (`**Panne COLORIS**`) as readily as it prefixes it with a bullet or a heading marker.
+_WRAPPING_MARKUP = "#*_>-` \t"
+_WRAPPING_QUOTES = "\"'«»“”‘’‹›"
+# Includes U+00A0: French typography puts a non-breaking space before ! and ?, so stripping the
+# punctuation alone would leave the space behind it.
+_TRAILING_PUNCTUATION = ".!?  "
 
 
-def _summarize_title(content: str) -> str:
-	collapsed = " ".join(content.split())
-	if len(collapsed) <= _TITLE_MAX_LENGTH:
+def _truncate(collapsed: str) -> str:
+	if len(collapsed) <= TITLE_MAX_LENGTH:
 		return collapsed
-	return collapsed[:_TITLE_MAX_LENGTH].rsplit(" ", 1)[0] + "…"
+	return collapsed[:TITLE_MAX_LENGTH].rsplit(" ", 1)[0] + "…"
+
+
+def summarize_title(content: str) -> str:
+	"""The interim title a conversation carries until a generated one replaces it: its first
+	message, collapsed and cropped to the same ceiling.
+
+	A function rather than a method on the aggregate, for the same reason `normalize_title` is one:
+	a title is not written through `save()` (see ConversationRepository.set_title), so a mutator
+	setting `Conversation.title` would change an object nothing persists -- which is worse than no
+	mutator at all, because it reads as though it did.
+	"""
+	return _truncate(" ".join(content.split()))
+
+
+def normalize_title(raw: str) -> str | None:
+	"""A model's raw answer reduced to a title this aggregate would accept, or None when nothing
+	usable is left of it.
+
+	Public, and in Domain, because the generated title is not written through the aggregate: that
+	write is a targeted column update (see ConversationRepository.set_title), taken deliberately so
+	a background job cannot save a stale aggregate over a concurrently-completing Run. Bypassing
+	the aggregate is only safe while the rule it would have applied still lives in one place, which
+	is here -- the same ceiling the crop respects, since the two produce the same field.
+	"""
+	first_line = next((line for line in _THINKING_BLOCK.sub("", raw).splitlines() if line.strip()), "")
+	unwrapped = _TITLE_PREFIX.sub("", first_line.strip(_WRAPPING_MARKUP))
+	collapsed = " ".join(unwrapped.strip(_WRAPPING_MARKUP).strip(_WRAPPING_QUOTES).split())
+	return _truncate(collapsed.rstrip(_TRAILING_PUNCTUATION).strip()) or None
 
 
 @dataclass
@@ -26,6 +68,12 @@ class Conversation:
 	"""Aggregate root: one chat thread, owning its ordered Messages and Runs -- the same shape
 	Ticket owns Comment/Attachment/TicketHistoryEntry. Ownership is strictly self-only in v1:
 	`user_id` is the only thing an instance policy ever checks, with no breadth override.
+
+	`title` is the one field here that is read but never written back: it is set through
+	ConversationRepository.set_title, and saving this aggregate deliberately leaves the stored one
+	alone. It is the only field with two writers -- the request that crops an interim title and the
+	background job that generates the real one -- and this aggregate is held across a whole agent
+	turn, long enough for the copy loaded into it to go stale while the turn is still running.
 	"""
 
 	id: UUID
@@ -45,9 +93,6 @@ class Conversation:
 		self.messages.append(message)
 		self.updated_at = sent_at
 		return message
-
-	def set_title_from_first_message(self, content: str) -> None:
-		self.title = _summarize_title(content)
 
 	def start_run(self, *, id: UUID, triggering_message_id: UUID, started_at: datetime) -> Run:
 		run = Run.start(id=id, triggering_message_id=triggering_message_id, started_at=started_at)

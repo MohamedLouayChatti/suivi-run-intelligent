@@ -18,11 +18,24 @@ interface RunFailedEvent {
   failure_reason: string
 }
 
+/**
+ * The generated title of the conversation this run belongs to. The one event on this stream that
+ * is not about the run: naming a conversation is its own background job, started by the same
+ * request and finished independently, and it rides this connection because the client already
+ * holds it. Not terminal, and not guaranteed — a title generated after the run resolves finds the
+ * stream closed, which is why the conversation list is still what reconciles it.
+ */
+interface ConversationTitleEvent {
+  conversation_id: string
+  title: string
+}
+
 interface AgentRunStreamHandlers {
   onDelta: (event: MessageDeltaEvent) => void
   onToolCall?: (event: ToolCallEvent) => void
   onComplete: (message: MessageResponse) => void
   onFailed: (event: RunFailedEvent) => void
+  onTitle?: (event: ConversationTitleEvent) => void
   onConnectionChange?: (connected: boolean) => void
 }
 
@@ -30,7 +43,9 @@ interface AgentRunStreamHandlers {
  * Live delivery for one agent run (GET /conversational-assistant/runs/{run_id}/stream).
  * Emits `message_delta`/`tool_call` while the run is in flight, then exactly one of
  * `message_complete`/`run_failed` before the backend closes the stream — a run resolves once,
- * unlike the open-ended notification feed. Returns a `close()` function; callers should invoke it
+ * unlike the open-ended notification feed. `conversation_title` may also arrive at any point
+ * before that terminal event, from a job that is not the run (see ConversationTitleEvent).
+ * Returns a `close()` function; callers should invoke it
  * once a terminal event has been handled (or on unmount), so the reconnect loop in `connectSse`
  * does not keep retrying a run that has already resolved.
  */
@@ -54,6 +69,9 @@ function connectToAgentRunStream(runId: string, handlers: AgentRunStreamHandlers
           case "run_failed":
             handlers.onFailed(JSON.parse(event.data) as RunFailedEvent)
             return
+          case "conversation_title":
+            handlers.onTitle?.(JSON.parse(event.data) as ConversationTitleEvent)
+            return
           default:
             return
         }
@@ -65,4 +83,10 @@ function connectToAgentRunStream(runId: string, handlers: AgentRunStreamHandlers
 }
 
 export { connectToAgentRunStream }
-export type { AgentRunStreamHandlers, MessageDeltaEvent, ToolCallEvent, RunFailedEvent }
+export type {
+  AgentRunStreamHandlers,
+  MessageDeltaEvent,
+  ToolCallEvent,
+  RunFailedEvent,
+  ConversationTitleEvent,
+}
