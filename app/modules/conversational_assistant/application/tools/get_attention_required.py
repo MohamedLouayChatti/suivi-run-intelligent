@@ -81,4 +81,7 @@ GET_ATTENTION_REQUIRED = ToolSpec(
 	args_model=GetAttentionRequiredArgs,
 	required_permission="analytics.read",
 	execute=_execute,
+	referenced_ticket_ids=lambda payload: [
+		incident["ticket_id"] for incident in payload["oldest_incidents"]
+	],
 )

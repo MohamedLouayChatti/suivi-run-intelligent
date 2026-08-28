@@ -71,4 +71,5 @@ GET_TICKET_DETAIL = ToolSpec(
 	args_model=GetTicketDetailArgs,
 	required_permission="ticket.read",
 	execute=_execute,
+	referenced_ticket_ids=lambda payload: [payload["id"]],
 )

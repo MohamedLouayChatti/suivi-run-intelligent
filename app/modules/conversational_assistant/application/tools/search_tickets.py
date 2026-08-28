@@ -120,4 +120,5 @@ SEARCH_TICKETS = ToolSpec(
 	args_model=SearchTicketsArgs,
 	required_permission="ticket.read",
 	execute=_execute,
+	referenced_ticket_ids=lambda payload: [ticket["id"] for ticket in payload["tickets"]],
 )

@@ -65,4 +65,7 @@ GET_SIMILAR_INCIDENTS = ToolSpec(
 	args_model=GetSimilarIncidentsArgs,
 	required_permission="ticket.read",
 	execute=_execute,
+	referenced_ticket_ids=lambda payload: [
+		incident["ticket_id"] for incident in payload["similar_incidents"]
+	],
 )

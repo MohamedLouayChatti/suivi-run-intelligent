@@ -6,6 +6,9 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from app.modules.conversational_assistant.application.agent.context import build_llm_context
+from app.modules.conversational_assistant.application.agent.resource_references import (
+	resolve_ticket_references,
+)
 from app.modules.conversational_assistant.application.agent.system_prompt import compose_system_prompt
 from app.modules.conversational_assistant.application.dto.message_dto import MessageDTO
 from app.modules.conversational_assistant.application.interfaces.agent_run_runner import AgentRunRunner
@@ -115,6 +118,12 @@ class ConversationalAgentRunner(AgentRunRunner):
 					f"The model returned an empty final message after {final_state['iterations']} "
 					f"iteration(s) and {len(final_state['tool_calls_made'])} tool call(s)."
 				)
+			# Before the answer becomes a stored Message, never after: a Message is final the moment
+			# it exists, so this is the last point at which a link the run cannot vouch for can
+			# still be taken out. The deltas already streamed carry the model's raw text, which is
+			# why message_complete ships the whole validated answer -- the client replaces what it
+			# rendered live with this one.
+			answer = resolve_ticket_references(answer, final_state["tool_calls_made"])
 			response_message = conversation.complete_run(
 				run_id=run_id, response_message_id=uuid4(), content=answer,
 				tool_invocations=final_state["tool_calls_made"], completed_at=datetime.now(UTC),

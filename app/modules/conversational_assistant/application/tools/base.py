@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -53,6 +53,13 @@ class ToolSpec:
 	args_model: type[BaseModel]
 	required_permission: str
 	execute: Callable[[BaseModel, ToolContext], Awaitable[ToolResult]]
+	# Which ticket ids a successful payload names, for the tools whose results the model is allowed
+	# to turn into a link the reader can click. Declared here, beside the payload it reads, rather
+	# than as a table of payload paths kept somewhere central: each tool already builds its own
+	# narrowed shape by hand, so the shape and the way to read it stay in one file and cannot drift
+	# apart. `None` -- the default -- means this tool names no linkable resource, which is the right
+	# answer for every aggregate-reporting tool: a KPI is a figure, not something with a page.
+	referenced_ticket_ids: Callable[[dict[str, Any]], Iterable[str]] | None = None
 
 	def json_schema(self) -> dict[str, Any]:
 		return self.args_model.model_json_schema()
