@@ -11,6 +11,7 @@ from app.modules.conversational_assistant.application.dto.run_replay_dto import 
 from app.modules.conversational_assistant.application.interfaces.conversation_read_repository import (
 	ConversationReadRepository,
 )
+from app.modules.conversational_assistant.domain.enums.run_status import RunStatus
 from app.modules.conversational_assistant.infrastructure.persistence import mapper
 from app.modules.conversational_assistant.infrastructure.persistence.models.conversation_model import (
 	ConversationModel,
@@ -82,12 +83,24 @@ class SqlAlchemyConversationReadRepository(ConversationReadRepository):
 		)
 		latest_run_model = await self.session.scalar(latest_run_stmt)
 
+		# Unbounded on purpose, unlike `messages`: a failed run is rare, and the caller has to be
+		# able to place each one against its triggering message wherever that message falls, so
+		# paginating them against a different page's worth of messages would drop exactly the ones
+		# still on screen.
+		failed_runs_stmt = (
+			select(RunModel)
+			.where(RunModel.conversation_id == conversation_id, RunModel.status == RunStatus.FAILED)
+			.order_by(RunModel.started_at)
+		)
+		failed_run_models = (await self.session.scalars(failed_runs_stmt)).all()
+
 		return ConversationMessagesDTO(
 			messages=Page(
 				items=[mapper.message_model_to_dto(message_model) for message_model in message_models],
 				total=total or 0,
 			),
 			latest_run=None if latest_run_model is None else mapper.run_model_to_summary_dto(latest_run_model),
+			failed_runs=[mapper.run_model_to_summary_dto(run_model) for run_model in failed_run_models],
 		)
 
 	async def list_conversations(self, user_id: UUID, *, limit: int, offset: int) -> Page[ConversationSummaryDTO]:

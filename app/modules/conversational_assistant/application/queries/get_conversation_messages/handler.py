@@ -10,6 +10,11 @@ from app.modules.conversational_assistant.application.queries.get_conversation_m
 )
 from app.modules.conversational_assistant.domain.enums.run_status import RunStatus
 
+# The two statuses a caller can still act on by reconnecting. A COMPLETED run's answer is already
+# the last item in `messages`, and a FAILED one is reported through `failed_runs` at the position
+# it occurred, so neither needs repeating as `latest_run`.
+_IN_FLIGHT_STATUSES = (RunStatus.PENDING, RunStatus.RUNNING)
+
 
 class GetConversationMessagesHandler:
 	def __init__(self, read_repository: ConversationReadRepository) -> None:
@@ -21,8 +26,8 @@ class GetConversationMessagesHandler:
 		)
 		if result is None:
 			raise ConversationNotFound()
-		# A completed run's answer is already the last item in `messages` -- repeating it as
-		# `latest_run` would be redundant. Reconciliation only needs this for the non-settled cases.
-		if result.latest_run is not None and result.latest_run.status is RunStatus.COMPLETED:
-			return ConversationMessagesDTO(messages=result.messages, latest_run=None)
+		if result.latest_run is not None and result.latest_run.status not in _IN_FLIGHT_STATUSES:
+			return ConversationMessagesDTO(
+				messages=result.messages, latest_run=None, failed_runs=result.failed_runs,
+			)
 		return result

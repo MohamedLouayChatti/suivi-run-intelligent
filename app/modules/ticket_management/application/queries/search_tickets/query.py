@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 from uuid import UUID
 
 from app.modules.ticket_management.domain.enums.application import Application
@@ -20,6 +21,11 @@ class SearchTicketsQuery:
 	functional_team: FunctionalTeam | None = None
 	category: Category | None = None
 	operational_highlight: bool | None = None
+	# Same creation-date window ListTicketsQuery carries: one tool drives both handlers depending
+	# on whether a keyword was given, and a filter that silently disappeared with the keyword would
+	# be worse than not offering it.
+	created_from: date | None = None
+	created_to: date | None = None
 	include_archived: bool = False
 	limit: int = 50
 	offset: int = 0

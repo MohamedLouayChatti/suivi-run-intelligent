@@ -1178,10 +1178,15 @@ export interface paths {
          *     needs the existing fetch-based SSE client, not the native browser EventSource API, which
          *     cannot set that header.
          *
-         *     A client that (re)connects after some events have already been sent only receives events from
-         *     that point on -- AgentRunConnectionManager does not replay a backlog (see its own docstring).
-         *     This self-heals the moment the run finishes: `message_complete` always carries the full text,
-         *     and GET .../messages is the reconciliation path for a client that misses this stream entirely.
+         *     The run is enqueued by the POST that returned this run_id, so it is already in flight before
+         *     this request arrives and may even have finished: the connection manager buffers nothing, so a
+         *     terminal event published to an empty subscriber list is gone for good. The subscription is
+         *     therefore taken out *before* stored state is read, never after -- reading first would leave a
+         *     gap in which a run could resolve unobserved by both halves. Once subscribed, a run already
+         *     settled in the database is answered from that state and the stream closes immediately.
+         *
+         *     Deltas emitted before this connection are still not replayed; `message_complete` always
+         *     carries the full text, and GET .../messages remains the reconciliation path.
          */
         get: operations["stream_agent_run_conversational_assistant_runs__run_id__stream_get"];
         put?: never;
@@ -1513,6 +1518,8 @@ export interface components {
         ConversationMessagesResponse: {
             messages: components["schemas"]["PagedResponse_MessageResponse_"];
             latest_run: components["schemas"]["RunSummaryResponse"] | null;
+            /** Failed Runs */
+            failed_runs: components["schemas"]["RunSummaryResponse"][];
         };
         /** ConversationSummaryResponse */
         ConversationSummaryResponse: {
@@ -1871,6 +1878,11 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /**
+             * Triggering Message Id
+             * Format: uuid
+             */
+            triggering_message_id: string;
         };
         /** SendMessageRequest */
         SendMessageRequest: {

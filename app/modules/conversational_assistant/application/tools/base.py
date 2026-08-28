@@ -4,11 +4,66 @@ from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.shared.security.current_user import CurrentUser
 from app.shared.security.instance_authorization_registry import InstanceAuthorizationRegistry
+
+
+class ToolArgumentError(ValueError):
+	"""The model called a tool with arguments its schema refuses.
+
+	Carries a French, user-safe message that *names the offending field and its legal values*,
+	because that message is fed straight back to the model as the tool's result and is the only
+	thing it has to correct itself with. A bare "invalid arguments" left it guessing, and a
+	guessing model spends the whole iteration budget re-guessing.
+	"""
+
+
+def _inline_definitions(schema: dict[str, Any]) -> dict[str, Any]:
+	"""Resolve every `$ref` against the schema's own `$defs` and drop the `$defs` block.
+
+	Pydantic factors each enum out into `$defs` and points at it with a `$ref`, which is valid
+	JSON Schema and useless here: the model is shown the tool's parameters as a literal blob and
+	does not chase references, so `{"$ref": "#/$defs/TimeRange"}` told it nothing at all about
+	which values `time_range` accepts. It then invented plausible-looking ones ("3 months",
+	"Resolved"), every call was refused, and the answer that came back described a period nobody
+	asked about. Inlining puts each `enum` list where the model actually reads it.
+	"""
+	definitions: dict[str, Any] = schema.get("$defs", {})
+
+	def resolve(node: Any, seen: frozenset[str]) -> Any:
+		if isinstance(node, list):
+			return [resolve(item, seen) for item in node]
+		if not isinstance(node, dict):
+			return node
+		reference = node.get("$ref")
+		if isinstance(reference, str) and reference.startswith("#/$defs/"):
+			name = reference.removeprefix("#/$defs/")
+			# A self-referential definition would recurse forever; none exists today, and leaving
+			# the `$ref` in place is the honest outcome if one ever does.
+			if name in seen or name not in definitions:
+				return node
+			resolved = resolve(definitions[name], seen | {name})
+			# Anything alongside the `$ref` (a `default`, a `description`) still applies.
+			return {**resolved, **{key: value for key, value in node.items() if key != "$ref"}}
+		return {key: resolve(value, seen) for key, value in node.items()}
+
+	inlined = {key: resolve(value, frozenset()) for key, value in schema.items() if key != "$defs"}
+	return inlined
+
+
+def _permitted_values(field_schema: Any) -> list[str]:
+	"""Every literal value a field accepts, gathered across `anyOf` branches -- an optional enum
+	is `anyOf: [<the enum>, {"type": "null"}]`, so reading `enum` off the top level alone finds
+	nothing for exactly the fields most worth explaining."""
+	if not isinstance(field_schema, dict):
+		return []
+	values = [str(value) for value in field_schema.get("enum", [])]
+	for branch in field_schema.get("anyOf", []):
+		values.extend(_permitted_values(branch))
+	return values
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,4 +117,42 @@ class ToolSpec:
 	referenced_ticket_ids: Callable[[dict[str, Any]], Iterable[str]] | None = None
 
 	def json_schema(self) -> dict[str, Any]:
-		return self.args_model.model_json_schema()
+		return _inline_definitions(self.args_model.model_json_schema())
+
+	def validate_arguments(self, raw_arguments: dict[str, Any]) -> BaseModel:
+		"""Validate what the model produced, or raise ToolArgumentError describing what is wrong
+		in terms the model can act on. Lives here, beside `args_model`, because which values are
+		legal is a property of the tool's own argument contract -- the agent loop only decides
+		what to do with the refusal."""
+		try:
+			return self.args_model.model_validate(raw_arguments)
+		except ValidationError as exc:
+			raise ToolArgumentError(self._describe(exc)) from exc
+
+	def _describe(self, exc: ValidationError) -> str:
+		schema = self.json_schema()
+		properties: dict[str, Any] = schema.get("properties", {})
+		problems: list[str] = []
+		seen: set[str] = set()
+		for error in exc.errors():
+			field = str(error["loc"][0]) if error["loc"] else "?"
+			if field in seen:
+				continue
+			seen.add(field)
+			if error["type"] == "extra_forbidden":
+				problems.append(
+					f"« {field} » n'est pas un paramètre de cet outil (paramètres acceptés : "
+					f"{', '.join(properties) or 'aucun'})"
+				)
+				continue
+			permitted = _permitted_values(properties.get(field))
+			if permitted:
+				problems.append(
+					f"« {field} » n'accepte que ces valeurs exactes : {', '.join(permitted)}"
+				)
+			else:
+				problems.append(f"« {field} » : {error['msg']}")
+		return (
+			f"Arguments refusés par l'outil {self.name} : {' ; '.join(problems)}. "
+			"Rappelez cet outil avec des valeurs valides, ou omettez le paramètre concerné."
+		)

@@ -26,6 +26,12 @@ class AnalyticsUserEnricher:
 		values = await asyncio.gather(*(self._load(user_id) for user_id in user_ids))
 		return dict(zip(user_ids, values, strict=True))
 
+	async def assignees(self, assignee_ids: set[UUID]) -> dict[UUID, UserSummaryDTO | None]:
+		"""Projections for a set of assignees, keyed by id -- for read models that carry a flat
+		list of tickets rather than one of this class's fixed DTO shapes, and so can apply the
+		result themselves."""
+		return await self._load_many(assignee_ids)
+
 	async def engineer(self, engineer_id: UUID) -> UserSummaryDTO | None:
 		"""One engineer's projection, for the read models describing a single person rather
 		than a list of them. None when no such user exists -- a report about somebody who has

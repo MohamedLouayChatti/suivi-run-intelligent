@@ -22,6 +22,40 @@ function toChatMessage(message: MessageResponse): ChatMessage {
 }
 
 /**
+ * The transcript as the reader should see it: the stored messages, with each failed run spliced in
+ * straight after the user message that triggered it.
+ *
+ * A failed run produces no message, so replaying `messages` alone renders two user turns back to
+ * back with nothing between them — the assistant appears to have ignored a question. Runs whose
+ * triggering message is not on this page are dropped rather than appended: they belong to a part
+ * of the thread that is not on screen, and showing them here would attach the failure to the wrong
+ * question.
+ */
+function withFailedRuns(messages: MessageResponse[], failedRuns: RunSummaryResponse[]): ChatMessage[] {
+  const byTriggeringMessage = new Map<string, RunSummaryResponse[]>()
+  for (const run of failedRuns) {
+    const existing = byTriggeringMessage.get(run.triggering_message_id)
+    if (existing) existing.push(run)
+    else byTriggeringMessage.set(run.triggering_message_id, [run])
+  }
+
+  return messages.flatMap((message) => {
+    const bubble = toChatMessage(message)
+    const runs = byTriggeringMessage.get(message.id)
+    if (!runs) return [bubble]
+    return [
+      bubble,
+      ...runs.map((run) => ({
+        id: run.id,
+        role: "ASSISTANT" as const,
+        content: run.failure_reason ?? GENERIC_SEND_ERROR,
+        failed: true,
+      })),
+    ]
+  })
+}
+
+/**
  * Real chat loop for the Chatbot page, backed by the conversational_assistant module and
  * streamed via SSE. A conversation is created lazily on the first message sent. Picking an
  * existing one from ConversationsPanel loads its history and reconciles whatever the latest run
@@ -79,28 +113,32 @@ function useChatbot(initialConversationId?: string | null) {
         queryClient.invalidateQueries({ queryKey: chatbotConversationsQueryKey })
       },
       onFailed: (event) => {
-        updateAssistantMessage(assistantMessageId, event.failure_reason)
+        // Marked failed, not merely filled with the failure text: the bubble has to keep reading
+        // as a failure after a reload, and after a reload it comes back from `failed_runs` with
+        // exactly that flag.
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === assistantMessageId
+              ? { ...message, content: event.failure_reason, failed: true }
+              : message,
+          ),
+        )
         finishStreaming()
       },
     })
   }
 
-  // A run left PENDING/RUNNING/FAILED by the last page load, resolved here as of this fetch —
-  // COMPLETED never reaches this: get_conversation_messages omits `latest_run` in that case since
-  // the answer is already the last item in `messages`.
+  // A run still in flight when the page was last open, reconnected here as of this fetch. Only
+  // PENDING/RUNNING ever reach this: a COMPLETED run's answer is already the last item in
+  // `messages`, and a FAILED one arrives through `failed_runs` — rendered at the position it
+  // happened rather than appended, and rendered whether or not it is the latest run.
   function reconcileLatestRun(latestRun: RunSummaryResponse | null) {
     if (!latestRun) return
-    if (latestRun.status === "PENDING" || latestRun.status === "RUNNING") {
-      const assistantMessageId = crypto.randomUUID()
-      setMessages((prev) => [...prev, { id: assistantMessageId, role: "ASSISTANT", content: "" }])
-      setIsStreaming(true)
-      openStream(latestRun.id, assistantMessageId)
-    } else if (latestRun.status === "FAILED") {
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "ASSISTANT", content: latestRun.failure_reason ?? GENERIC_SEND_ERROR },
-      ])
-    }
+    if (latestRun.status !== "PENDING" && latestRun.status !== "RUNNING") return
+    const assistantMessageId = crypto.randomUUID()
+    setMessages((prev) => [...prev, { id: assistantMessageId, role: "ASSISTANT", content: "" }])
+    setIsStreaming(true)
+    openStream(latestRun.id, assistantMessageId)
   }
 
   async function ensureConversation(): Promise<string> {
@@ -127,7 +165,13 @@ function useChatbot(initialConversationId?: string | null) {
       queryClient.invalidateQueries({ queryKey: chatbotConversationsQueryKey })
       openStream(result.run_id, assistantMessageId)
     } catch {
-      updateAssistantMessage(assistantMessageId, GENERIC_SEND_ERROR)
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantMessageId
+            ? { ...message, content: GENERIC_SEND_ERROR, failed: true }
+            : message,
+        ),
+      )
       setIsStreaming(false)
     }
   }
@@ -142,7 +186,7 @@ function useChatbot(initialConversationId?: string | null) {
     setIsLoadingMessages(true)
     try {
       const result = await getConversationMessages(conversationId, 1, 200)
-      setMessages(result.messages.items.map(toChatMessage))
+      setMessages(withFailedRuns(result.messages.items, result.failed_runs))
       reconcileLatestRun(result.latest_run)
     } catch {
       setMessages([

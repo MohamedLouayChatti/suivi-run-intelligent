@@ -147,7 +147,7 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 		]
 
 	def _apply_list_conditions(self, stmt: Select[tuple], query: ListTicketsQuery) -> Select[tuple]:
-		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.functional_team, query.category, query.operational_highlight, query.include_archived, query.allowed_applications)
+		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.functional_team, query.category, query.operational_highlight, query.include_archived, query.allowed_applications, created_from=query.created_from, created_to=query.created_to)
 		if query.exclude_assignee_id is not None:
 			stmt = stmt.where(TicketModel.assignee_id != query.exclude_assignee_id)
 		if query.status is None and query.active_only:
@@ -163,7 +163,7 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 
 	def _build_search_query(self, query: SearchTicketsQuery) -> Select[tuple[TicketModel]]:
 		stmt = select(TicketModel)
-		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.functional_team, query.category, query.operational_highlight, query.include_archived, query.allowed_applications)
+		stmt = self._apply_common_filters(stmt, query.application, query.status, query.priority, query.assignee_id, query.functional_team, query.category, query.operational_highlight, query.include_archived, query.allowed_applications, created_from=query.created_from, created_to=query.created_to)
 		pattern = f"%{query.term}%"
 		stmt = stmt.where(or_(TicketModel.title.ilike(pattern), TicketModel.description.ilike(pattern)))
 		return stmt.order_by(TicketModel.created_at.desc(), TicketModel.updated_at.desc()).limit(query.limit).offset(query.offset)
@@ -206,8 +206,14 @@ class SqlAlchemyTicketReadRepository(TicketReadRepository):
 			date_from=query.date_from, date_to=query.date_to, allowed_applications=query.allowed_applications,
 		)
 
-	def _apply_common_filters(self, stmt: Select[tuple[TicketModel]], application, status, priority, assignee_id, functional_team, category, operational_highlight, include_archived: bool, allowed_applications=None) -> Select[tuple[TicketModel]]:
+	def _apply_common_filters(self, stmt: Select[tuple[TicketModel]], application, status, priority, assignee_id, functional_team, category, operational_highlight, include_archived: bool, allowed_applications=None, *, created_from=None, created_to=None) -> Select[tuple[TicketModel]]:
 		conditions = []
+		# Keyword-only and last, so the history conditions -- which bound `updated_at` instead and
+		# pass everything else positionally -- are unaffected by their arrival.
+		if created_from is not None:
+			conditions.append(TicketModel.created_at >= datetime.combine(created_from, time.min, tzinfo=UTC))
+		if created_to is not None:
+			conditions.append(TicketModel.created_at <= datetime.combine(created_to, time.max, tzinfo=UTC))
 		if application is not None:
 			conditions.append(TicketModel.application == application)
 		if status is not None:

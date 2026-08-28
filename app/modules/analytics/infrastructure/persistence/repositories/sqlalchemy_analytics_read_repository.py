@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from uuid import UUID
 
 from sqlalchemy import Date, and_, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,11 +11,15 @@ from app.modules.analytics.application.dto.attention_required_dto import AgingIn
 from app.modules.analytics.application.dto.distributions_dto import DistributionsDTO
 from app.modules.analytics.application.dto.jira_metrics_dto import JiraMetricsDTO
 from app.modules.analytics.application.dto.kpi_snapshot_dto import KpiTotalsDTO
+from app.modules.analytics.application.dto.resolution_ranking_dto import (
+	ResolutionRankingDTO,
+	ResolvedTicketDurationDTO,
+)
 from app.modules.analytics.application.interfaces.analytics_read_repository import AnalyticsReadRepository
 from app.modules.analytics.application.support.time_range import DateWindow, TimeRange, bucket_scheme
 from app.modules.analytics.infrastructure.persistence.query_helpers import (
 	ACTIVE_STATUSES, DURATION_HOURS, application_filter, bucketed_activity_trend, created_in, full_counts,
-	not_archived, resolved_in,
+	not_archived, resolved, resolved_in,
 )
 from app.modules.ticket_management.domain.enums.application import Application
 from app.modules.ticket_management.domain.enums.category import Category
@@ -129,3 +134,53 @@ class SqlAlchemyAnalyticsReadRepository(AnalyticsReadRepository):
 			for row in rows
 		]
 		return AttentionRequiredDTO(count=count or 0, threshold_days=threshold_days, incidents=incidents)
+
+	async def get_resolution_ranking(
+		self,
+		*,
+		applications: frozenset[Application] | None,
+		window: DateWindow | None,
+		assignee_id: UUID | None,
+		slowest_first: bool,
+		limit: int,
+	) -> ResolutionRankingDTO:
+		# resolved() rather than a window spanning all time when none is given: the helper exists
+		# precisely for the call sites that genuinely mean "no window".
+		cond = resolved_in(window) if window is not None else resolved()
+		app_cond = application_filter(applications)
+		if app_cond is not None:
+			cond = and_(cond, app_cond)
+		if assignee_id is not None:
+			cond = and_(cond, TicketModel.assignee_id == assignee_id)
+
+		total = await self.session.scalar(select(func.count()).where(cond))
+
+		ordering = DURATION_HOURS.desc() if slowest_first else DURATION_HOURS.asc()
+		stmt = (
+			select(
+				TicketModel.id, TicketModel.title, TicketModel.application, TicketModel.priority,
+				TicketModel.created_at, TicketModel.resolved_at, TicketModel.assignee_id,
+				DURATION_HOURS.label("resolution_hours"),
+			)
+			.where(cond)
+			.order_by(ordering)
+			.limit(limit)
+		)
+		rows = (await self.session.execute(stmt)).all()
+		return ResolutionRankingDTO(
+			total_resolved=total or 0,
+			slowest_first=slowest_first,
+			tickets=[
+				ResolvedTicketDurationDTO(
+					ticket_id=row.id,
+					title=row.title,
+					application=row.application,
+					priority=row.priority,
+					created_at=row.created_at,
+					resolved_at=row.resolved_at,
+					resolution_hours=round(float(row.resolution_hours), 1),
+					assignee_id=row.assignee_id,
+				)
+				for row in rows
+			],
+		)

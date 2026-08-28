@@ -16,7 +16,11 @@ from app.modules.auth.infrastructure.persistence.repositories.sqlalchemy_user_re
 	SqlAlchemyUserReadRepository,
 )
 from app.modules.conversational_assistant.application.tools.base import ToolContext, ToolResult, ToolSpec
-from app.modules.conversational_assistant.application.tools.support import compute_application_scope
+from app.modules.conversational_assistant.application.tools.support import (
+	APPLICATION_OUT_OF_SCOPE_ERROR,
+	ApplicationOutOfScope,
+	scoped_applications,
+)
 from app.modules.ticket_management.domain.enums.application import Application
 
 
@@ -30,23 +34,19 @@ class GetAttentionRequiredArgs(BaseModel):
 async def _execute(args: GetAttentionRequiredArgs, ctx: ToolContext) -> ToolResult:
 	session = ctx.session_factory()
 	try:
-		allowed_applications = compute_application_scope(
-			ctx.current_user, ANALYTICS_READ_ANY_APPLICATION_PERMISSION, Application,
-		)
-		if (
-			allowed_applications is not None
-			and args.application is not None
-			and args.application not in allowed_applications
-		):
-			return ToolResult(ok=False, error="Vous n'avez pas accès aux indicateurs de cette application.")
+		try:
+			applications = scoped_applications(
+				ctx.current_user, ANALYTICS_READ_ANY_APPLICATION_PERMISSION, Application, args.application,
+			)
+		except ApplicationOutOfScope:
+			return ToolResult(ok=False, error=APPLICATION_OUT_OF_SCOPE_ERROR)
 
-		applications = {args.application} if args.application is not None else allowed_applications
 		handler = GetAttentionRequiredHandler(
 			SqlAlchemyAnalyticsReadRepository(session), SqlAlchemyUserReadRepository(session),
 		)
 		data = await handler.handle(
 			GetAttentionRequiredQuery(
-				applications=frozenset(applications) if applications is not None else None,
+				applications=applications,
 				threshold_days=args.threshold_days,
 			)
 		)

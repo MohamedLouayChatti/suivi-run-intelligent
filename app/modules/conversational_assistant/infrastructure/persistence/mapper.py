@@ -113,7 +113,7 @@ def run_model_to_domain(run_model: RunModel) -> Run:
 def run_model_to_summary_dto(run_model: RunModel) -> RunSummaryDTO:
 	return RunSummaryDTO(
 		id=run_model.id, status=run_model.status, failure_reason=run_model.failure_reason,
-		created_at=run_model.started_at,
+		created_at=run_model.started_at, triggering_message_id=run_model.triggering_message_id,
 	)
 
 

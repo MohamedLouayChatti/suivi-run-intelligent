@@ -51,15 +51,20 @@ class RunSummaryResponse(BaseModel):
 	status: RunStatus
 	failure_reason: str | None
 	created_at: datetime
+	triggering_message_id: UUID
 
 	@classmethod
 	def from_dto(cls, dto: RunSummaryDTO) -> RunSummaryResponse:
-		return cls(id=dto.id, status=dto.status, failure_reason=dto.failure_reason, created_at=dto.created_at)
+		return cls(
+			id=dto.id, status=dto.status, failure_reason=dto.failure_reason,
+			created_at=dto.created_at, triggering_message_id=dto.triggering_message_id,
+		)
 
 
 class ConversationMessagesResponse(BaseModel):
 	messages: PagedResponse[MessageResponse]
 	latest_run: RunSummaryResponse | None
+	failed_runs: list[RunSummaryResponse]
 
 	@classmethod
 	def from_dto(cls, dto: ConversationMessagesDTO) -> ConversationMessagesResponse:
@@ -69,4 +74,5 @@ class ConversationMessagesResponse(BaseModel):
 				total=dto.messages.total,
 			),
 			latest_run=None if dto.latest_run is None else RunSummaryResponse.from_dto(dto.latest_run),
+			failed_runs=[RunSummaryResponse.from_dto(run) for run in dto.failed_runs],
 		)

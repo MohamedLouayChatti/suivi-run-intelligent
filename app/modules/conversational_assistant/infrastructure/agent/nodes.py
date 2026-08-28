@@ -8,23 +8,32 @@ from uuid import uuid4
 
 from langgraph.config import get_stream_writer
 
-from app.modules.conversational_assistant.application.tools.base import ToolContext, ToolSpec
+from app.modules.conversational_assistant.application.tools.base import (
+	ToolArgumentError,
+	ToolContext,
+	ToolSpec,
+)
 from app.modules.conversational_assistant.domain.entities.tool_invocation import ToolInvocation
 from app.modules.conversational_assistant.infrastructure.agent.state import AgentState
 from app.shared.ai.llm_provider import ChatMessage, LLMProvider, ToolSchema
 
 logger = logging.getLogger(__name__)
 
-# Safety cap on the agent loop, not a product limit anyone is meant to reach: a bounded, "clean"
-# agent should never need more than a handful of tool round-trips to answer one question. Exceeding
-# it fails the run rather than looping forever. Raised from 6 when the tool set grew a people
-# group: questions about a colleague are answered by chaining (resolve the person, read their
-# figures, then their tickets), and three chained calls plus a retry left no room under the old cap.
-MAX_ITERATIONS = 9
+# How many tool-calling turns the agent may take before it is made to answer with what it has.
+# Not a failure threshold: reaching it costs the model its remaining tool calls, never the user
+# their answer (see _FINAL_TURN_INSTRUCTION). Sized for the longest legitimate chain the catalogue
+# supports -- enumerate a team, read several colleagues' figures, then their tickets -- with room
+# for the occasional corrective retry on top.
+MAX_TOOL_ITERATIONS = 12
 
-
-class AgentIterationLimitExceeded(RuntimeError):
-	"""The agent went MAX_ITERATIONS turns without producing a final answer."""
+# Appended for the one forced turn that follows the cap. The model is told plainly that it has run
+# out of tool calls rather than left to wonder why they stopped working, because an answer that
+# silently omits what it could not reach is worse than one that says so.
+_FINAL_TURN_INSTRUCTION = (
+	"Vous avez atteint le nombre maximum d'appels d'outils pour ce message. Répondez maintenant, "
+	"en français, avec les seules informations déjà récupérées. Si elles ne suffisent pas, "
+	"dites-le et proposez une question plus précise à l'utilisateur."
+)
 
 
 def build_agent_node(llm_provider: LLMProvider, tool_specs: Sequence[ToolSpec]):
@@ -32,6 +41,12 @@ def build_agent_node(llm_provider: LLMProvider, tool_specs: Sequence[ToolSpec]):
 	without requesting more tools. Streams uniformly regardless of whether this turn ultimately
 	requests a tool -- see LLMProvider's own "one method, not two" note for why that distinction
 	is unnecessary.
+
+	Past MAX_TOOL_ITERATIONS the turn runs with no tools offered at all and any tool call is
+	discarded, so this node always terminates: the graph's router sees a message with no tool
+	calls and ends. Exceeding the cap used to raise instead, which threw away every tool result
+	the run had already paid for and left the user a generic failure -- a budget the agent overran
+	is a reason to stop searching, not a reason to have nothing to say.
 	"""
 	tool_schemas = [
 		ToolSchema(name=spec.name, description=spec.description, parameters=spec.json_schema())
@@ -39,15 +54,20 @@ def build_agent_node(llm_provider: LLMProvider, tool_specs: Sequence[ToolSpec]):
 	]
 
 	async def agent_node(state: AgentState) -> AgentState:
-		if state["iterations"] >= MAX_ITERATIONS:
-			raise AgentIterationLimitExceeded(
-				f"Agent exceeded {MAX_ITERATIONS} iterations without a final answer."
+		is_final_turn = state["iterations"] >= MAX_TOOL_ITERATIONS
+		messages = state["messages"]
+		if is_final_turn:
+			logger.warning(
+				"Agent reached %s tool iterations; answering with what it has.", MAX_TOOL_ITERATIONS
 			)
+			messages = [*messages, ChatMessage(role="system", content=_FINAL_TURN_INSTRUCTION)]
 
 		writer = get_stream_writer()
 		content_parts: list[str] = []
 		tool_calls: tuple = ()
-		async for delta in llm_provider.stream_chat(messages=state["messages"], tools=tool_schemas):
+		async for delta in llm_provider.stream_chat(
+			messages=messages, tools=() if is_final_turn else tool_schemas
+		):
 			if delta.content:
 				content_parts.append(delta.content)
 				writer({"type": "message_delta", "content": delta.content})
@@ -56,8 +76,17 @@ def build_agent_node(llm_provider: LLMProvider, tool_specs: Sequence[ToolSpec]):
 			if delta.tool_calls:
 				tool_calls = delta.tool_calls
 
-		message = ChatMessage(role="assistant", content="".join(content_parts), tool_calls=tool_calls)
+		message = ChatMessage(
+			role="assistant",
+			content="".join(content_parts),
+			# Dropped rather than honoured on the final turn: no tool was offered, so a call is the
+			# model ignoring that, and running it would route straight back into the loop for good.
+			tool_calls=() if is_final_turn else tool_calls,
+		)
 		return {
+			# The forced instruction is deliberately not carried into the returned state: it
+			# belongs to this one turn, and persisting it would keep telling every later turn of a
+			# longer conversation that its tools are exhausted.
 			"messages": [*state["messages"], message],
 			"tool_calls_made": state["tool_calls_made"],
 			"iterations": state["iterations"] + 1,
@@ -102,9 +131,11 @@ def build_tools_node(tool_specs: Sequence[ToolSpec], tool_context: ToolContext):
 				continue
 
 			try:
-				validated_args = spec.args_model.model_validate(call.arguments)
-			except Exception:
-				error = "Arguments invalides pour cet outil."
+				validated_args = spec.validate_arguments(call.arguments)
+			except ToolArgumentError as exc:
+				# Names the offending field and its legal values, so the model can correct the call
+				# on its next turn instead of re-guessing until the iteration budget runs out.
+				error = str(exc)
 				tool_messages.append(
 					ChatMessage(role="tool", content=error, tool_call_id=call.id, tool_name=call.name)
 				)

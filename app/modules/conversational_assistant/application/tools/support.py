@@ -27,6 +27,41 @@ def compute_application_scope(
 	)
 
 
+class ApplicationOutOfScope(Exception):
+	"""The caller asked about an application their assignments do not cover and they hold no
+	breadth permission over. Raised rather than returned so `scoped_applications` can keep a
+	single return type; every tool turns it into the one refusal message below."""
+
+
+APPLICATION_OUT_OF_SCOPE_ERROR = (
+	"Vous n'avez pas accès aux données de cette application. Vous pouvez interroger les "
+	"applications qui vous sont affectées."
+)
+
+
+def scoped_applications(
+	current_user: CurrentUser,
+	breadth_permission: str,
+	application_enum: type[ApplicationEnum],
+	requested: ApplicationEnum | None,
+) -> frozenset[ApplicationEnum] | None:
+	"""Which applications this call may actually read: the one asked for, or -- when none is
+	named -- everything the caller can reach. `None` means no restriction at all.
+
+	The intersection every analytics and ticket tool has to perform, in one place instead of
+	re-derived per tool. Note what "no application named" resolves to for a caller holding the
+	breadth permission: `None`, i.e. genuinely every application at once. That is the same
+	"Toutes les applications" the Analytics page offers an administrator, and it is why a
+	question about the whole team needs no special tool -- only a legal time range.
+	"""
+	allowed = compute_application_scope(current_user, breadth_permission, application_enum)
+	if requested is None:
+		return allowed
+	if allowed is not None and requested not in allowed:
+		raise ApplicationOutOfScope()
+	return frozenset({requested})
+
+
 def name_tokens(value: str) -> tuple[str, ...]:
 	"""A person's name reduced to comparable pieces: accents folded away, case dropped, and
 	every separator (space, hyphen, apostrophe, dot) treated alike.

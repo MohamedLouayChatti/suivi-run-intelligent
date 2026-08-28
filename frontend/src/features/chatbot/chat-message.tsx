@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Check, Copy } from "lucide-react"
+import { AlertCircle, Check, Copy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { MarkdownMessage } from "@/features/chatbot/markdown-message"
@@ -60,6 +60,22 @@ function ChatMessage({ message }: ChatMessageProps) {
     return (
       <div className="flex justify-end gap-4">
         <p className="max-w-[42rem] rounded-lg rounded-tr-sm bg-primary px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap text-primary-foreground">
+          {message.content}
+        </p>
+      </div>
+    )
+  }
+
+  // A run that never produced an answer. Deliberately not rendered as Markdown and not given the
+  // copy action: there is nothing here the reader would paste into a ticket, and dressing a
+  // failure up as an ordinary reply is what let it pass unnoticed in the transcript.
+  if (message.failed) {
+    return (
+      <div className="flex gap-4">
+        <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md border border-destructive/30 bg-destructive/10 text-destructive">
+          <AlertCircle className="size-4" strokeWidth={1.75} />
+        </span>
+        <p className="min-w-0 max-w-[48rem] flex-1 self-center text-sm leading-relaxed text-muted-foreground">
           {message.content}
         </p>
       </div>
