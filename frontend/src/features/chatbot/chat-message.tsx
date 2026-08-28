@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Check, Copy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { MarkdownMessage } from "@/features/chatbot/markdown-message"
 import type { ChatMessage as ChatMessageType } from "@/features/chatbot/types"
 
 interface ChatMessageProps {
@@ -43,6 +44,8 @@ function ChatMessage({ message }: ChatMessageProps) {
     if (!message.content.trim()) return
 
     try {
+      // The Markdown source, not the rendered text: it is what the user can paste back into a
+      // ticket comment or another chat and get the same formatting from.
       await copyToClipboard(message.content)
       setCopied(true)
       setCopyFailed(false)
@@ -56,7 +59,7 @@ function ChatMessage({ message }: ChatMessageProps) {
   if (message.role === "USER") {
     return (
       <div className="flex justify-end gap-4">
-        <p className="max-w-[42rem] rounded-lg rounded-tr-sm bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground">
+        <p className="max-w-[42rem] rounded-lg rounded-tr-sm bg-primary px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap text-primary-foreground">
           {message.content}
         </p>
       </div>
@@ -69,11 +72,7 @@ function ChatMessage({ message }: ChatMessageProps) {
         SR
       </span>
       <div className="min-w-0 max-w-[48rem] flex-1">
-        <div className="space-y-3 text-sm leading-relaxed text-foreground">
-          {message.content.split("\n\n").map((paragraph, i) => (
-            <p key={i}>{paragraph}</p>
-          ))}
-        </div>
+        <MarkdownMessage content={message.content} />
 
         <div className="mt-3 flex items-center gap-1">
           <Button

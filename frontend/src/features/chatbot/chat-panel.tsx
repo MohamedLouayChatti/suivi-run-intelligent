@@ -15,29 +15,61 @@ interface ChatPanelProps {
   onSend: (content: string) => void
 }
 
+// How close to the bottom still counts as "following the answer". Wide enough that the last line
+// of a growing message doesn't fall outside it between two deltas, narrow enough that a
+// deliberate scroll up leaves it at once.
+const STICK_TO_BOTTOM_THRESHOLD_PX = 80
+
 function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPanelProps) {
   const [input, setInput] = useState("")
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const endRef = useRef<HTMLDivElement>(null)
+  const listRef = useRef<HTMLDivElement>(null)
+  // A ref, not state: it is read by the scroll effect and written by the scroll handler, and
+  // nothing renders from it — as state, every wheel tick during a stream would re-render the
+  // whole thread.
+  const followingRef = useRef(true)
 
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
 
+  // Scrolls the message list, never the document, and only while the reader is still at the
+  // bottom. `scrollIntoView` on a sentinel used to do this: it re-fired on every streamed delta
+  // and, because nothing above bounded the list's height, it moved the whole page — so scrolling
+  // up during an answer was undone a few milliseconds later, repeatedly, until the stream ended.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" })
+    const list = listRef.current
+    if (!list) return
+    // An empty thread means a new or just-switched conversation: there is nothing the reader
+    // could have scrolled away from, so following resumes.
+    if (messages.length === 0) followingRef.current = true
+    if (!followingRef.current) return
+    list.scrollTop = list.scrollHeight
   }, [messages, isStreaming])
+
+  function handleScroll() {
+    const list = listRef.current
+    if (!list) return
+    followingRef.current =
+      list.scrollHeight - list.scrollTop - list.clientHeight < STICK_TO_BOTTOM_THRESHOLD_PX
+  }
 
   function handleSend(content: string) {
     if (!content.trim() || isStreaming) return
+    // Sending is itself a request to watch the answer, whatever the reader had scrolled back to.
+    followingRef.current = true
     onSend(content)
     setInput("")
     inputRef.current?.focus()
   }
 
   return (
-    <div className="flex min-w-0 flex-col rounded-lg border border-border bg-card">
-      <div className="min-h-[26rem] flex-1 space-y-8 overflow-y-auto p-6">
+    <div className="flex min-h-0 min-w-0 flex-col rounded-lg border border-border bg-card">
+      <div
+        ref={listRef}
+        onScroll={handleScroll}
+        className="min-h-0 flex-1 space-y-8 overflow-y-auto p-6"
+      >
         {isLoadingMessages && (
           <div className="py-10 text-center text-sm text-muted-foreground">Chargement de la conversation…</div>
         )}
@@ -58,10 +90,9 @@ function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPan
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}
-        <div ref={endRef} />
       </div>
 
-      <div className="border-t border-border p-4">
+      <div className="shrink-0 border-t border-border p-4">
         <div className="mb-3 flex flex-wrap gap-2">
           {suggestedPrompts.map((prompt) => (
             <button

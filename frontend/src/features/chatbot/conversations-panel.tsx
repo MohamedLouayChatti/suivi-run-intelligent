@@ -37,6 +37,8 @@ interface ConversationsPanelProps {
 
 function ConversationsPanel({ conversations, activeConversationId, isLoading, onSelect }: ConversationsPanelProps) {
   return (
+    // Scrolls inside itself for the same reason the chat pane does: this page is a
+    // fixed-height workspace, and a long history must not be allowed to stretch it.
     <SectionCard
       title={
         <span className="flex items-center gap-2">
@@ -44,7 +46,8 @@ function ConversationsPanel({ conversations, activeConversationId, isLoading, on
           Conversations
         </span>
       }
-      bodyClassName="p-0"
+      className="flex min-h-0 flex-col"
+      bodyClassName="min-h-0 flex-1 overflow-y-auto p-0"
     >
       {isLoading ? (
         <p className="px-5 py-4 text-sm text-muted-foreground">Chargement…</p>
