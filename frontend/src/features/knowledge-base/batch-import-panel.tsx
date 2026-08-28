@@ -76,7 +76,7 @@ function BatchImportPanel() {
   // COLORIS stays the default wherever it is still on offer, and is the whole list for a user
   // scoped to it; anyone else lands on the one application they may import for.
   const defaultApplication: Application | null =
-    (importableApplications.includes("COLORIS") ? "COLORIS" : importableApplications[0]) ?? null
+    (importableApplications.includes("FCI") ? "FCI" : importableApplications[0]) ?? null
   const [chosenApplication, setChosenApplication] = useState<Application | null>(null)
   // Derived rather than stored, so the default follows GET /auth/me resolving without an effect
   // to reconcile the two — a choice the user has made always wins over it.
