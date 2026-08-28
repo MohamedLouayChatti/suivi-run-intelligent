@@ -1,8 +1,11 @@
 "use client"
 
 import type { ComponentPropsWithoutRef } from "react"
-import ReactMarkdown, { type Components } from "react-markdown"
+import ReactMarkdown, { defaultUrlTransform, type Components } from "react-markdown"
 import remarkGfm from "remark-gfm"
+
+import { ResourceReferenceLink } from "@/features/chatbot/resource-reference-link"
+import { parseTicketReference, resolveTicketReferenceHref } from "@/features/chatbot/resource-references"
 
 /**
  * Renders an assistant answer as Markdown. The system prompt tells the model to write Markdown
@@ -34,16 +37,26 @@ const components: Components = {
   blockquote: ({ children }) => (
     <blockquote className="my-2 border-l-2 border-border pl-3 text-muted-foreground">{children}</blockquote>
   ),
-  a: ({ children, href }) => (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer noopener"
-      className="text-primary underline underline-offset-2 hover:no-underline"
-    >
-      {children}
-    </a>
-  ),
+  a: ({ children, href }) => {
+    // An internal reference the model was allowed to keep: routed in-app, never opened in a new
+    // tab, and styled as a citation rather than as a link (see ResourceReferenceLink).
+    const ticketId = parseTicketReference(href)
+    if (ticketId) {
+      return (
+        <ResourceReferenceLink href={resolveTicketReferenceHref(ticketId)}>{children}</ResourceReferenceLink>
+      )
+    }
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="text-primary underline underline-offset-2 hover:no-underline"
+      >
+        {children}
+      </a>
+    )
+  },
   hr: () => <hr className="my-4 border-border" />,
   // Fenced blocks arrive as <pre><code>; `pre` owns the scroll box so a long line scrolls inside
   // the bubble instead of widening the whole chat column.
@@ -74,10 +87,21 @@ const components: Components = {
   td: ({ children }) => <td className="border-t border-border px-2 py-1.5 align-top">{children}</td>,
 }
 
+/**
+ * react-markdown drops any href whose protocol is not on its safe list, which is what keeps a
+ * model-authored `javascript:` link inert — so the `ticket:` scheme has to be admitted explicitly
+ * or every reference would render as dead text. Only a well-formed reference is let through;
+ * everything else, including a near-miss like `ticket:TCK-42`, still falls to the default
+ * sanitizer rather than bypassing it.
+ */
+function urlTransform(url: string): string | null | undefined {
+  return parseTicketReference(url) ? url : defaultUrlTransform(url)
+}
+
 function MarkdownMessage({ content }: { content: string }) {
   return (
     <div className="text-sm leading-relaxed text-foreground">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components} urlTransform={urlTransform}>
         {content}
       </ReactMarkdown>
     </div>

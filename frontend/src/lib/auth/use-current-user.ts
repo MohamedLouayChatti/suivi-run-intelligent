@@ -15,11 +15,9 @@ import { useAuthSession } from "./use-auth-session";
 const currentUserQueryKey = ["auth", "me"] as const;
 
 /**
- * The real GET /auth/me query result (data/isPending/isError/error/refetch).
- * Currently consumed only by the shared auth infrastructure (AuthGate, logout) —
- * existing pages still render from the mock `@/hooks/use-current-user` until
- * they're migrated in a later step. Not to be confused with that mock hook,
- * which shares the same conceptual name but a different (mock) shape.
+ * The GET /auth/me query result (data/isPending/isError/error/refetch), and the only source of
+ * the signed-in user anywhere in the app — the placeholder hook that pages once rendered from is
+ * gone, along with the last of the mock data it belonged to.
  */
 function useCurrentUser() {
   const { isSignedIn } = useAuthSession();

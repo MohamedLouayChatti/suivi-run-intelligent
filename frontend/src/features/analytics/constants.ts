@@ -9,14 +9,5 @@ const timeRangeLabels: Record<TimeRange, string> = {
   "1Y": "12 derniers mois",
 }
 
-// Days of history each range represents — drives the mock generators' magnitude and
-// bucketing granularity. Swap for real backend aggregation windows later.
-const timeRangeDays: Record<TimeRange, number> = {
-  "30D": 30,
-  "3M": 90,
-  "6M": 182,
-  "1Y": 365,
-}
-
-export { timeRangeOptions, timeRangeLabels, timeRangeDays }
+export { timeRangeOptions, timeRangeLabels }
 export type { TimeRange }

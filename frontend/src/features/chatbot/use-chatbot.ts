@@ -28,14 +28,19 @@ function toChatMessage(message: MessageResponse): ChatMessage {
  * was doing when the page was last open — GET .../messages' `latest_run` is the catch-up path a
  * client that missed (or never opened) the SSE stream relies on: PENDING/RUNNING re-opens the
  * stream at that run, FAILED replays the same failure bubble the live path would have shown.
+ *
+ * `initialConversationId` is the one another page can ask for (the Dashboard's "Reprendre une
+ * conversation"), opened once on mount and then forgotten — the URL is not kept in step with the
+ * panel afterwards, so it opens a conversation rather than naming the current one.
  */
-function useChatbot() {
+function useChatbot(initialConversationId?: string | null) {
   const queryClient = useQueryClient()
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isStreaming, setIsStreaming] = useState(false)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const closeStreamRef = useRef<(() => void) | null>(null)
+  const openedInitialConversationRef = useRef(false)
 
   const conversationsQuery = useQuery({
     queryKey: chatbotConversationsQueryKey,
@@ -147,6 +152,16 @@ function useChatbot() {
       setIsLoadingMessages(false)
     }
   }
+
+  // Deliberately keyed off nothing but the id, and guarded by a ref rather than by its dependency
+  // list: `selectConversation` is rebuilt on every render, so listing it would reopen the
+  // conversation continuously, and a user who then picked another one would be dragged back.
+  useEffect(() => {
+    if (openedInitialConversationRef.current || !initialConversationId) return
+    openedInitialConversationRef.current = true
+    void selectConversation(initialConversationId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialConversationId])
 
   function startNewConversation() {
     closeStreamRef.current?.()

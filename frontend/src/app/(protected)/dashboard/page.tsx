@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import { useCurrentUser, usePermissions } from "@/lib/auth"
 import { getPrimaryApplication, getBackupApplication } from "@/services/api/auth"
 import { useTicketsList } from "@/features/tickets/use-tickets-list"
-import { mockConversations } from "@/features/dashboard/mock-data"
 import { useMyActivityTrend, useMyKpiSnapshot } from "@/features/dashboard/use-dashboard-analytics"
+import { useRecentConversations } from "@/features/dashboard/use-recent-conversations"
 import { KpiCards } from "@/features/dashboard/kpi-cards"
 import { MyAssignments } from "@/features/dashboard/my-assignments"
 import { TicketStatusSummary } from "@/features/dashboard/ticket-status-summary"
@@ -37,6 +37,11 @@ export default function DashboardPage() {
   const { tickets } = useTicketsList()
   const { data: myKpiSnapshot } = useMyKpiSnapshot()
   const { data: myActivityTrend } = useMyActivityTrend()
+  const {
+    conversations,
+    isLoading: isLoadingConversations,
+    canUseAssistant,
+  } = useRecentConversations()
   const myTickets = tickets.filter((t) => t.assignee?.id === user?.id)
   const primaryApplication = user ? getPrimaryApplication(user) : null
   const backupApplication = user ? getBackupApplication(user) : null
@@ -99,10 +104,14 @@ export default function DashboardPage() {
         )}
 
         <div className="grid gap-6 xl:grid-cols-3">
-          <div className="xl:col-span-2">
+          {/* Recent tickets take the freed column when the assistant is not this user's to use,
+              rather than leaving a gap where the card would have been. */}
+          <div className={canUseAssistant ? "xl:col-span-2" : "xl:col-span-3"}>
             <RecentTickets tickets={myTickets} />
           </div>
-          <ContinueConversations conversations={mockConversations} />
+          {canUseAssistant && (
+            <ContinueConversations conversations={conversations} isLoading={isLoadingConversations} />
+          )}
         </div>
       </PageBody>
     </>

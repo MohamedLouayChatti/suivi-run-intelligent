@@ -1,11 +1,26 @@
 "use client"
 
+import { Suspense } from "react"
+import { useSearchParams } from "next/navigation"
+
 import { ChatbotHeader } from "@/features/chatbot/chatbot-header"
 import { ChatPanel } from "@/features/chatbot/chat-panel"
+import { CONVERSATION_QUERY_PARAM } from "@/features/chatbot/conversation-link"
 import { ConversationsPanel } from "@/features/chatbot/conversations-panel"
 import { useChatbot } from "@/features/chatbot/use-chatbot"
 
 export default function ChatbotPage() {
+  return (
+    <Suspense fallback={null}>
+      <ChatbotPageContent />
+    </Suspense>
+  )
+}
+
+function ChatbotPageContent() {
+  // Only ever an opening selection — see conversation-link.ts. Picking another conversation from
+  // the panel does not rewrite the URL, so this is read once and never again.
+  const initialConversationId = useSearchParams().get(CONVERSATION_QUERY_PARAM)
   const {
     messages,
     isStreaming,
@@ -16,7 +31,7 @@ export default function ChatbotPage() {
     isLoadingConversations,
     activeConversationId,
     selectConversation,
-  } = useChatbot()
+  } = useChatbot(initialConversationId)
 
   return (
     // The one page in the app that is a fixed-height workspace rather than a document: the chat
