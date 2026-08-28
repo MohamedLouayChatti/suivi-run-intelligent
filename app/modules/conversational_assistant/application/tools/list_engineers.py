@@ -84,10 +84,12 @@ LIST_ENGINEERS = ToolSpec(
 	name="list_engineers",
 	description=(
 		"Liste les ingénieurs de l'organisation, avec leur identifiant, leur équipe "
-		"fonctionnelle et leurs affectations applicatives. Filtrable par application et par "
-		"équipe fonctionnelle. Utilisez cet outil quand la question porte sur une équipe ou sur "
-		"l'ensemble des ingénieurs plutôt que sur une personne nommée : il donne les "
-		"identifiants nécessaires pour interroger ensuite l'activité de chacun."
+		"fonctionnelle et leurs affectations applicatives. Filtrable par deux axes indépendants : "
+		"application (FCI, COLORIS, AERO, VIO -- \"l'équipe FCI\", \"les ingénieurs COLORIS\") et "
+		"équipe fonctionnelle (SUPPORT/\"SN3\" ou CONFIGURATION/\"Paramétrage\" -- un type de "
+		"travail, jamais le nom d'une application). Utilisez cet outil quand la question porte sur "
+		"une équipe ou sur l'ensemble des ingénieurs plutôt que sur une personne nommée : il donne "
+		"les identifiants nécessaires pour interroger ensuite l'activité de chacun."
 	),
 	args_model=ListEngineersArgs,
 	required_permission="user.read",

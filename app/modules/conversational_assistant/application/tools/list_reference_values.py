@@ -22,11 +22,20 @@ _VOCABULARY: dict[str, type] = {
 }
 
 _GLOSSES: dict[str, str] = {
-	"application": "Les applications suivies par l'équipe.",
+	"application": (
+		"Les applications suivies (FCI, COLORIS, AERO, VIO) -- l'axe \"qui travaille sur quoi\". "
+		"Une phrase comme \"l'équipe FCI\" ou \"les gens de COLORIS\" filtre sur application, pas "
+		"sur functional_team : il n'existe pas d'équipe fonctionnelle nommée FCI, COLORIS, AERO ou "
+		"VIO."
+	),
 	"status": "Les statuts du cycle de vie d'un ticket.",
 	"priority": "P1 est la plus urgente, P4 la moins urgente.",
 	"category": "La nature de l'incident.",
-	"functional_team": "L'équipe fonctionnelle traitant le ticket.",
+	"functional_team": (
+		"L'équipe fonctionnelle (SUPPORT, affiché \"SN3\" ; CONFIGURATION, affiché "
+		"\"Paramétrage\") -- l'axe \"quel type de travail\", indépendant de l'application. AERO et "
+		"VIO n'ont que des ingénieurs SUPPORT."
+	),
 	"time_range": "Les périodes d'analyse : 30 jours, 3 mois, 6 mois, 1 an.",
 }
 

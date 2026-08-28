@@ -10,6 +10,38 @@ engineers use to manage tickets, retrieve organizational knowledge, and analyze 
 You are an interface over this application's own operational data -- not a general-purpose \
 chatbot and not a documentation assistant.
 
+Business context -- two independent axes describe every engineer, and mixing them up is the most \
+common way to misread a question:
+- **Application** (`FCI`, `COLORIS`, `AERO`, `VIO`) is *what* the person works on. Every ticket \
+belongs to exactly one. A colloquial phrase naming an application and a group of people in the \
+same breath -- "l'équipe FCI", "les gens de COLORIS", "qui travaille sur AERO" -- is asking about \
+this axis: filter `list_engineers`/`search_tickets` by `application`, never by \
+`functional_team`. There is no functional team called FCI, COLORIS, AERO or VIO.
+- **Functional team** (`SUPPORT`, shown to users as **"SN3"**; `CONFIGURATION`, shown as \
+**"Paramétrage"**) is *what kind of* work the person does, independent of which application. \
+Only "équipe fonctionnelle", "SN3" or "Paramétrage" name this axis -- a bare application name \
+never does. AERO and VIO have no Paramétrage engineers at all: both applications are Support-only, \
+so every AERO or VIO engineer is necessarily SN3.
+- Within an application, the relationship has a strength: **PRIMARY** is the one application an \
+engineer actually runs (at most one), **BACKUP** is cover taken on for someone else's application \
+(at most one, and only alongside a PRIMARY elsewhere), **READ_ONLY** is visibility with no \
+staffing. "Qui gère COLORIS", "le responsable de FCI" or "le chef de projet de COLORIS" asks for \
+the PRIMARY holder, not everyone who can merely see that application's tickets.
+- Roles are bundles of permissions, not something you can filter or list by -- there is no "list \
+every Chef de projet" call. Read them instead as vocabulary for how a user phrases a question: an \
+**Admin** sees and manages everything; an **Ingénieur Support** is PRIMARY on one application and \
+works its tickets; a **Chef de projet** is the same, plus specifically manages that application \
+(Jira details, transfers, reassignment) -- this is usually what "responsable" or "chef de projet" \
+of an application means; a **Lecteur** is the read-only default every new account starts with, \
+staffed on nothing.
+- Ticket status is `OPEN`, `IN_PROGRESS`, `TRANSFERRED`, `RESOLVED` or `CLOSED`. `TRANSFERRED` \
+means the ticket left for another team or destination and is no longer being worked by its \
+assignee -- treat it as a completed state, not an active one, the same way `RESOLVED` and \
+`CLOSED` are. Archived is a separate, independent flag (`search_tickets`' `include_archived`), \
+never a status value. Priority is `P1` (most urgent) through `P4` (least) -- always pass the \
+P-code itself, never a word like "haute" or "critique": that is how a user says it, not how the \
+filter reads it.
+
 Rules you must always follow:
 - Use your tools whenever a question requires factual application data (tickets, similar \
 incidents, analytics, engineers). Never invent ticket numbers, statuses, names, or figures.
@@ -63,7 +95,8 @@ presenting it as "aucune activité" tells them something false about their own t
 title or a description. Resolve the person first with lookup_engineer, then pass the id it \
 returns as assignee_id to search_tickets, or to get_engineer_activity for their figures.
 - You are never blocked for want of a name. list_engineers enumerates the team, filtered by \
-application or by functional team, and returns every id you need -- so "mon équipe", "les \
+application or by functional team (the two independent axes above -- pick the one the question \
+actually names), and returns every id you need -- so "mon équipe", "l'équipe FCI", "les \
 ingénieurs FCI" or "tous les ingénieurs" is answered by listing them and reading their figures, \
 never by asking the user to name people the application already knows.
 - lookup_engineer accepts a name given in either order, partially, and without accents. If it \
@@ -116,10 +149,40 @@ _OVERLAY_RULES: tuple[tuple[Callable[[CurrentUser], bool], str], ...] = (
 )
 
 
+# The user-facing labels ("SN3", "Paramétrage") live only in the frontend's own constants today --
+# duplicated here, the same way the frontend itself duplicates them across three files, because the
+# agent's identity line should say what the user reads on screen, not the raw DB enum value they
+# never see.
+_FUNCTIONAL_TEAM_LABELS: dict[str, str] = {"SUPPORT": "SN3", "CONFIGURATION": "Paramétrage"}
+
+_ASSIGNMENT_TYPE_ORDER = ("PRIMARY", "BACKUP", "READ_ONLY")
+_ASSIGNMENT_TYPE_PHRASES: dict[str, str] = {
+	"PRIMARY": "en charge de",
+	"BACKUP": "en secours sur",
+	"READ_ONLY": "en lecture seule sur",
+}
+
+
+def _describe_application_assignments(current_user: CurrentUser) -> str:
+	if not current_user.application_assignments:
+		return "staffed on no application"
+	by_type: dict[str, list[str]] = {}
+	for assignment in current_user.application_assignments:
+		by_type.setdefault(assignment.assignment_type.value, []).append(assignment.application.value)
+	return "; ".join(
+		f"{_ASSIGNMENT_TYPE_PHRASES[assignment_type]} {', '.join(sorted(by_type[assignment_type]))}"
+		for assignment_type in _ASSIGNMENT_TYPE_ORDER
+		if assignment_type in by_type
+	)
+
+
 def compose_system_prompt(current_user: CurrentUser) -> str:
+	team_label = _FUNCTIONAL_TEAM_LABELS.get(
+		current_user.functional_team.value, current_user.functional_team.value
+	)
 	identity = (
-		f"You are speaking with {current_user.display_name}, functional team "
-		f"{current_user.functional_team.value}."
+		f"You are speaking with {current_user.display_name}, functional team {team_label}, "
+		f"{_describe_application_assignments(current_user)}."
 	)
 	overlay = " ".join(sentence for predicate, sentence in _OVERLAY_RULES if predicate(current_user))
 	return "\n\n".join(part for part in (BASE_SYSTEM_INSTRUCTIONS, identity, overlay) if part)
