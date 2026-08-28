@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { AlertCircle, Check, Copy } from "lucide-react"
+import { AlertCircle, Bot, Check, Copy } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { MarkdownMessage } from "@/features/chatbot/markdown-message"
@@ -9,6 +9,9 @@ import type { ChatMessage as ChatMessageType } from "@/features/chatbot/types"
 
 interface ChatMessageProps {
   message: ChatMessageType
+  // True only for the still-empty assistant bubble waiting on its first streamed delta — see
+  // ChatPanel. Shows a "thinking" indicator in place of the (otherwise blank) answer area.
+  isPending?: boolean
 }
 
 async function copyToClipboard(content: string) {
@@ -36,7 +39,7 @@ async function copyToClipboard(content: string) {
   if (!copied) throw new Error("Clipboard unavailable")
 }
 
-function ChatMessage({ message }: ChatMessageProps) {
+function ChatMessage({ message, isPending = false }: ChatMessageProps) {
   const [copied, setCopied] = useState(false)
   const [copyFailed, setCopyFailed] = useState(false)
 
@@ -84,24 +87,38 @@ function ChatMessage({ message }: ChatMessageProps) {
 
   return (
     <div className="flex gap-4">
-      <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md bg-primary text-[11px] font-semibold text-primary-foreground">
-        SR
+      <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+        <Bot className="size-4" strokeWidth={1.75} />
       </span>
       <div className="min-w-0 max-w-[48rem] flex-1">
-        <MarkdownMessage content={message.content} />
-
-        <div className="mt-3 flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCopy}
-            disabled={!message.content.trim()}
-            aria-live="polite"
+        {isPending ? (
+          <div
+            className="flex h-7 items-center gap-1.5"
+            role="status"
+            aria-label="L'assistant rédige une réponse"
           >
-            {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
-            {copied ? "Copié" : copyFailed ? "Copie impossible" : "Copier"}
-          </Button>
-        </div>
+            <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.3s]" />
+            <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground/50 [animation-delay:-0.15s]" />
+            <span className="size-1.5 animate-bounce rounded-full bg-muted-foreground/50" />
+          </div>
+        ) : (
+          <>
+            <MarkdownMessage content={message.content} />
+
+            <div className="mt-3 flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopy}
+                disabled={!message.content.trim()}
+                aria-live="polite"
+              >
+                {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                {copied ? "Copié" : copyFailed ? "Copie impossible" : "Copier"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

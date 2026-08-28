@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Send, BookOpen, CornerDownLeft } from "lucide-react"
+import { ArrowDown, Send, BookOpen, CornerDownLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/features/chatbot/chat-message"
-import { suggestedPrompts, type ChatMessage as ChatMessageType } from "@/features/chatbot/types"
+import { type ChatMessage as ChatMessageType } from "@/features/chatbot/types"
 
 interface ChatPanelProps {
   messages: ChatMessageType[]
@@ -28,6 +28,9 @@ function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPan
   // nothing renders from it — as state, every wheel tick during a stream would re-render the
   // whole thread.
   const followingRef = useRef(true)
+  // Unlike followingRef, this does need to be state — it drives whether the scroll-to-bottom
+  // button renders at all.
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false)
 
   useEffect(() => {
     inputRef.current?.focus()
@@ -41,7 +44,9 @@ function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPan
     const list = listRef.current
     if (!list) return
     // An empty thread means a new or just-switched conversation: there is nothing the reader
-    // could have scrolled away from, so following resumes.
+    // could have scrolled away from, so following resumes. The scroll-to-bottom button's own
+    // visibility is guarded by `messages.length > 0` below rather than reset here — setting
+    // state synchronously inside an effect risks cascading renders.
     if (messages.length === 0) followingRef.current = true
     if (!followingRef.current) return
     list.scrollTop = list.scrollHeight
@@ -50,14 +55,25 @@ function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPan
   function handleScroll() {
     const list = listRef.current
     if (!list) return
-    followingRef.current =
+    const atBottom =
       list.scrollHeight - list.scrollTop - list.clientHeight < STICK_TO_BOTTOM_THRESHOLD_PX
+    followingRef.current = atBottom
+    setShowScrollToBottom(!atBottom)
+  }
+
+  function scrollToBottom() {
+    const list = listRef.current
+    if (!list) return
+    followingRef.current = true
+    setShowScrollToBottom(false)
+    list.scrollTo({ top: list.scrollHeight, behavior: "smooth" })
   }
 
   function handleSend(content: string) {
     if (!content.trim() || isStreaming) return
     // Sending is itself a request to watch the answer, whatever the reader had scrolled back to.
     followingRef.current = true
+    setShowScrollToBottom(false)
     onSend(content)
     setInput("")
     inputRef.current?.focus()
@@ -65,46 +81,53 @@ function ChatPanel({ messages, isStreaming, isLoadingMessages, onSend }: ChatPan
 
   return (
     <div className="flex min-h-0 min-w-0 flex-col rounded-lg border border-border bg-card">
-      <div
-        ref={listRef}
-        onScroll={handleScroll}
-        className="min-h-0 flex-1 space-y-8 overflow-y-auto p-6"
-      >
-        {isLoadingMessages && (
-          <div className="py-10 text-center text-sm text-muted-foreground">Chargement de la conversation…</div>
-        )}
+      <div className="relative min-h-0 flex-1">
+        <div ref={listRef} onScroll={handleScroll} className="h-full space-y-8 overflow-y-auto p-6">
+          {isLoadingMessages && (
+            <div className="py-10 text-center text-sm text-muted-foreground">Chargement de la conversation…</div>
+          )}
 
-        {!isLoadingMessages && messages.length === 0 && (
-          <div className="mx-auto max-w-xl py-10 text-center">
-            <div className="mx-auto grid size-11 place-items-center rounded-lg border border-border bg-surface">
-              <BookOpen className="size-5 text-primary" strokeWidth={1.5} />
+          {!isLoadingMessages && messages.length === 0 && (
+            <div className="mx-auto max-w-xl py-10 text-center">
+              <div className="mx-auto grid size-11 place-items-center rounded-lg border border-border bg-surface">
+                <BookOpen className="size-5 text-primary" strokeWidth={1.5} />
+              </div>
+              <h2 className="mt-4 text-sm font-semibold">Interrogez vos données opérationnelles</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Recherchez des tickets, explorez les incidents similaires et consultez vos indicateurs,
+                tendances ou informations d&apos;équipe selon vos autorisations.
+              </p>
             </div>
-            <h2 className="mt-4 text-sm font-semibold">Interrogez vos données opérationnelles</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Recherchez des tickets, explorez les incidents similaires et consultez vos indicateurs,
-              tendances ou informations d&apos;équipe selon vos autorisations.
-            </p>
-          </div>
-        )}
+          )}
 
-        {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
-        ))}
+          {messages.map((message, index) => (
+            <ChatMessage
+              key={message.id}
+              message={message}
+              isPending={
+                isStreaming &&
+                index === messages.length - 1 &&
+                message.role === "ASSISTANT" &&
+                !message.failed &&
+                message.content.length === 0
+              }
+            />
+          ))}
+        </div>
+
+        {showScrollToBottom && messages.length > 0 && (
+          <button
+            type="button"
+            onClick={scrollToBottom}
+            aria-label="Aller en bas de la conversation"
+            className="absolute bottom-4 left-1/2 grid size-9 -translate-x-1/2 place-items-center rounded-full border border-border bg-background text-foreground shadow-md transition-colors hover:bg-surface"
+          >
+            <ArrowDown className="size-4" />
+          </button>
+        )}
       </div>
 
       <div className="shrink-0 border-t border-border p-4">
-        <div className="mb-3 flex flex-wrap gap-2">
-          {suggestedPrompts.map((prompt) => (
-            <button
-              key={prompt}
-              onClick={() => handleSend(prompt)}
-              disabled={isStreaming}
-              className="rounded-full border border-border bg-surface px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
         <div className="rounded-lg border border-border focus-within:border-primary/50">
           <Textarea
             ref={inputRef}

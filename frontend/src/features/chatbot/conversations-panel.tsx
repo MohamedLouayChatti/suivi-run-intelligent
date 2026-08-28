@@ -25,7 +25,7 @@ function ConversationsPanel({ conversations, activeConversationId, isLoading, on
           Conversations
         </span>
       }
-      className="flex min-h-0 flex-col"
+      className="flex min-h-0 flex-1 flex-col"
       bodyClassName="min-h-0 flex-1 overflow-y-auto p-0"
     >
       {isLoading ? (

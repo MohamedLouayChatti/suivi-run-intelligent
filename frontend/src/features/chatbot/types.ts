@@ -19,12 +19,4 @@ interface ChatMessage {
   failed?: boolean
 }
 
-const suggestedPrompts: string[] = [
-  "Recherche les tickets ouverts liés à une erreur API",
-  "Quels incidents sont similaires au ticket à analyser ?",
-  "Quel est mon bilan d'activité récent ?",
-  "Quels sont les indicateurs de mon équipe ?",
-]
-
-export { suggestedPrompts }
 export type { ChatMessage, MessageRole }
