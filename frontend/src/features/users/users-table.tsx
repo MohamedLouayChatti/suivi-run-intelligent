@@ -28,6 +28,8 @@ import { getPrimaryApplication } from "@/services/api/users"
 import { getRoleName } from "@/features/users/get-role-name"
 import { functionalTeamLabels } from "@/features/users/constants"
 import { UserDetailsSheet } from "@/features/users/user-details-sheet"
+import { describeUserAdminError } from "@/features/users/error-messages"
+import { toast } from "@/hooks/use-toast"
 import { usePermissions } from "@/lib/auth"
 import { useRolesList } from "@/hooks/use-roles-list"
 import type { AdminUser, OrganizationalIdentity, UsersAdminCapabilities } from "@/features/users/use-users-admin"
@@ -47,7 +49,7 @@ interface UsersTableProps {
   highlightUserId?: string | null
   onChangeRole: (userId: string, roleId: string) => void | Promise<void>
   onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void | Promise<void>
-  onToggleActive: (userId: string) => void
+  onToggleActive: (userId: string) => void | Promise<void>
   onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void | Promise<void>
 }
 
@@ -97,6 +99,19 @@ function UsersTable({
   function activationLabel(user: AdminUser): string | null {
     if (user.active) return capabilities.deactivate ? "Désactiver" : null
     return capabilities.activate ? "Activer" : null
+  }
+
+  // A toast here, where the sheet reports the same failure inline: this row action has no form
+  // to correct and nothing staged to preserve, so there is nowhere to anchor a message. What
+  // both share is that a refusal is now shown at all — this call used to be made and dropped.
+  function handleToggleActive(user: AdminUser) {
+    void Promise.resolve(onToggleActive(user.id)).catch((error: unknown) => {
+      toast({
+        variant: "destructive",
+        title: user.active ? "Désactivation impossible" : "Activation impossible",
+        description: describeUserAdminError(error),
+      })
+    })
   }
 
   const rows = users.filter(
@@ -204,7 +219,7 @@ function UsersTable({
                           {activation !== null && !(u.active && isSelf) && (
                             <DropdownMenuItem
                               className={u.active ? "text-destructive focus:text-destructive" : undefined}
-                              onSelect={() => onToggleActive(u.id)}
+                              onSelect={() => handleToggleActive(u)}
                             >
                               {activation}
                             </DropdownMenuItem>

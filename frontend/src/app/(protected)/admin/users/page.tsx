@@ -48,9 +48,11 @@ function UsersPageContent() {
           highlightUserId={highlightUserId}
           onChangeRole={changeRole}
           onSaveOrganizationalIdentity={saveOrganizationalIdentity}
-          onToggleActive={(userId) => {
+          onToggleActive={async (userId) => {
             const user = users.find((u) => u.id === userId)
-            if (user) toggleActive(userId, user.active)
+            // Returned rather than swallowed: both callers report a refusal, the sheet in its
+            // save report and the row action in a toast.
+            if (user) await toggleActive(userId, user.active)
           }}
           onSavePermissions={savePermissions}
         />

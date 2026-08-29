@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check, Minus } from "lucide-react"
+import { Check, Minus, X } from "lucide-react"
 
 import {
   Sheet,
@@ -35,6 +35,8 @@ import { applicationOptions, functionalTeamOptionsForApplications } from "@/feat
 import { buildPermissionGraph, usePermissions } from "@/lib/auth"
 import { useRolesList } from "@/hooks/use-roles-list"
 import { usePermissionsList } from "@/hooks/use-permissions-list"
+import { describeUserAdminError } from "@/features/users/error-messages"
+import { PermissionSaveError } from "@/features/users/use-users-admin"
 import type { AdminUser, OrganizationalIdentity, UsersAdminCapabilities } from "@/features/users/use-users-admin"
 import type { components } from "@/types/api"
 
@@ -61,6 +63,82 @@ function sameApplicationSet(a: ReadonlySet<Application>, b: readonly Application
   return a.size === b.length && b.every((application) => a.has(application))
 }
 
+/**
+ * One save can be up to four backend writes, and they are not atomic across each other: the
+ * backend has no endpoint that sets staffing, role, permissions and activation together, and
+ * they must be sent in this order because each is validated against what the previous one
+ * wrote. So a refusal part-way leaves the account in a state that is neither what it was nor
+ * what was asked for, and the only honest thing to show is what each write actually did.
+ */
+type SaveStepStatus = "done" | "failed" | "skipped"
+
+interface SaveStep {
+  label: string
+  status: SaveStepStatus
+  /** The refusal, for a failed step; a note on how far it got, where the write is not atomic. */
+  detail?: string
+}
+
+/** A write staged by the form, kept with its label so a failure can name what was being written. */
+interface StagedWrite {
+  label: string
+  run: () => Promise<void>
+}
+
+/**
+ * How far a permission save got before it was refused.
+ *
+ * The one write here that sends many requests, so the one whose failure leaves a count worth
+ * reporting: without it the operator knows the save failed but not whether it left three of
+ * five permissions applied.
+ */
+function permissionProgress(error: PermissionSaveError): string {
+  const parts: string[] = []
+  if (error.toGrant > 0) parts.push(`${error.granted} accordée${error.granted > 1 ? "s" : ""} sur ${error.toGrant}`)
+  if (error.toRevoke > 0) parts.push(`${error.revoked} retirée${error.revoked > 1 ? "s" : ""} sur ${error.toRevoke}`)
+  if (error.granted === 0 && error.revoked === 0) return "Aucune permission n'a été modifiée."
+  return `Appliqué avant l'échec : ${parts.join(", ")}.`
+}
+
+/**
+ * What the last save did, write by write.
+ *
+ * Sits above the footer rather than in a toast: every refusal reachable here is correctable in
+ * the form right above it — a missing primary application, an unsatisfied prerequisite — so the
+ * message belongs next to the fields that fix it, and has to stay there while they are edited.
+ */
+function SaveOutcomeBanner({ steps }: { steps: SaveStep[] }) {
+  const anyDone = steps.some((step) => step.status === "done")
+  return (
+    <div role="alert" className="mx-4 mb-2 space-y-2 rounded-md border border-destructive/40 bg-destructive/5 p-3">
+      <p className="text-sm font-medium text-destructive">
+        {anyDone ? "Enregistrement incomplet" : "Enregistrement impossible"}
+      </p>
+      {anyDone && (
+        <p className="text-xs text-muted-foreground">
+          Une partie des modifications a été enregistrée. Corrigez ce qui suit et enregistrez à
+          nouveau : seules les modifications restantes seront envoyées.
+        </p>
+      )}
+      <ul className="space-y-1.5">
+        {steps.map((step) => (
+          <li key={step.label} className="flex gap-2 text-xs">
+            {step.status === "done" && <Check className="mt-0.5 size-3.5 shrink-0 text-primary" />}
+            {step.status === "failed" && <X className="mt-0.5 size-3.5 shrink-0 text-destructive" />}
+            {step.status === "skipped" && <Minus className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />}
+            <span className={step.status === "skipped" ? "text-muted-foreground" : undefined}>
+              <span className="font-medium">{step.label}</span>
+              {step.status === "done" && " — enregistré."}
+              {step.status === "skipped" && " — non tenté."}
+              {step.status === "failed" && ` — ${step.detail}`}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 interface UserDetailsSheetProps {
   user: AdminUser | null
   capabilities: UsersAdminCapabilities
@@ -68,7 +146,7 @@ interface UserDetailsSheetProps {
   onSaveRole: (userId: string, roleId: string) => void | Promise<void>
   onSaveOrganizationalIdentity: (userId: string, identity: OrganizationalIdentity) => void | Promise<void>
   onSavePermissions: (userId: string, toGrant: string[], toRevoke: string[]) => void | Promise<void>
-  onToggleActive: (userId: string) => void
+  onToggleActive: (userId: string) => void | Promise<void>
 }
 
 function UserDetailsSheet({
@@ -111,6 +189,10 @@ function UserDetailsSheet({
   const [pendingCascade, setPendingCascade] = useState<{ permissionId: string; cascade: Set<string> } | null>(null)
   const [confirmingRoleChange, setConfirmingRoleChange] = useState(false)
   const [active, setActive] = useState(user?.active ?? true)
+  // What the last save did, per write. Null until a save has failed — a save that succeeds
+  // closes the sheet, so there is nothing to report.
+  const [saveSteps, setSaveSteps] = useState<SaveStep[] | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
 
   const currentPrimary = user ? getPrimaryApplication(user) : null
   const currentBackup = user ? getBackupApplication(user) : null
@@ -214,9 +296,15 @@ function UserDetailsSheet({
     setPendingCascade(null)
   }
 
-  async function persist() {
-    if (!user) return
-    if (rolePrimaryApplicationMissing) return
+  /**
+   * The writes this save will send, in the order the backend requires.
+   *
+   * Staged as a list first rather than awaited inline, so a refusal on any one of them can be
+   * reported against the others: the step that failed is named, the ones already sent are
+   * known to have landed, and the ones after it are known not to have been attempted.
+   */
+  function stagedWrites(target: AdminUser): StagedWrite[] {
+    const writes: StagedWrite[] = []
 
     // Staffing is written before the role, never after: assigning a role that requires a primary
     // application to a user who is only being given one in this same save would otherwise be
@@ -225,17 +313,24 @@ function UserDetailsSheet({
       primaryApplication !== currentPrimary ||
       backupApplication !== currentBackup ||
       !sameApplicationSet(readOnlyApplications, currentReadOnly)
-    if (mayEditStaffing && (assignmentsChanged || effectiveFunctionalTeam !== user.functional_team)) {
-      await onSaveOrganizationalIdentity(user.id, {
-        functional_team: effectiveFunctionalTeam,
-        application_assignments: buildAssignments(primaryApplication, backupApplication, [...readOnlyApplications]),
+    if (mayEditStaffing && (assignmentsChanged || effectiveFunctionalTeam !== target.functional_team)) {
+      writes.push({
+        label: "Affectation applicative",
+        run: async () => {
+          await onSaveOrganizationalIdentity(target.id, {
+            functional_team: effectiveFunctionalTeam,
+            application_assignments: buildAssignments(primaryApplication, backupApplication, [
+              ...readOnlyApplications,
+            ]),
+          })
+        },
       })
     }
 
     if (mayEditRole && roleChangeStaged) {
       // Setting a role discards every permission exception, so there is nothing left for a
       // permission save to write — and sending one would re-add what the role change removed.
-      await onSaveRole(user.id, roleId)
+      writes.push({ label: "Rôle", run: async () => void (await onSaveRole(target.id, roleId)) })
     } else if (mayEditPermissions) {
       const toGrant = graph.prerequisitesFirst(
         permissions.filter((p) => checkedPermissionIds.has(p.id) && !effectivePermissionIds.has(p.id)).map((p) => p.id)
@@ -243,12 +338,68 @@ function UserDetailsSheet({
       const toRevoke = permissions
         .filter((p) => !checkedPermissionIds.has(p.id) && effectivePermissionIds.has(p.id))
         .map((p) => p.id)
-      if (toGrant.length > 0 || toRevoke.length > 0) await onSavePermissions(user.id, toGrant, toRevoke)
+      if (toGrant.length > 0 || toRevoke.length > 0) {
+        writes.push({
+          label: "Permissions",
+          run: async () => void (await onSavePermissions(target.id, toGrant, toRevoke)),
+        })
+      }
     }
 
-    if (mayToggleActive && active !== user.active) onToggleActive(user.id)
+    if (mayToggleActive && active !== target.active) {
+      writes.push({
+        label: active ? "Activation du compte" : "Désactivation du compte",
+        run: async () => void (await onToggleActive(target.id)),
+      })
+    }
 
-    onOpenChange(false)
+    return writes
+  }
+
+  async function persist() {
+    if (!user) return
+    if (rolePrimaryApplicationMissing) return
+    if (isSaving) return
+
+    setIsSaving(true)
+    setSaveSteps(null)
+
+    const steps: SaveStep[] = []
+    let stopped = false
+    try {
+      for (const write of stagedWrites(user)) {
+        // Everything after a refusal is left unsent. The order is a dependency chain — the
+        // role is validated against the staffing this save was to write — so continuing past
+        // a failure would send writes whose precondition is known to be missing.
+        if (stopped) {
+          steps.push({ label: write.label, status: "skipped" })
+          continue
+        }
+        try {
+          await write.run()
+          steps.push({ label: write.label, status: "done" })
+        } catch (error) {
+          stopped = true
+          steps.push({
+            label: write.label,
+            status: "failed",
+            detail:
+              error instanceof PermissionSaveError
+                ? `${describeUserAdminError(error.cause)} ${permissionProgress(error)}`
+                : describeUserAdminError(error),
+          })
+        }
+      }
+    } finally {
+      setIsSaving(false)
+    }
+
+    // Only a clean save closes the sheet. Leaving it open on failure keeps the staged edits,
+    // and every write above re-reads what the user now holds — each of them invalidates the
+    // cache whether it succeeded or not — so pressing Enregistrer again re-sends only what
+    // did not land.
+    if (stopped) setSaveSteps(steps)
+    else onOpenChange(false)
   }
 
   function handleSave() {
@@ -492,10 +643,11 @@ function UserDetailsSheet({
               </div>
             )}
           </div>
+          {saveSteps && <SaveOutcomeBanner steps={saveSteps} />}
           {anySectionEditable && (
             <SheetFooter>
-              <Button onClick={handleSave} disabled={rolePrimaryApplicationMissing}>
-                Enregistrer
+              <Button onClick={handleSave} disabled={rolePrimaryApplicationMissing || isSaving}>
+                {isSaving ? "Enregistrement…" : "Enregistrer"}
               </Button>
             </SheetFooter>
           )}
