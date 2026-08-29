@@ -14,8 +14,13 @@ import { useAuthSession } from "./use-auth-session";
  * want of a push channel: the notification stream needs an authenticated connection,
  * and /auth/me answering 403 is precisely the state in which this user has none. The
  * activation notification is written and delivered to nobody.
+ *
+ * The auth gate also offers a manual retry, which needs nothing here to reset this
+ * timer: TanStack clears and recreates the interval on every query state change, and a
+ * refetch produces two. A manual check therefore restarts the countdown by itself —
+ * there is no missing reset to add.
  */
-const DEACTIVATED_POLL_INTERVAL_MS = 15_000;
+const DEACTIVATED_POLL_INTERVAL_MS = 30_000;
 
 /**
  * GET /auth/me is the only canonical source of application user identity —
