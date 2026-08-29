@@ -10,9 +10,16 @@ import {
   grantPermissionToUser,
   revokePermissionFromUser,
 } from "@/services/api/users"
-import { useUsersList, usersListQueryKey } from "@/hooks/use-users-list"
-import { useUserDirectory, userDirectoryQueryKey } from "@/hooks/use-user-directory"
+import { useUsersList } from "@/hooks/use-users-list"
+import { useUserDirectory } from "@/hooks/use-user-directory"
 import { usePermissions } from "@/lib/auth"
+import {
+  IDENTITY_WRITE,
+  ROLE_WRITE,
+  STAFFING_WRITE,
+  invalidateGroups,
+  type QueryKeyPrefix,
+} from "@/lib/cache-invalidation"
 import type { components } from "@/types/api"
 
 type OrganizationalIdentity = components["schemas"]["UserOrganizationalIdentityRequest"]
@@ -94,13 +101,20 @@ function useUsersAdmin() {
         detail: null,
       }))
 
-  function afterMutation() {
-    queryClient.invalidateQueries({ queryKey: usersListQueryKey })
-    queryClient.invalidateQueries({ queryKey: userDirectoryQueryKey })
+  // Which caches a write here disturbs depends on what it wrote, so each path names its
+  // own group. What they share is the identity half, and that is the part that was
+  // missing: /auth/me is fetched once per session and backs every permission-gated
+  // control in the app, including for the administrator performing the change. Both ways
+  // they can reach themselves — granting themselves a permission directly, or granting
+  // one to a role they hold — left their own capabilities stale until a hard refresh.
+  function afterMutation(groups: QueryKeyPrefix[] = IDENTITY_WRITE) {
+    invalidateGroups(queryClient, groups)
   }
 
-  const activate = useMutation({ mutationFn: activateUser, onSuccess: afterMutation })
-  const deactivate = useMutation({ mutationFn: deactivateUser, onSuccess: afterMutation })
+  // Wrapped rather than passed by reference: onSuccess is called with (data, variables,
+  // context), which would arrive here as `groups`.
+  const activate = useMutation({ mutationFn: activateUser, onSuccess: () => afterMutation() })
+  const deactivate = useMutation({ mutationFn: deactivateUser, onSuccess: () => afterMutation() })
 
   function toggleActive(userId: string, currentlyActive: boolean) {
     if (currentlyActive) deactivate.mutate(userId)
@@ -109,12 +123,17 @@ function useUsersAdmin() {
 
   async function changeRole(userId: string, roleId: string) {
     await setUserRole(userId, roleId)
-    afterMutation()
+    // Also the roles list: a role's membership is counted from the user list, and the
+    // role a user holds is what decides the permissions their identity resolves to.
+    afterMutation(ROLE_WRITE)
   }
 
   async function saveOrganizationalIdentity(userId: string, identity: OrganizationalIdentity) {
     await setUserOrganizationalIdentity(userId, identity)
-    afterMutation()
+    // The widest of the three. Application assignments are what scope every ticket
+    // collection and every analytics figure the user may be answered with, so this does
+    // not merely change who they are — it changes which data they see.
+    afterMutation(STAFFING_WRITE)
   }
 
   async function savePermissions(userId: string, toGrant: string[], toRevoke: string[]) {

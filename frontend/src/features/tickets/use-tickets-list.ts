@@ -10,6 +10,7 @@ import {
   addTicketAttachment,
   type ActiveTicketsFilters,
 } from "@/services/api/tickets"
+import { TICKET_WRITE, invalidateGroups } from "@/lib/cache-invalidation"
 
 type TicketCreateRequest = components["schemas"]["TicketCreateRequest"]
 
@@ -24,11 +25,16 @@ function useTicketsList() {
 
   const createMutation = useMutation({
     mutationFn: (payload: TicketCreateRequest) => createTicket(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ticketsListQueryKey }),
+    onSuccess: () => invalidateGroups(queryClient, TICKET_WRITE),
   })
 
+  // This had no onSuccess at all — the only mutation in the app without one. It is
+  // mostly invisible because the create flow uploads before anything reads the new
+  // ticket, but an attachment is a state change like any other and the ticket it
+  // lands on may well already be open in another view.
   const uploadAttachmentMutation = useMutation({
     mutationFn: ({ ticketId, file }: { ticketId: string; file: File }) => addTicketAttachment(ticketId, file),
+    onSuccess: () => invalidateGroups(queryClient, TICKET_WRITE),
   })
 
   return {

@@ -24,8 +24,7 @@ import {
   deleteTicketAttachment,
   deleteCommentAttachment,
 } from "@/services/api/tickets"
-import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
-import { historyListQueryKey } from "@/features/history/use-history-list"
+import { TICKET_WRITE, invalidateGroups } from "@/lib/cache-invalidation"
 
 type Priority = components["schemas"]["Priority"]
 type TransferDestination = components["schemas"]["TransferDestination"]
@@ -43,10 +42,13 @@ function useTicketDetail(id: string) {
     retry: false,
   })
 
+  // The three keys this used to name individually all live under ["tickets", ...],
+  // so the group's own prefix reaches this ticket's detail, both list views and the
+  // history table in one. What it adds is the analytics half: every figure on the
+  // Analyses page and both Dashboard widgets are computed from the columns these
+  // mutations write, and nothing invalidated them before.
   function afterMutation() {
-    queryClient.invalidateQueries({ queryKey: ticketDetailQueryKey(id) })
-    queryClient.invalidateQueries({ queryKey: ticketsListQueryKey })
-    queryClient.invalidateQueries({ queryKey: historyListQueryKey })
+    invalidateGroups(queryClient, TICKET_WRITE)
   }
 
   const start = useMutation({ mutationFn: () => startTicket(id), onSuccess: afterMutation })

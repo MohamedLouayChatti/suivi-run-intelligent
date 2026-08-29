@@ -9,8 +9,7 @@ import {
   type BatchImportReport,
 } from "@/services/api/knowledge-base"
 import { describeKnowledgeBaseError } from "@/features/knowledge-base/error-messages"
-import { recalculationScheduleQueryKey } from "@/features/knowledge-base/use-recalculation-schedule"
-import { ticketsListQueryKey } from "@/features/tickets/use-tickets-list"
+import { BATCH_IMPORT_WRITE, invalidateGroups } from "@/lib/cache-invalidation"
 import type { components } from "@/types/api"
 
 type Application = components["schemas"]["Application"]
@@ -46,9 +45,10 @@ function useBatchImport() {
     onSuccess: (outcome) => {
       if (outcome.kind !== "success") return
       // The tickets are durable by the time this returns, and the import enqueues a full
-      // recalculation — so both the ticket list and the schedule's `running` flag are stale.
-      queryClient.invalidateQueries({ queryKey: ticketsListQueryKey })
-      queryClient.invalidateQueries({ queryKey: recalculationScheduleQueryKey })
+      // recalculation — so the ticket list and the schedule's `running` flag are both
+      // stale. So is every analytics figure: an import creates tickets in bulk, which is
+      // the largest single move any of those counts ever make.
+      invalidateGroups(queryClient, BATCH_IMPORT_WRITE)
     },
   })
 

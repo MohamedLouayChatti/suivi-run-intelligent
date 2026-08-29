@@ -16,7 +16,12 @@ function createQueryClient(): QueryClient {
     defaultOptions: {
       queries: {
         staleTime: 60_000,
-        refetchOnWindowFocus: false,
+        // On, and deliberately: with it off, a tab left open showed data of
+        // unbounded age and nothing anywhere dislodged it — the 60s stale time
+        // only decides whether a refetch is *needed*, never that one happens.
+        // Returning to a tab is the cheapest honest moment to catch up on
+        // everything that changed while it was in the background.
+        refetchOnWindowFocus: true,
         retry: (failureCount, error) => {
           if (error instanceof ApiError && isNonRetryableStatus(error.status)) {
             return false;

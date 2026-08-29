@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useQueryClient, type QueryClient } from "@tanstack/react-query"
 
 import { useAuthSession } from "@/lib/auth"
+import { invalidateGroups } from "@/lib/cache-invalidation"
 import { toast } from "@/hooks/use-toast"
 import { ToastAction } from "@/components/ui/toast"
 import { connectToNotificationStream } from "@/services/sse/notifications"
@@ -16,6 +17,7 @@ import {
   applyNotificationRead,
 } from "./use-notifications"
 import { parseNotificationAction, resolveNotificationHref } from "./notification-actions"
+import { groupsForNotification } from "./notification-invalidation"
 
 /**
  * Keeps the notification list/unread-count query caches in sync with the live SSE
@@ -25,6 +27,13 @@ import { parseNotificationAction, resolveNotificationHref } from "./notification
  * a dot on the bell. Mounted once near the app root (see NotificationsSseBridge) rather
  * than by the bell itself, so the connection survives across route changes and dropdown
  * open/close instead of reconnecting every time.
+ *
+ * It also invalidates whatever the notification says has changed, which is the whole of
+ * this app's answer to somebody else's action reaching an open tab. The signal already
+ * arrived here — the connection is open, the event is delivered, the toast is raised —
+ * and everything past the bell was left holding data the notification had just announced
+ * was wrong. A revoked permission was told to the user and disproved by every control
+ * still on screen.
  */
 function useNotificationStream() {
   const queryClient = useQueryClient()
@@ -40,6 +49,8 @@ function useNotificationStream() {
         return [notification, ...current]
       })
       queryClient.setQueryData<number>(notificationsUnreadCountQueryKey, (count) => (count ?? 0) + 1)
+
+      invalidateGroups(queryClient, groupsForNotification(notification.type))
 
       showNotificationToast(notification, queryClient, router)
     })
