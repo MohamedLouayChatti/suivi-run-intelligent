@@ -128,10 +128,22 @@ class Ticket:
 		if at < self.updated_at:
 			raise ChronologicalOrderViolation()
 
-	def _ensure_mutable(self, at: datetime) -> None:
-		self._ensure_not_closed()
+	def _ensure_annotatable(self, at: datetime) -> None:
+		# Closure freezes the ticket's state, not the conversation about it: someone who
+		# finds a closed ticket months later must still be able to add what they learned.
+		# Archival is what closes the thread, an archived ticket being out of circulation.
 		self._ensure_not_archived()
 		self._ensure_chronological(at)
+
+	def _ensure_mutable(self, at: datetime) -> None:
+		self._ensure_not_closed()
+		self._ensure_annotatable(at)
+
+	def _touch(self, at: datetime) -> None:
+		# A closed ticket's `updated_at` is its completion date -- the column the history
+		# view filters and orders by -- so a comment added afterwards must not move it.
+		if self.status != Status.CLOSED:
+			self.updated_at = at
 
 	def archive(self, archived_at: datetime) -> None:
 		self._ensure_not_archived()
@@ -253,11 +265,11 @@ class Ticket:
 		self.history.append(TicketHistoryEntry.operational_highlight_changed(id=uuid4(), occurred_at=updated_at, operational_highlight=operational_highlight))
 
 	def add_comment(self, comment: Comment, added_at: datetime) -> None:
-		self._ensure_mutable(added_at)
+		self._ensure_annotatable(added_at)
 		if not comment.content.strip():
 			raise EmptyComment()
 		self.comments.append(comment)
-		self.updated_at = added_at
+		self._touch(added_at)
 
 	def _get_comment(self, comment_id: UUID) -> Comment:
 		comment = next((item for item in self.comments if item.id == comment_id), None)
@@ -273,25 +285,25 @@ class Ticket:
 		self.updated_at = added_at
 
 	def edit_comment(self, comment_id: UUID, content: str, edited_at: datetime) -> None:
-		self._ensure_mutable(edited_at)
+		self._ensure_annotatable(edited_at)
 		self._get_comment(comment_id).edit(content, edited_at)
-		self.updated_at = edited_at
+		self._touch(edited_at)
 
 	def delete_comment(self, comment_id: UUID, deleted_at: datetime) -> None:
-		self._ensure_mutable(deleted_at)
+		self._ensure_annotatable(deleted_at)
 		self._get_comment(comment_id).delete(deleted_at)
-		self.updated_at = deleted_at
+		self._touch(deleted_at)
 
 	def add_attachment_to_comment(self, comment_id: UUID, attachment: Attachment, added_at: datetime) -> None:
-		self._ensure_mutable(added_at)
+		self._ensure_annotatable(added_at)
 		self._get_comment(comment_id).add_attachment(attachment, added_at)
-		self.updated_at = added_at
+		self._touch(added_at)
 
 	def delete_attachment_from_comment(self, comment_id: UUID, attachment_id: UUID, deleted_at: datetime) -> None:
-		self._ensure_mutable(deleted_at)
+		self._ensure_annotatable(deleted_at)
 		comment = self._get_comment(comment_id)
 		attachment = next((item for item in comment.attachments if item.id == attachment_id), None)
 		if attachment is None:
 			raise AttachmentNotFound()
 		attachment.delete(deleted_at)
-		self.updated_at = deleted_at
+		self._touch(deleted_at)
