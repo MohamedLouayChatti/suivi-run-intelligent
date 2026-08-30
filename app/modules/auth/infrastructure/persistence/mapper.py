@@ -17,7 +17,7 @@ from app.modules.auth.infrastructure.persistence.models.application_assignment_m
 
 
 def user_to_model(user: User, *, permissions: Iterable[PermissionModel] = ()) -> UserModel:
-	model = UserModel(id=user.id, auth_provider_user_id=user.auth_provider_user_id.value, email=user.email, display_name=user.display_name, active=user.active, avatar_url=user.avatar_url, functional_team=user.functional_team, role_id=user.role_id)
+	model = UserModel(id=user.id, auth_provider_user_id=user.auth_provider_user_id.value, email=user.email, first_name=user.first_name, last_name=user.last_name, active=user.active, avatar_url=user.avatar_url, functional_team=user.functional_team, role_id=user.role_id)
 	_sync_user_relationships(model, user, permissions)
 	return model
 
@@ -25,7 +25,8 @@ def user_to_model(user: User, *, permissions: Iterable[PermissionModel] = ()) ->
 def sync_user_model(model: UserModel, user: User, *, permissions: Iterable[PermissionModel] = ()) -> UserModel:
 	model.auth_provider_user_id = user.auth_provider_user_id.value
 	model.email = user.email
-	model.display_name = user.display_name
+	model.first_name = user.first_name
+	model.last_name = user.last_name
 	model.active = user.active
 	model.avatar_url = user.avatar_url
 	model.functional_team = user.functional_team
@@ -35,11 +36,11 @@ def sync_user_model(model: UserModel, user: User, *, permissions: Iterable[Permi
 
 
 def user_model_to_domain(model: UserModel) -> User:
-	return User(id=model.id, auth_provider_user_id=AuthProviderUserId(model.auth_provider_user_id), email=model.email, display_name=model.display_name, active=model.active, role_id=model.role_id, avatar_url=model.avatar_url, functional_team=model.functional_team, application_assignments={ApplicationAssignment(x.application, x.assignment_type) for x in model.application_assignments}, direct_permission_ids={x.id for x in model.direct_permissions}, revoked_permission_ids={x.id for x in model.revoked_permissions})
+	return User(id=model.id, auth_provider_user_id=AuthProviderUserId(model.auth_provider_user_id), email=model.email, first_name=model.first_name, last_name=model.last_name, active=model.active, role_id=model.role_id, avatar_url=model.avatar_url, functional_team=model.functional_team, application_assignments={ApplicationAssignment(x.application, x.assignment_type) for x in model.application_assignments}, direct_permission_ids={x.id for x in model.direct_permissions}, revoked_permission_ids={x.id for x in model.revoked_permissions})
 
 
 def user_model_to_dto(model: UserModel) -> UserDTO:
-	return UserDTO(id=model.id, auth_provider_user_id=AuthProviderUserId(model.auth_provider_user_id), email=model.email, display_name=model.display_name, active=model.active, role_id=model.role_id, avatar_url=model.avatar_url, functional_team=model.functional_team, application_assignments=frozenset(ApplicationAssignment(x.application, x.assignment_type) for x in model.application_assignments), direct_permission_ids={x.id for x in model.direct_permissions}, revoked_permission_ids={x.id for x in model.revoked_permissions})
+	return UserDTO(id=model.id, auth_provider_user_id=AuthProviderUserId(model.auth_provider_user_id), email=model.email, first_name=model.first_name, last_name=model.last_name, active=model.active, role_id=model.role_id, avatar_url=model.avatar_url, functional_team=model.functional_team, application_assignments=frozenset(ApplicationAssignment(x.application, x.assignment_type) for x in model.application_assignments), direct_permission_ids={x.id for x in model.direct_permissions}, revoked_permission_ids={x.id for x in model.revoked_permissions})
 
 
 def role_to_model(role: Role, *, permissions: Iterable[PermissionModel] = ()) -> RoleModel:

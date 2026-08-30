@@ -11,6 +11,9 @@ import { functionalTeamLabels } from "@/features/users/constants"
 import { useAuthSession } from "@/lib/auth/use-auth-session"
 import { getPrimaryApplication, getBackupApplication, type CurrentUser } from "@/services/api/auth"
 
+import { profileSaveMessage, type ProfileSaveStatus } from "./profile-save-status"
+import { useProfileSync } from "./use-profile-sync"
+
 const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024
 const ACCEPTED_AVATAR_TYPES = ["image/png", "image/jpeg"]
 
@@ -20,8 +23,7 @@ interface ProfileTabProps {
   nom: string
   onPrenomChange: (value: string) => void
   onNomChange: (value: string) => void
-  justSaved: boolean
-  saveError: string | null
+  status: ProfileSaveStatus
   onSave: () => void
 }
 
@@ -29,13 +31,17 @@ function initials(prenom: string, nom: string): string {
   return `${prenom[0] ?? ""}${nom[0] ?? ""}`.toUpperCase()
 }
 
-function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved, saveError, onSave }: ProfileTabProps) {
+function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, status, onSave }: ProfileTabProps) {
   const primaryApplication = getPrimaryApplication(user)
   const backupApplication = getBackupApplication(user)
   const { imageUrl: clerkImageUrl, setProfileImage } = useAuthSession()
+  const waitForSync = useProfileSync()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<ProfileSaveStatus>({ kind: "idle" })
+
+  const saveMessage = profileSaveMessage(status)
+  const uploadMessage = profileSaveMessage(uploadStatus)
 
   async function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -43,23 +49,37 @@ function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved,
     if (!file) return
 
     if (!ACCEPTED_AVATAR_TYPES.includes(file.type)) {
-      setUploadError("Le fichier doit être au format PNG ou JPG.")
+      setUploadStatus({ kind: "error", message: "Le fichier doit être au format PNG ou JPG." })
       return
     }
     if (file.size > MAX_AVATAR_SIZE_BYTES) {
-      setUploadError("Le fichier doit faire moins de 2 Mo.")
+      setUploadStatus({ kind: "error", message: "Le fichier doit faire moins de 2 Mo." })
       return
     }
 
-    setUploadError(null)
+    // Captured before the upload, because "it changed" is the only thing that can be verified
+    // here: the provider hosts the image and the URL it ends up published under is not the one
+    // handed back by the upload call.
+    const previousAvatarUrl = user.avatarUrl
+
+    // No "Enregistrement…" here: the button already reads "Envoi en cours…" while this runs.
+    setUploadStatus({ kind: "idle" })
     setIsUploading(true)
     try {
       await setProfileImage(file)
     } catch {
-      setUploadError("Échec de l'envoi de la photo. Veuillez réessayer.")
+      setUploadStatus({ kind: "error", message: "Échec de l'envoi de la photo. Veuillez réessayer." })
+      return
     } finally {
       setIsUploading(false)
     }
+
+    // The avatar beside this button comes straight from the provider, so it is already the new
+    // one. The header's does not — it renders what our own database holds — so the upload is
+    // only finished once that has caught up, exactly as a name change is.
+    setUploadStatus({ kind: "syncing" })
+    const landed = await waitForSync((profile) => profile.avatarUrl !== previousAvatarUrl)
+    setUploadStatus(landed ? { kind: "idle" } : { kind: "pending" })
   }
 
   return (
@@ -68,11 +88,18 @@ function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved,
       description="Visible par les autres membres de l'équipe run"
       action={
         <div className="flex items-center gap-3">
-          {justSaved && (
-            <span className="text-xs text-muted-foreground">Modifications enregistrées</span>
+          {saveMessage && (
+            <span
+              className={
+                saveMessage.tone === "destructive"
+                  ? "text-xs text-destructive"
+                  : "text-xs text-muted-foreground"
+              }
+            >
+              {saveMessage.text}
+            </span>
           )}
-          {saveError && <span className="text-xs text-destructive">{saveError}</span>}
-          <Button size="sm" onClick={onSave}>
+          <Button size="sm" onClick={onSave} disabled={status.kind === "saving" || status.kind === "syncing"}>
             Enregistrer les modifications
           </Button>
         </div>
@@ -100,7 +127,17 @@ function ProfileTab({ user, prenom, nom, onPrenomChange, onNomChange, justSaved,
             {isUploading ? "Envoi en cours…" : "Modifier la photo"}
           </Button>
           <p className="mt-2 text-xs text-muted-foreground">PNG ou JPG, jusqu&apos;à 2 Mo.</p>
-          {uploadError && <p className="mt-1 text-xs text-destructive">{uploadError}</p>}
+          {uploadMessage && (
+            <p
+              className={
+                uploadMessage.tone === "destructive"
+                  ? "mt-1 text-xs text-destructive"
+                  : "mt-1 text-xs text-muted-foreground"
+              }
+            >
+              {uploadMessage.text}
+            </p>
+          )}
         </div>
       </div>
       <div className="mt-6 grid gap-5 sm:grid-cols-2">

@@ -26,15 +26,21 @@ class UserReadRepository(ABC):
 		raise NotImplementedError
 
 	@abstractmethod
-	async def find_by_display_names(self, display_names: Sequence[str]) -> list[UserDTO]:
-		"""Every user whose display name matches one of `display_names`, ignoring case and
-		surrounding whitespace.
+	async def find_by_display_names(self, display_names: Sequence[str]) -> dict[str, list[UserDTO]]:
+		"""Each requested name mapped to every user it names, ignoring case, whitespace and the
+		order the two halves are written in.
 
-		Returns the matches rather than a name -> user mapping precisely because `display_name`
-		carries no unique constraint: a caller resolving a name to one person has to be able to see
-		that two people answer to it. Bulk-shaped for the same reason `get_similarity_summaries`
-		is -- the caller holds a file's worth of names, and one round trip is the alternative to
-		one query per row.
+		A *list* per name, never one user, precisely because a name carries no unique constraint:
+		a caller resolving a name to one person has to be able to see that two people answer to
+		it. A name matching nobody is present with an empty list, so the caller can tell "no such
+		person" from "never asked".
+
+		Order-insensitive because a person is named in both orders in practice, and a spreadsheet
+		filled in by hand is exactly where the other order turns up -- the same fact
+		`name_matches` in the assistant's tool support was written for.
+
+		Bulk-shaped for the same reason `get_similarity_summaries` is: the caller holds a file's
+		worth of names, and one round trip is the alternative to one query per row.
 		"""
 		raise NotImplementedError
 

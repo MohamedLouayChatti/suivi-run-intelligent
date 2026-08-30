@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from collections import defaultdict
 from uuid import UUID
 
 from app.modules.auth.application.interfaces.user_read_repository import UserReadRepository
@@ -167,8 +166,12 @@ class ImportTicketsHandler:
 
 		Both failure modes are rejections rather than guesses. A name matching nobody is the check
 		this was asked for -- an import may not invent people. A name matching two people is
-		possible because display_name carries no unique constraint, and choosing between them would
+		possible because a name carries no unique constraint, and choosing between them would
 		attribute someone's work to a colleague on the strength of a coin flip.
+
+		Which spellings answer to a name is the directory's rule, not this module's: the lookup
+		matches either order the two halves are written in, so a file naming someone the way its
+		author says it aloud resolves the same person as one following the export convention.
 
 		Active and inactive users alike are accepted. The question is whether the person exists,
 		not whether they still work here: the historical engineers these files are full of are
@@ -179,18 +182,9 @@ class ImportTicketsHandler:
 		if not names:
 			return {}
 
-		matches: dict[str, list[UUID]] = defaultdict(list)
-		for user in await self.users.find_by_display_names(sorted(names)):
-			matches[user.display_name.strip().lower()].append(user.id)
-
-		resolved: dict[str, UUID] = {}
-		ambiguous: set[str] = set()
-		for name in names:
-			found = matches.get(name.strip().lower(), [])
-			if len(found) == 1:
-				resolved[name] = found[0]
-			elif len(found) > 1:
-				ambiguous.add(name)
+		matches = await self.users.find_by_display_names(sorted(names))
+		resolved = {name: found[0].id for name, found in matches.items() if len(found) == 1}
+		ambiguous = {name for name, found in matches.items() if len(found) > 1}
 
 		for record in parsed:
 			if record.assignee_name in resolved:

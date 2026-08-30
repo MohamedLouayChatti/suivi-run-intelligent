@@ -27,6 +27,13 @@ interface CurrentUser {
   id: string;
   authProviderUserId: string;
   email: string;
+  firstName: string;
+  lastName: string;
+  /**
+   * The composed full name, as the backend writes it. Read it; never build it from
+   * `firstName` and `lastName` here — which half leads is a rule the backend owns, and
+   * composing it in React is exactly how the settings form and the header came to disagree.
+   */
   displayName: string;
   avatarUrl: string | null;
   functionalTeam: components["schemas"]["FunctionalTeam"];
@@ -40,6 +47,8 @@ function toCurrentUser(response: MeResponse): CurrentUser {
     id: response.id,
     authProviderUserId: response.auth_provider_user_id,
     email: response.email,
+    firstName: response.first_name,
+    lastName: response.last_name,
     displayName: response.display_name,
     avatarUrl: response.avatar_url,
     functionalTeam: response.functional_team,

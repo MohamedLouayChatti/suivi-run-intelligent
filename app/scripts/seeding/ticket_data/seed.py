@@ -12,6 +12,7 @@ from app.modules.ticket_management.infrastructure.persistence.models.ticket_mode
 from app.modules.ticket_management.infrastructure.persistence.unit_of_work import SqlAlchemyUnitOfWork as TicketUnitOfWork
 from app.shared.database.engine import engine
 from app.scripts.seeding.ticket_data.processed_tickets import ProcessedTicket, load_processed_tickets
+from app.modules.auth.domain.value_objects.person_name import name_orderings, normalize_full_name
 from app.scripts.seeding.users.historical_users import HISTORICAL_USERS
 
 logger = logging.getLogger(__name__)
@@ -20,14 +21,21 @@ RESOLUTION_NOTES_PLACEHOLDER = "No resolution notes recorded."
 
 
 async def _build_assignee_lookup() -> dict[str, UUID]:
-	"""Map each historical user's display name to their seeded auth user id."""
+	"""Map every spelling of each historical user's name to their seeded auth user id.
+
+	Both orderings, keyed the way `normalize_full_name` writes them, because the dataset names
+	its actors in whichever order its author used -- the same reason the batch import's own
+	lookup matches either way round. Keying on one spelling would fail the two engineers the
+	catalog records given-name-first.
+	"""
 	lookup: dict[str, UUID] = {}
 	async with AuthUnitOfWork() as uow:
 		for definition in HISTORICAL_USERS:
 			user = await uow.users.get_by_email(definition.email)
 			if user is None:
 				raise ValueError(f"Historical user not seeded: {definition.display_name} ({definition.email})")
-			lookup[definition.display_name] = user.id
+			for spelling in name_orderings(definition.first_name, definition.last_name):
+				lookup[spelling] = user.id
 	return lookup
 
 
@@ -82,7 +90,7 @@ async def _clear_historical_tickets(uow: TicketUnitOfWork) -> None:
 async def seed_historical_tickets(uow: TicketUnitOfWork, assignee_lookup: dict[str, UUID]) -> None:
 	await _clear_historical_tickets(uow)
 	for row in load_processed_tickets():
-		assignee_id = assignee_lookup[row.acteur]
+		assignee_id = assignee_lookup[normalize_full_name(row.acteur)]
 		ticket = _build_ticket(row, assignee_id)
 		await uow.tickets.add(ticket)
 

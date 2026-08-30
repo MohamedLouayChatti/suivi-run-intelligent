@@ -11,7 +11,13 @@ class CreateUserCommand:
 	user_id: UUID
 	auth_provider_user_id: AuthProviderUserId
 	email: str
-	display_name: str
+	first_name: str
+	last_name: str
+	"""The two halves of the name, as the identity provider holds them.
+
+	Carried apart rather than pre-joined so that the rule for writing a full name lives in one
+	place -- the domain -- instead of in whichever adapter happened to receive the two fields.
+	"""
 	avatar_url: str | None = None
 	declared_application: str | None = None
 	"""The application the applicant chose for themselves on the signup form, unparsed.

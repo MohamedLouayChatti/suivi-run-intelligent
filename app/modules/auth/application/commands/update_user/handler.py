@@ -21,8 +21,10 @@ class UpdateUserHandler:
 			raise UserNotFound()
 		if command.email is not None:
 			user.email = command.email
-		if command.display_name is not None:
-			user.display_name = command.display_name
+		if command.first_name is not None:
+			user.first_name = command.first_name
+		if command.last_name is not None:
+			user.last_name = command.last_name
 		if command.avatar_url is not None:
 			user.avatar_url = command.avatar_url
 		if command.functional_team is not None or command.application_assignments is not None:

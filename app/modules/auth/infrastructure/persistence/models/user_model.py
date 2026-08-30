@@ -25,7 +25,12 @@ class UserModel(Base):
 	id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True)
 	auth_provider_user_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
 	email: Mapped[str] = mapped_column(String(320), nullable=False, unique=True)
-	display_name: Mapped[str] = mapped_column(String(255), nullable=False)
+	# Two columns, no stored `display_name`: the full name is composed by the domain from
+	# these, so a persisted copy would be a second answer free to drift from the first. Both
+	# non-nullable but freely empty -- an identity provider does not require both halves, and
+	# "" is the absence the composition rule already handles.
+	first_name: Mapped[str] = mapped_column(String(255), nullable=False, default="")
+	last_name: Mapped[str] = mapped_column(String(255), nullable=False, default="")
 	active: Mapped[bool] = mapped_column(Boolean, nullable=False)
 	avatar_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
 	functional_team: Mapped[FunctionalTeam] = mapped_column(SAEnum(FunctionalTeam, name="auth_functional_team"), nullable=False)

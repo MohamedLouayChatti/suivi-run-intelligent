@@ -20,6 +20,7 @@ from app.modules.auth.domain.enums.assignment_type import AssignmentType
 from app.modules.auth.domain.enums.functional_team import FunctionalTeam
 from app.modules.auth.domain.value_objects.application_assignment import ApplicationAssignment
 from app.modules.auth.domain.value_objects.auth_provider_user_id import AuthProviderUserId
+from app.modules.auth.domain.value_objects.person_name import compose_display_name, normalize_name_part
 
 
 @dataclass
@@ -29,7 +30,17 @@ class User:
 	id: UUID
 	auth_provider_user_id: AuthProviderUserId
 	email: str
-	display_name: str
+	first_name: str
+	last_name: str
+	"""The two halves of the person's name, held apart because that is how the identity
+	provider holds them and how both forms that write them ask for them.
+
+	One `display_name` column used to stand for both.  Every layer then had to guess where the
+	boundary fell -- the webhook adapter joined the provider's two fields with a space, the
+	settings form split the result on the first one -- and the two guesses disagree for anyone
+	whose given name or surname runs to more than one word.  `display_name` below is derived
+	from these, so there is nothing left to guess.
+	"""
 	active: bool
 	role_id: UUID
 	"""The one role this user holds.
@@ -48,6 +59,8 @@ class User:
 	revoked_permission_ids: set[UUID] = field(default_factory=set)
 
 	def __post_init__(self) -> None:
+		self.first_name = normalize_name_part(self.first_name)
+		self.last_name = normalize_name_part(self.last_name)
 		if not isinstance(self.functional_team, FunctionalTeam):
 			raise InvalidFunctionalTeam()
 		if not isinstance(self.role_id, UUID):
@@ -55,6 +68,16 @@ class User:
 		if self.direct_permission_ids & self.revoked_permission_ids:
 			raise InvalidPermissionState()
 		self._validate_organizational_identity()
+
+	@property
+	def display_name(self) -> str:
+		"""How this person's name is written wherever the whole of it is shown.
+
+		Derived rather than stored: with both halves held separately there is exactly one way
+		to compose them, and a persisted copy would be a second answer free to disagree with
+		the first.
+		"""
+		return compose_display_name(self.first_name, self.last_name)
 
 	def _validate_organizational_identity(self) -> None:
 		self._validate_assignment_cardinality()
@@ -132,7 +155,8 @@ class User:
 		id: UUID,
 		auth_provider_user_id: AuthProviderUserId,
 		email: str,
-		display_name: str,
+		first_name: str,
+		last_name: str,
 		role_id: UUID,
 		avatar_url: str | None = None,
 		functional_team: FunctionalTeam = FunctionalTeam.SUPPORT,
@@ -142,7 +166,8 @@ class User:
 			id=id,
 			auth_provider_user_id=auth_provider_user_id,
 			email=email,
-			display_name=display_name,
+			first_name=first_name,
+			last_name=last_name,
 			active=False,
 			role_id=role_id,
 			avatar_url=avatar_url,

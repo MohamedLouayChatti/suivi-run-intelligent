@@ -15,7 +15,15 @@ class MeResponse(BaseModel):
 	id: UUID
 	auth_provider_user_id: str
 	email: str
+	first_name: str
+	last_name: str
 	display_name: str
+	"""The two halves and the composed whole.
+
+	All three, because the settings form edits each half while the header renders the whole
+	one, and the frontend must not compose the second from the first: which half leads is a
+	rule this application owns, and duplicating it in React is how the two came to disagree.
+	"""
 	avatar_url: str | None
 	functional_team: FunctionalTeam
 	application_assignments: list[ApplicationAssignmentSchema]
@@ -28,6 +36,8 @@ class MeResponse(BaseModel):
 			id=profile.id,
 			auth_provider_user_id=profile.auth_provider_user_id.value,
 			email=profile.email,
+			first_name=profile.first_name,
+			last_name=profile.last_name,
 			display_name=profile.display_name,
 			avatar_url=profile.avatar_url,
 			functional_team=profile.functional_team,

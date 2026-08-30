@@ -55,15 +55,28 @@ def _email(data: dict[str, Any]) -> str:
 	return ""
 
 
-def _display_name(data: dict[str, Any]) -> str:
-	first = data.get("first_name") or ""
-	last = data.get("last_name") or ""
-	name = f"{first} {last}".strip()
-	return name or data.get("username") or _provider_user_id(data)
-
-
 def _text(value: Any) -> str | None:
 	return value if isinstance(value, str) and value else None
+
+
+def _names(data: dict[str, Any]) -> tuple[str, str]:
+	"""The applicant's given name and surname, as the two fields Clerk holds them in.
+
+	Handed on unjoined.  This used to return one string built as `f"{first} {last}"`, which the
+	settings form then split apart again on the first space -- and a join and a split on a
+	single space are not inverses once either half runs to two words.  All this knows now is
+	where in a Clerk payload the two fields live, which is the same division `_signup_declaration`
+	makes: how a full name is written from them is the domain's rule, not the transport's.
+
+	The fallback stays here because it is entirely about Clerk's payload: an account can exist
+	with neither field set, and something has to name that person.  It is written into the
+	surname because that is the half a lone token reads as under this organization's ordering.
+	"""
+	first = _text(data.get("first_name")) or ""
+	last = _text(data.get("last_name")) or ""
+	if first or last:
+		return first, last
+	return "", _text(data.get("username")) or _provider_user_id(data)
 
 
 def _image_url(data: dict[str, Any]) -> str | None:
@@ -104,9 +117,10 @@ async def receive_webhook(
 	event_type = payload.get("type")
 	data = _data(payload)
 	provider_id = _provider_user_id(data)
+	first_name, last_name = _names(data)
 	if event_type == "user.created":
 		declared_application, declared_functional_team = _signup_declaration(data)
-		result = await create_handler.handle(CreateUserCommand(user_id=uuid4(), auth_provider_user_id=AuthProviderUserId(provider_id), email=_email(data), display_name=_display_name(data), avatar_url=_image_url(data), declared_application=declared_application, declared_functional_team=declared_functional_team))
+		result = await create_handler.handle(CreateUserCommand(user_id=uuid4(), auth_provider_user_id=AuthProviderUserId(provider_id), email=_email(data), first_name=first_name, last_name=last_name, avatar_url=_image_url(data), declared_application=declared_application, declared_functional_team=declared_functional_team))
 	elif event_type == "user.updated":
 		# Profile fields only: the signup metadata is read once, at creation, and never again.
 		# `unsafeMetadata` stays writable by the signed-in user, so re-applying it here would
@@ -115,7 +129,7 @@ async def receive_webhook(
 		# overwrite an administrator's later correction.
 		if local_user_id is None:
 			raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local user was not found.")
-		result = await update_handler.handle(UpdateUserCommand(user_id=local_user_id, email=_email(data), display_name=_display_name(data), avatar_url=_image_url(data)))
+		result = await update_handler.handle(UpdateUserCommand(user_id=local_user_id, email=_email(data), first_name=first_name, last_name=last_name, avatar_url=_image_url(data)))
 	else:
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Unsupported webhook event.")
 	return UserResponse.from_dto(result)

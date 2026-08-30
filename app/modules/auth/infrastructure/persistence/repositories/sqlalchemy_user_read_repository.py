@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from collections import defaultdict
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import Select, except_, func, select, union
+from sqlalchemy import Select, ColumnElement, except_, func, or_, select, union
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -20,7 +21,18 @@ from app.modules.auth.infrastructure.persistence.models.association_tables impor
 )
 from app.modules.auth.infrastructure.persistence.models.permission_model import PermissionModel
 from app.modules.auth.infrastructure.persistence.models.role_model import RoleModel
+from app.modules.auth.domain.value_objects.person_name import name_orderings, normalize_full_name
 from app.modules.auth.infrastructure.persistence.models.user_model import UserModel
+
+
+def _full_name(*columns: ColumnElement[str]) -> ColumnElement[str]:
+	"""`columns` joined into one comparable full name, in the form `normalize_full_name` produces.
+
+	`concat_ws` skips nothing but NULLs, so a user with one half empty yields a leading or
+	trailing space that `btrim` takes off -- which is what makes an empty half compose to the
+	other half alone here exactly as it does in the domain.
+	"""
+	return func.lower(func.btrim(func.concat_ws(" ", *columns)))
 
 
 class SqlAlchemyUserReadRepository(UserReadRepository):
@@ -43,14 +55,29 @@ class SqlAlchemyUserReadRepository(UserReadRepository):
 		result = await self.session.scalars(self._base_query().order_by(UserModel.email).limit(query.limit).offset(query.offset))
 		return [mapper.user_model_to_dto(model) for model in result.all()]
 
-	async def find_by_display_names(self, display_names: Sequence[str]) -> list[UserDTO]:
-		if not display_names:
-			return []
-		normalized = {name.strip().lower() for name in display_names}
+	async def find_by_display_names(self, display_names: Sequence[str]) -> dict[str, list[UserDTO]]:
+		wanted = {name: normalize_full_name(name) for name in display_names}
+		if not wanted:
+			return {}
+
+		# Both orderings, because a name written by hand in a spreadsheet is written in either.
+		# Two comparisons rather than a token set matched in any arrangement: a full name here
+		# is composed of exactly two halves, so swapping them is the only rearrangement that
+		# occurs -- nobody writes the second word of a surname before the given name.
 		result = await self.session.scalars(
-			self._base_query().where(func.lower(func.btrim(UserModel.display_name)).in_(normalized))
+			self._base_query().where(
+				or_(
+					_full_name(UserModel.last_name, UserModel.first_name).in_(set(wanted.values())),
+					_full_name(UserModel.first_name, UserModel.last_name).in_(set(wanted.values())),
+				)
+			)
 		)
-		return [mapper.user_model_to_dto(model) for model in result.all()]
+
+		by_spelling: dict[str, list[UserDTO]] = defaultdict(list)
+		for user in (mapper.user_model_to_dto(model) for model in result.all()):
+			for spelling in name_orderings(user.first_name, user.last_name):
+				by_spelling[spelling].append(user)
+		return {name: list(by_spelling.get(key, ())) for name, key in wanted.items()}
 
 	async def find_active_user_ids_with_permission(self, permission_name: str) -> set[UUID]:
 		# The set arithmetic is AuthorizationService's -- role permissions, plus direct grants,

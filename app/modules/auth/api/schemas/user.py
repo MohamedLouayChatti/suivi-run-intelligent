@@ -22,14 +22,16 @@ class ApplicationAssignmentSchema(BaseModel):
 class UserCreateRequest(BaseModel):
 	auth_provider_user_id: str = Field(min_length=1)
 	email: str = Field(min_length=1)
-	display_name: str = Field(min_length=1)
+	first_name: str = Field(default="")
+	last_name: str = Field(min_length=1)
 	functional_team: FunctionalTeam = FunctionalTeam.SUPPORT
 	application_assignments: list[ApplicationAssignmentSchema] = Field(default_factory=list)
 
 
 class UserUpdateRequest(BaseModel):
 	email: str | None = Field(default=None, min_length=1)
-	display_name: str | None = Field(default=None, min_length=1)
+	first_name: str | None = None
+	last_name: str | None = Field(default=None, min_length=1)
 	functional_team: FunctionalTeam | None = None
 	application_assignments: list[ApplicationAssignmentSchema] | None = None
 
