@@ -29,8 +29,8 @@ async def _execute(args: LookupEngineerArgs, ctx: ToolContext) -> ToolResult:
 		handler = ListUsersHandler(SqlAlchemyUserReadRepository(session))
 		users = await handler.handle(ListUsersQuery(limit=_DIRECTORY_PAGE_SIZE, offset=0))
 		# Token-wise and accent-insensitive rather than substring containment: the directory
-		# stores one name order and callers type either, so "Ala Namouchi" has to reach
-		# "Namouchi Ala". Ranked so the closest match leads, since a partial surname can
+		# stores one name order and callers type either, so "Yassine Kraiem" has to reach
+		# "Kraiem Yassine". Ranked so the closest match leads, since a partial surname can
 		# legitimately answer for several people.
 		matches = sorted(
 			(user for user in users if name_matches(args.name, user.display_name)),

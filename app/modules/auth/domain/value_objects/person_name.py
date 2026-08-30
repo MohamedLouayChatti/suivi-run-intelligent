@@ -5,7 +5,7 @@ def normalize_name_part(value: str) -> str:
 	"""One half of a name, with its whitespace collapsed to single spaces.
 
 	Applied to what an identity provider hands us rather than trusted as given: a surname
-	arrives as `" BEN  JEDDI "` often enough, and two spellings of one name differing only in
+	arrives as `" BEN  AMOR "` often enough, and two spellings of one name differing only in
 	whitespace would otherwise be two different people to every comparison below. Bare
 	`split()` is what does it -- it breaks on runs of any whitespace and drops the empty parts,
 	which is exactly the normalization a name wants: a sequence of tokens, and how many spaces
@@ -17,7 +17,7 @@ def normalize_name_part(value: str) -> str:
 def compose_display_name(first_name: str, last_name: str) -> str:
 	"""The one spelling of a person's full name, in the order this organization writes it.
 
-	Surname first -- `"BEN JEDDI Cyrine"`, not `"Cyrine BEN JEDDI"`. That is the convention of
+	Surname first -- `"BEN AMOR Salma"`, not `"Salma BEN AMOR"`. That is the convention of
 	the historical ticket exports the batch import reads and of every seeded engineer, so it
 	is the order a name has to be written in for those files to still name the people they
 	name.

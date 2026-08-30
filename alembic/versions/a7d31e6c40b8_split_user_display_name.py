@@ -18,9 +18,9 @@ different conventions -- so the split rule is chosen per row from evidence the r
 
 * Every other row was written by the historical-user seeder, whose names follow the ticket
   exports' convention of capitalising the surname and writing it first. The leading run of
-  ALL-CAPS tokens is the surname -- which is what gets `BEN JEDDI`, `BEN MBAREK`, `BEN TAHER`
-  and `PIERROT CALLIZO` right where "first token" would not, and equally what keeps
-  `BAFFOUN Mohamed Ali` from losing half a given name.
+  ALL-CAPS tokens is the surname -- which is what gets `BEN AMOR`, `BEN YOUSSEF`, `BEN SALEM`
+  and `MARTIN DUPONT` right where "first token" would not, and equally what keeps
+  `NASRI Sami Karim` from losing half a given name.
 
 Three rows carry no usable evidence and are named outright below.
 """
@@ -44,12 +44,12 @@ _CLERK_PROVIDER_PREFIX = "user_"
 # rule has nothing to read. The third is a real Clerk account whose owner had typed their
 # surname into the provider's "first name" field; that has since been corrected at Clerk and
 # the correction has already arrived here, so this entry now only covers a database where it
-# has not -- mirroring the uncorrected form would spell them "Ala NAMOUCHI" and stop the
+# has not -- mirroring the uncorrected form would spell them "Yassine KRAIEM" and stop the
 # historical import files naming them.
 _BY_HAND: dict[str, tuple[str, str]] = {
-	"Akram Sahli": ("Akram", "Sahli"),
-	"Mariem Hammami": ("Mariem", "Hammami"),
-	"NAMOUCHI Ala": ("Ala", "NAMOUCHI"),
+	"Skander Ayari": ("Skander", "Ayari"),
+	"Nour Karray": ("Nour", "Karray"),
+	"KRAIEM Yassine": ("Yassine", "KRAIEM"),
 }
 
 

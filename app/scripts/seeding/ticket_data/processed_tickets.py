@@ -20,7 +20,7 @@ PROCESSED_FILES = ("FCI.json", "COLORIS.json", "AERO.json", "VIO.json")
 
 # A handful of historical tickets have no recorded acteur; assigned to this
 # fallback user since Ticket.assignee_id is mandatory.
-FALLBACK_ACTEUR = "TERCHELLAH Rim"
+FALLBACK_ACTEUR = "BOUZIDI Sana"
 
 
 @dataclass(frozen=True, slots=True)

@@ -79,7 +79,7 @@ def name_matches(needle: str, candidate: str) -> bool:
 	"""Whether `candidate` (a stored display name) answers to `needle` (whatever the user typed).
 
 	Order-independent and per-token, because a person is named in both orders in practice: a
-	directory holding "Namouchi Ala" must be found by "Ala Namouchi" just as readily. Plain
+	directory holding "Kraiem Yassine" must be found by "Yassine Kraiem" just as readily. Plain
 	substring containment -- which this replaced -- could only ever match the one order the
 	directory happened to store, so half the ways a colleague is named returned "no such
 	engineer" for someone who plainly exists.
