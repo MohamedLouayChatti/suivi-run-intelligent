@@ -7,8 +7,13 @@ from pydantic import BaseModel, ConfigDict
 from app.modules.conversational_assistant.application.tools.base import ToolContext, ToolResult, ToolSpec
 from app.modules.knowledge_base.application.queries.get_similar_incidents.handler import GetSimilarIncidentsHandler
 from app.modules.knowledge_base.application.queries.get_similar_incidents.query import GetSimilarIncidentsQuery
+from app.modules.knowledge_base.application.dto.similar_incident_dto import SimilarityAnalysisStatus
 from app.modules.knowledge_base.infrastructure.persistence.repositories.sqlalchemy_similarity_read_repository import (
 	SqlAlchemySimilarityReadRepository,
+)
+from app.modules.knowledge_base.infrastructure.vector_store.client import get_qdrant_client
+from app.modules.knowledge_base.infrastructure.vector_store.qdrant_knowledge_item_repository import (
+	QdrantKnowledgeItemRepository,
 )
 from app.modules.ticket_management.infrastructure.persistence.repositories.sqlalchemy_ticket_read_repository import (
 	SqlAlchemyTicketReadRepository,
@@ -36,11 +41,18 @@ async def _execute(args: GetSimilarIncidentsArgs, ctx: ToolContext) -> ToolResul
 
 		handler = GetSimilarIncidentsHandler(
 			SqlAlchemySimilarityReadRepository(session), SqlAlchemyTicketReadRepository(session),
+			QdrantKnowledgeItemRepository(get_qdrant_client()),
 		)
-		incidents = await handler.handle(GetSimilarIncidentsQuery(ticket_id=args.ticket_id))
+		result = await handler.handle(GetSimilarIncidentsQuery(ticket_id=args.ticket_id))
 		return ToolResult(
 			ok=True,
 			payload={
+				# Carried through rather than collapsed into the empty list, for the reason the
+				# field exists at all: a very recently created ticket has not been analysed yet, and
+				# a model shown nothing but an empty list would report "aucun incident similaire" --
+				# a finding -- when the truthful answer is that the analysis is still running.
+				"analysis_status": result.status.value,
+				"analysis_pending": result.status is SimilarityAnalysisStatus.PENDING,
 				"similar_incidents": [
 					{
 						"ticket_id": str(incident.ticket_id), "title": incident.title,
@@ -48,8 +60,8 @@ async def _execute(args: GetSimilarIncidentsArgs, ctx: ToolContext) -> ToolResul
 						"similarity_score": round(incident.similarity_score, 3),
 						"matched_reference": incident.matched_reference,
 					}
-					for incident in incidents
-				]
+					for incident in result.incidents
+				],
 			},
 		)
 	finally:
@@ -60,7 +72,9 @@ GET_SIMILAR_INCIDENTS = ToolSpec(
 	name="get_similar_incidents",
 	description=(
 		"Retourne les tickets déjà résolus les plus semblables à un ticket donné, avec leur "
-		"score de similarité -- utile pour savoir si un incident s'est déjà produit."
+		"score de similarité -- utile pour savoir si un incident s'est déjà produit. Si "
+		"analysis_pending vaut true, l'analyse du ticket n'est pas encore terminée : la liste est "
+		"vide parce qu'il est trop tôt, et non parce qu'aucun incident semblable n'existe."
 	),
 	args_model=GetSimilarIncidentsArgs,
 	required_permission="ticket.read",

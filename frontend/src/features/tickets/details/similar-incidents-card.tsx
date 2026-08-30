@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowUpRight, ChevronDown } from "lucide-react"
+import { ArrowUpRight, ChevronDown, Loader2 } from "lucide-react"
 
 import { SectionCard } from "@/components/app/page"
 import { StatusBadge } from "@/components/app/status"
@@ -23,6 +23,14 @@ interface SimilarIncidentsCardProps {
   incidents: SimilarIncident[]
   isLoading: boolean
   isError: boolean
+  /**
+   * The analysis behind this ticket has not produced results yet — it runs as a background job
+   * once the ticket is created, so a reader who opens a brand-new ticket gets here first. Distinct
+   * from `isLoading`, which is about this request; this is about the work the request asks after.
+   */
+  isAnalysisPending: boolean
+  /** That work was still unfinished when we stopped waiting on it. */
+  hasTimedOut: boolean
   /** The ticket being viewed — carried into each link so the target page can show the way back. */
   sourceTicketId: string
 }
@@ -31,6 +39,8 @@ function SimilarIncidentsCard({
   incidents,
   isLoading,
   isError,
+  isAnalysisPending,
+  hasTimedOut,
   sourceTicketId,
 }: SimilarIncidentsCardProps) {
   return (
@@ -54,6 +64,26 @@ function SimilarIncidentsCard({
           <p className="mt-1 text-xs">
             La base de connaissances n&apos;a pas pu être interrogée. Réessayez en rechargeant la
             page&nbsp;; le ticket reste consultable normalement.
+          </p>
+        </div>
+      ) : isAnalysisPending ? (
+        <div className="px-5 py-6 text-sm text-muted-foreground">
+          <p className="flex items-center gap-2 font-medium text-foreground">
+            <Loader2 className="size-3.5 animate-spin" aria-hidden />
+            Analyse en cours
+          </p>
+          <p className="mt-1 text-xs">
+            La recherche d&apos;incidents similaires démarre à la création du ticket et prend
+            quelques instants. Les résultats s&apos;afficheront ici automatiquement.
+          </p>
+        </div>
+      ) : hasTimedOut ? (
+        <div className="px-5 py-6 text-sm text-muted-foreground">
+          <p className="font-medium text-foreground">Analyse non aboutie</p>
+          <p className="mt-1 text-xs">
+            Ce ticket n&apos;a pas encore été analysé. Il le sera lors de la prochaine
+            reconstruction de la base de connaissances&nbsp;; rechargez la page plus tard pour voir
+            les incidents similaires.
           </p>
         </div>
       ) : incidents.length === 0 ? (

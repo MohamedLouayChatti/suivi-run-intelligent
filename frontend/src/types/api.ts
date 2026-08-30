@@ -1938,6 +1938,36 @@ export interface components {
             matched_reference: boolean;
         };
         /**
+         * SimilarIncidentsResponse
+         * @description The endpoint's response, an object rather than the bare array it used to be.
+         *
+         *     The array could not say whether an empty answer meant "nothing is close enough" or "the
+         *     background analysis has not finished", and the frontend was rendering the first message for
+         *     both. Wrapping is what makes the difference expressible.
+         */
+        SimilarIncidentsResponse: {
+            status: components["schemas"]["SimilarityAnalysisStatus"];
+            /** Incidents */
+            incidents: components["schemas"]["SimilarIncidentResponse"][];
+        };
+        /**
+         * SimilarityAnalysisStatus
+         * @description Whether this ticket's similarity analysis has run yet.
+         *
+         *     Exists because an empty result has two meanings that a bare list cannot tell apart, and they
+         *     are opposite ones: "nothing in the corpus is close enough to this description" is a finding,
+         *     while "we have not looked yet" is not. Since a newly created ticket is analysed in a background
+         *     job rather than in the request that created it, the second case is now an ordinary state a
+         *     reader can arrive in, lasting as long as the job takes.
+         *
+         *     A read-model concept rather than a domain one, which is why it lives here beside the DTO it is
+         *     returned on and not in domain/enums/. Nothing persists it and no rule branches on it: it is
+         *     derived per request from whether the corpus holds this ticket, and it exists so the frontend can
+         *     say "analyse en cours" instead of asserting there are no similar incidents.
+         * @enum {string}
+         */
+        SimilarityAnalysisStatus: "PENDING" | "READY";
+        /**
          * Status
          * @enum {string}
          */
@@ -4295,7 +4325,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SimilarIncidentResponse"][];
+                    "application/json": components["schemas"]["SimilarIncidentsResponse"];
                 };
             };
             /** @description Validation Error */

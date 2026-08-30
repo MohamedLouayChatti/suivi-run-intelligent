@@ -15,7 +15,7 @@ from app.modules.knowledge_base.api.schemas.recalculation_schedule import (
 	RecalculationScheduleResponse,
 	UpdateRecalculationScheduleRequest,
 )
-from app.modules.knowledge_base.api.schemas.similar_incident import SimilarIncidentResponse
+from app.modules.knowledge_base.api.schemas.similar_incident import SimilarIncidentsResponse
 from app.modules.knowledge_base.application.commands.import_ticket_batch.command import ImportTicketBatchCommand
 from app.modules.knowledge_base.application.commands.trigger_similarity_recalculation.command import (
 	TriggerSimilarityRecalculationCommand,
@@ -37,15 +37,14 @@ router = APIRouter(prefix="/knowledge-base", tags=["knowledge-base"])
 
 @router.get(
 	"/tickets/{ticket_id}/similar",
-	response_model=list[SimilarIncidentResponse],
+	response_model=SimilarIncidentsResponse,
 	dependencies=[
 		Depends(require_permissions("ticket.read")),
 		Depends(require_instance_permission("ticket", "read", path_param="ticket_id")),
 	],
 )
 async def get_similar_incidents(ticket_id: UUID, handler=Depends(dep.get_get_similar_incidents_handler)):
-	incidents = await handler.handle(GetSimilarIncidentsQuery(ticket_id=ticket_id))
-	return [SimilarIncidentResponse.from_dto(incident) for incident in incidents]
+	return SimilarIncidentsResponse.from_dto(await handler.handle(GetSimilarIncidentsQuery(ticket_id=ticket_id)))
 
 
 # The three routes below are maintenance rather than retrieval, and are gated by permissions of

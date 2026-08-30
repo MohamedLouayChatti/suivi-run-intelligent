@@ -4,7 +4,11 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
-from app.modules.knowledge_base.application.dto.similar_incident_dto import SimilarIncidentDTO
+from app.modules.knowledge_base.application.dto.similar_incident_dto import (
+	SimilarIncidentDTO,
+	SimilarIncidentsDTO,
+	SimilarityAnalysisStatus,
+)
 from app.modules.ticket_management.domain.enums.status import Status
 
 
@@ -28,4 +32,23 @@ class SimilarIncidentResponse(BaseModel):
 			similarity_score=incident.similarity_score,
 			rank=incident.rank,
 			matched_reference=incident.matched_reference,
+		)
+
+
+class SimilarIncidentsResponse(BaseModel):
+	"""The endpoint's response, an object rather than the bare array it used to be.
+
+	The array could not say whether an empty answer meant "nothing is close enough" or "the
+	background analysis has not finished", and the frontend was rendering the first message for
+	both. Wrapping is what makes the difference expressible.
+	"""
+
+	status: SimilarityAnalysisStatus
+	incidents: list[SimilarIncidentResponse]
+
+	@classmethod
+	def from_dto(cls, result: SimilarIncidentsDTO) -> SimilarIncidentsResponse:
+		return cls(
+			status=result.status,
+			incidents=[SimilarIncidentResponse.from_dto(incident) for incident in result.incidents],
 		)

@@ -55,6 +55,8 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
     incidents: similarIncidents,
     isLoading: isLoadingSimilarIncidents,
     isError: similarIncidentsFailed,
+    isAnalysisPending: isSimilarityAnalysisPending,
+    hasTimedOut: similarityAnalysisTimedOut,
   } = useSimilarIncidents(id)
   const { user: currentUser, hasPermission, isTicketAssignee, canManageOthersTickets } = usePermissions()
 
@@ -172,6 +174,8 @@ function TicketDetailView({ id, fromTicketId }: { id: string; fromTicketId: stri
               incidents={similarIncidents}
               isLoading={isLoadingSimilarIncidents}
               isError={similarIncidentsFailed}
+              isAnalysisPending={isSimilarityAnalysisPending}
+              hasTimedOut={similarityAnalysisTimedOut}
               sourceTicketId={ticket.id}
             />
           </div>

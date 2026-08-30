@@ -4,6 +4,7 @@ import { httpClient } from "./client"
 import { ApiError } from "./errors"
 
 type SimilarIncident = components["schemas"]["SimilarIncidentResponse"]
+type SimilarIncidents = components["schemas"]["SimilarIncidentsResponse"]
 type RecalculationSchedule = components["schemas"]["RecalculationScheduleResponse"]
 type UpdateRecalculationSchedule = components["schemas"]["UpdateRecalculationScheduleRequest"]
 type BatchImportReport = components["schemas"]["BatchImportResponse"]
@@ -13,12 +14,16 @@ type Application = components["schemas"]["Application"]
 
 /**
  * GET /knowledge-base/tickets/{id}/similar — the incidents the similarity graph already holds
- * for this ticket, strongest first. Never computed on read: the backend writes them when the
- * ticket is created and refreshes them on every full recalculation, so an empty list means the
- * corpus has nothing close enough, not that a search failed.
+ * for this ticket, strongest first. Never computed on read: the backend writes them in a
+ * background job once the ticket is created and refreshes them on every full recalculation.
+ *
+ * Which is why the response carries a `status` alongside the list rather than being the list
+ * itself. An empty `incidents` means the corpus has nothing close enough only when `status` is
+ * READY; while it is PENDING the job has simply not finished, and the two must not be rendered
+ * the same way.
  */
-async function listSimilarIncidents(ticketId: string): Promise<SimilarIncident[]> {
-  const { data } = await httpClient.get<SimilarIncident[]>(
+async function listSimilarIncidents(ticketId: string): Promise<SimilarIncidents> {
+  const { data } = await httpClient.get<SimilarIncidents>(
     `/knowledge-base/tickets/${ticketId}/similar`,
   )
   return data
@@ -83,6 +88,7 @@ export {
 }
 export type {
   SimilarIncident,
+  SimilarIncidents,
   RecalculationSchedule,
   UpdateRecalculationSchedule,
   BatchImportReport,

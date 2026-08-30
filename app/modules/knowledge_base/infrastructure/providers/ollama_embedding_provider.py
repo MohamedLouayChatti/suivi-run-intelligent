@@ -16,6 +16,19 @@ logger = logging.getLogger(__name__)
 # evaluation notebook's model_info.json, so a stamped row can be read straight back against it.
 _DIGEST_LENGTH = 19
 
+# How long Ollama keeps the weights resident after an embed, overriding its 5-minute default.
+#
+# This is a memory-for-latency trade, and the numbers it is set against are this deployment's: the
+# model is ~1.2 GB on a CPU-only 16 GB machine, and the team creates on the order of eight tickets
+# a day. Under the default those eight arrive far enough apart that nearly every one pays a full
+# cold load from disk; two hours is long enough that a working day's tickets cluster onto one load,
+# and short enough that an idle evening gives the memory back rather than holding it overnight.
+#
+# Not a setting, for the same reason the retry policy is not: it describes how this module wants to
+# use an Ollama, not where that Ollama is. It is also only a hint -- a remote or cloud endpoint is
+# free to manage residency however it likes, and nothing here depends on it being honoured.
+_MODEL_KEEP_ALIVE = "2h"
+
 
 class EmbeddingProviderUnavailable(RuntimeError):
 	"""Ollama could not be reached, or does not have the pinned model."""
@@ -54,11 +67,13 @@ class OllamaEmbeddingProvider(EmbeddingProvider):
 		model_tag: str = EMBEDDING_MODEL_TAG,
 		max_attempts: int = 3,
 		base_retry_delay_seconds: float = 1.0,
+		keep_alive: str = _MODEL_KEEP_ALIVE,
 	) -> None:
 		self._host = host
 		self._model_tag = model_tag
 		self._max_attempts = max_attempts
 		self._base_retry_delay_seconds = base_retry_delay_seconds
+		self._keep_alive = keep_alive
 		self._client = AsyncClient(
 			host=host, headers={"Authorization": f"Bearer {api_key}"} if api_key else None
 		)
@@ -106,7 +121,9 @@ class OllamaEmbeddingProvider(EmbeddingProvider):
 		last_error: Exception | None = None
 		for attempt in range(1, self._max_attempts + 1):
 			try:
-				response = await self._client.embed(model=self._model_tag, input=text)
+				response = await self._client.embed(
+					model=self._model_tag, input=text, keep_alive=self._keep_alive
+				)
 				return list(response.embeddings[0])
 			except Exception as exc:  # noqa: BLE001 -- the ollama client raises several unrelated types
 				last_error = exc

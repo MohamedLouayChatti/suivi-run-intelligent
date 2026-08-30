@@ -111,11 +111,21 @@ async def get_similarity_read_repository() -> AsyncIterator[SqlAlchemySimilarity
 		await session.close()
 
 
+def get_knowledge_item_repository() -> QdrantKnowledgeItemRepository:
+	"""The corpus, over the pooled Qdrant client.
+
+	Not a generator dependency like the Postgres repositories above: there is no per-request session
+	to open and close, only a stateless wrapper over a client that is pooled process-wide.
+	"""
+	return QdrantKnowledgeItemRepository(get_qdrant_client())
+
+
 def get_get_similar_incidents_handler(
 	similarity_read_repository: Annotated[SqlAlchemySimilarityReadRepository, Depends(get_similarity_read_repository)],
 	ticket_read_repository: Annotated[SqlAlchemyTicketReadRepository, Depends(get_ticket_read_repository)],
+	knowledge_items: Annotated[QdrantKnowledgeItemRepository, Depends(get_knowledge_item_repository)],
 ) -> GetSimilarIncidentsHandler:
-	return GetSimilarIncidentsHandler(similarity_read_repository, ticket_read_repository)
+	return GetSimilarIncidentsHandler(similarity_read_repository, ticket_read_repository, knowledge_items)
 
 
 async def get_recalculation_schedule_repository() -> AsyncIterator[
@@ -189,7 +199,7 @@ def get_import_ticket_batch_handler(
 			users=users,
 		),
 		discard_imported_tickets=DiscardImportedTicketsHandler(TicketUnitOfWork(), ticket_event_publisher),
-		knowledge_items=QdrantKnowledgeItemRepository(get_qdrant_client()),
+		knowledge_items=get_knowledge_item_repository(),
 		ingestion=CorpusIngestion(OllamaEmbeddingProvider.from_settings()),
 		runner=similarity_recalculation_runner,
 		job_queue=job_queue,
