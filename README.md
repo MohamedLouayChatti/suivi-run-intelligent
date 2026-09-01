@@ -47,13 +47,13 @@ A single FastAPI process hosts seven independently-layered modules against one P
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│                              FastAPI process                         │
-│                                                                        │
-│   auth   ticket_management   knowledge_base   analytics   audit      │
-│                    notifications   conversational_assistant          │
-│                                                                        │
-│   each module:  api/ → application/ → domain/ → infrastructure/      │
-└──────────┬───────────────────────┬──────────────────────┬────────────┘
+│                              FastAPI process                        │
+│                                                                     │
+│   auth   ticket_management   knowledge_base   analytics   audit     │
+│                    notifications   conversational_assistant         │
+│                                                                     │
+│   each module:  api/ → application/ → domain/ → infrastructure/     │
+└──────────┬───────────────────────┬──────────────────────┬───────────┘
            │                       │                      │
       PostgreSQL                Qdrant                 Ollama
    (system of record)      (vector corpus)        (embeddings + chat)
