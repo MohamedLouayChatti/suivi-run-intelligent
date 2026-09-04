@@ -45,19 +45,7 @@ It is not a chatbot wrapped around a ticketing system — it's a ticketing syste
 
 A single FastAPI process hosts seven independently-layered modules against one Postgres database:
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                              FastAPI process                        │
-│                                                                     │
-│   auth   ticket_management   knowledge_base   analytics   audit     │
-│                    notifications   conversational_assistant         │
-│                                                                     │
-│   each module:  api/ → application/ → domain/ → infrastructure/     │
-└──────────┬───────────────────────┬──────────────────────┬───────────┘
-           │                       │                      │
-      PostgreSQL                Qdrant                 Ollama
-   (system of record)      (vector corpus)        (embeddings + chat)
-```
+![Suivi RUN Intelligent — high-level architecture](docs/architecture.png)
 
 Every module follows the same four-layer split, and the dependency direction is enforced, not aspirational — `domain/` never imports SQLAlchemy, FastAPI, or Qdrant types:
 
